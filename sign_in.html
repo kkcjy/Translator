@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建账户</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #4a90e2;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+        
+        .verification {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .verification input {
+            flex: 1;
+        }
+        
+        .verification button {
+            white-space: nowrap;
+            padding: 0 15px;
+            background: #f0f5ff;
+            color: #4a90e2;
+            border: 1px solid #d0deff;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .verification button:hover {
+            background: #e0ebff;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            background: #357abD;
+        }
+        
+        .links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .links a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>创建账户</h1>
+        <form id="registerForm">
+            <div class="input-group">
+                <label for="email">电子邮箱</label>
+                <input type="email" id="email" placeholder="name@example.com" required>
+                <div class="error" id="emailError">请输入有效的电子邮件地址</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="password" required>
+                <div class="error" id="passwordError">密码必须至少包含8个字符</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="confirmPassword">确认密码</label>
+                <input type="password" id="confirmPassword" placeholder="confirm password" required>
+                <div class="error" id="confirmError">密码不匹配</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="username" required>
+                <div class="error" id="usernameError">用户名不能为空</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="verificationCode">验证码</label>
+                <div class="verification">
+                    <input type="text" id="verificationCode" placeholder="请输入验证码" required>
+                    <button type="button" id="sendCodeBtn">发送验证码</button>
+                </div>
+                <div class="error" id="codeError">验证码错误</div>
+            </div>
+            
+            <button type="submit" class="submit-btn">注册</button>
+        </form>
+        
+        <div class="links">
+            已有账户？<a href="#">登录</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 简单的表单验证
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const username = document.getElementById('username').value;
+            
+            let isValid = true;
+            
+            // 邮箱验证
+            if (!validateEmail(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('emailError').style.display = 'none';
+            }
+            
+            // 密码验证
+            if (password.length < 8) {
+                document.getElementById('passwordError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('passwordError').style.display = 'none';
+            }
+            
+            // 确认密码验证
+            if (password !== confirmPassword) {
+                document.getElementById('confirmError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('confirmError').style.display = 'none';
+            }
+            
+            // 用户名验证
+            if (username.trim() === '') {
+                document.getElementById('usernameError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('usernameError').style.display = 'none';
+            }
+            
+            if (isValid) {
+                alert('注册成功！');
+                // 在实际应用中，这里会提交表单到服务器
+            }
+        });
+        
+        document.getElementById('sendCodeBtn').addEventListener('click', function() {
+            const email = document.getElementById('email').value;
+            
+            if (!validateEmail(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                return;
+            }
+            // 模拟发送验证码
+            this.disabled = true;
+            let countdown = 60;
+            
+            const timer = setInterval(() => {
+                this.textContent = `重新发送(${countdown})`;
+                countdown--;
+                if (countdown < 0) {
+                    clearInterval(timer);
+                    this.textContent = '发送验证码';
+                    this.disabled = false;
+                }
+            }, 1000);
+            
+            alert('验证码已发送到您的邮箱');
+        });
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+    </script>
+</body>
+</html>
