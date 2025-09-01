@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/page-auth.css">
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-decoration">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <!-- 登录容器 -->
+    <div class="login-container">
+        <h2 class="login-title">用户登录</h2>
+        <form id="loginForm">
+            <!-- 邮箱输入 -->
+            <div class="form-group">
+                <label class="form-label" for="email">电子邮箱</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" class="form-input" placeholder="请输入邮箱地址" required>
+                </div>
+                <div class="error-message" id="emailError">请输入有效的电子邮箱地址</div>
+            </div>
+
+            <!-- 密码输入 -->
+            <div class="form-group">
+                <label class="form-label" for="password">密码</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
+                    <button type="button" class="toggle-password" id="togglePassword">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="error-message" id="passwordError">密码不能为空</div>
+            </div>
+
+            <!-- 记住密码与忘记密码 -->
+            <div class="remember-forgot">
+                <label class="remember-me">
+                    <input type="checkbox" class="remember-checkbox" id="rememberMe">
+                    <span class="remember-text">记住我</span>
+                </label>
+                <a href="#" class="forgot-password">忘记密码？</a>
+            </div>
+
+            <!-- 登录按钮 -->
+            <button type="submit" class="login-btn" id="loginBtn">
+                登录
+            </button>
+
+            <!-- 注册链接 -->
+            <div class="register-link">
+                还没有账户？<a href="#" class="register-btn">立即注册</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 引入page-login.js -->
+    <script src="js/page-login.js"></script>
+</body>
+</html>
