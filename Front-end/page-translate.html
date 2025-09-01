@@ -8,6 +8,7 @@
   <!-- 引入css配置 -->
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/page-translate.css">
+  <link rel="stylesheet" href="css/page-tool.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -34,32 +35,101 @@
   <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur z-50 shadow-sm transition-all duration-300" id="navbar">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-2">
-        <img src="img/logo_purple.jpg" alt="logo" style="width: 30px; height: 30px;" />
+        <img src="img/logo.jpg" alt="logo" style="width: 30px; height: 30px;" />
         <h1 class="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">文枢</h1>
       </div>
 
       <div class="hidden md:flex items-center space-x-6">
         <a href="page-login.html" class="text-dark/80 hover:text-primary transition-colors">注册/登录</a>
         <a href="#" class="text-dark/80 hover:text-primary transition-colors">历史记录</a>
-        <a href="#" class="text-dark/80 hover:text-primary transition-colors">关于我们</a>
-        <a href="page-setting.html" class="text-dark/80 hover:text-primary transition-colors">设置</a>
-      </div>
-      
-      <button class="md:hidden text-dark text-xl" id="mobile-menu-button">
-        <i class="fa fa-bars"></i>
-      </button>
-    </div>
-
-    <!-- 移动端菜单 -->
-    <div class="md:hidden bg-white shadow-md absolute w-full left-0 top-full transform -translate-y-full opacity-0 pointer-events-none transition-all duration-300" id="mobile-menu">
-      <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
-        <a href="page-login.html" class="text-dark/80 hover:text-primary py-2 transition-colors">注册/登录</a>
-        <a href="#" class="text-dark/80 hover:text-primary py-2 transition-colors">历史记录</a>
-        <a href="#" class="text-dark/80 hover:text-primary py-2 transition-colors">关于我们</a>
-        <a href="page-setting.html" class="text-dark/80 hover:text-primary py-2 transition-colors">设置</a>
+        <a href="#" id="open-settings" class="text-dark/80 hover:text-primary transition-colors">设置</a>
+        <a href="#" id="open-feedback" class="text-dark/80 hover:text-primary transition-colors">反馈</a>
       </div>
     </div>
   </header>
+
+  <!------------------------------------------------------------------------------------------------------------------------------>
+  <!-- 设置弹窗 -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-96">
+      <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">显示设置</h2>
+
+      <!-- 字体大小 -->
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">字体大小</label>
+        <div class="flex items-center space-x-2">
+          <button class="px-3 py-1 border rounded font-medium text-gray-700 dark:text-gray-200" data-size="small">小</button>
+          <button class="px-3 py-1 border rounded font-medium text-gray-700 dark:text-gray-200" data-size="medium">中</button>
+          <button class="px-3 py-1 border rounded font-medium text-gray-700 dark:text-gray-200" data-size="large">大</button>
+        </div>
+      </div>
+
+      <!-- 背景主题 -->
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">背景主题</label>
+        <div class="flex items-center space-x-2">
+          <button class="px-3 py-1 border rounded font-medium text-gray-700 dark:text-gray-200" data-theme="light">浅色</button>
+          <button class="px-3 py-1 border rounded font-medium text-gray-700 dark:text-gray-200" data-theme="dark">深色</button>
+          <button class="px-3 py-1 border rounded font-medium text-gray-700 dark:text-gray-200" data-theme="eye">护眼</button>
+        </div>
+      </div>
+
+      <!-- 实时预览 -->
+      <div class="mb-4 p-3 border rounded h-28 overflow-auto bg-gray-50 dark:bg-gray-700" id="preview-box">
+        这是翻译结果的预览区域。字体大小、背景和主题会实时生效。
+      </div>
+
+      <div class="flex justify-between">
+        <button id="reset-settings" class="px-4 py-2 border rounded text-gray-700 dark:text-gray-200">重置默认</button>
+        <button id="close-settings" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors">关闭</button>
+      </div>
+    </div>
+  </div>
+  <!------------------------------------------------------------------------------------------------------------------------------>
+  <!-- 反馈弹窗 -->
+  <div id="feedback-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-96">
+      <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">提交反馈</h2>
+
+      <!-- 模型选择 -->
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">选择模型</label>
+        <select id="model-select" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+          <option value="speed" title="快速响应，适合日常对话翻译">高速翻译模型（速度优先）</option>
+          <option value="precision" title="专业级翻译，适合文档、学术内容">高精度翻译模型（精度优先）</option>
+          <option value="deepr" title="AI大模型，上下文理解能力强">DeepSeek-R1（AI模型）</option>
+          <option value="tongyi" title="支持批量翻译，文化适配性好">通义千问（多语言）</option>
+        </select>
+      </div>
+
+      <!-- 好评/差评 -->
+      <div class="mb-4">
+        <span class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">评价</span>
+        <div class="flex items-center space-x-4">
+          <label class="flex items-center cursor-pointer">
+            <input type="radio" name="feedback-score" value="good" class="mr-2 accent-green-500">
+            <span>👍 好评</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input type="radio" name="feedback-score" value="bad" class="mr-2 accent-red-500">
+            <span>👎 差评</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 文本评价 -->
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">评价内容</label>
+        <textarea id="feedback-text" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" rows="4" placeholder="请输入您的评价..."></textarea>
+      </div>
+
+      <div class="flex justify-between">
+        <button id="close-feedback" class="px-4 py-2 border rounded text-gray-700 dark:text-gray-200">取消</button>
+        <button id="submit-feedback" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors">提交</button>
+      </div>
+    </div>
+  </div>
+  <!------------------------------------------------------------------------------------------------------------------------------>
 
   <!-- 主内容区 -->
   <main class="container mx-auto px-4 pt-24 pb-16">
@@ -333,7 +403,9 @@
     <span id="notification-text">操作成功</span>
   </div>
 
-  <!-- 引入page-translate.js -->
+  <!-- 引入page-translate.js, page-setting.js, page-feedback.js -->
   <script src="js/page-translate.js"></script>
+  <script src="js/page-setting.js"></script>
+  <script src="js/page-feedback.js"></script>
 </body>
 </html>

@@ -1,0 +1,64 @@
+/************************************************************
+            page-tool.css 用于个性化设置和反馈页面 
+ ************************************************************/
+
+ #settings-modal {
+  display: none; /* 默认隐藏，JS控制flex显示 */
+  align-items: center;
+  justify-content: center;
+}
+
+#settings-modal.flex {
+  display: flex;
+}
+
+#preview-box {
+  font-size: 16px;
+  color: #111827; /* 深色文字 */
+  background-color: #f8fafc; /* 浅色背景 */
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+/* 夜间模式 */
+.dark #preview-box {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+/* 护眼模式 */
+.eye #preview-box {
+  background-color: #fef9f0;
+  color: #111827;
+}
+
+/* 按钮悬停效果 */
+#settings-modal button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  transition: all 0.2s ease;
+}
+
+#feedback-modal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#feedback-modal.flex {
+  display: flex;
+}
+
+#feedback-modal select,
+#feedback-modal textarea {
+  transition: all 0.3s ease;
+}
+
+#feedback-modal select:focus,
+#feedback-modal textarea:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
