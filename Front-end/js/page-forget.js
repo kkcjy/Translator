@@ -1,8 +1,8 @@
 // 密码显示/隐藏切换
-const togglePassword = document.getElementById('togglePassword');
-const passwordInput = document.getElementById('password');
-const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-const confirmPasswordInput = document.getElementById('confirmPassword');
+const toggleNewPassword = document.getElementById('toggleNewPassword');
+const newPasswordInput = document.getElementById('newPassword');
+const toggleConfirmNewPassword = document.getElementById('toggleConfirmNewPassword');
+const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
 
 function setupPasswordToggle(toggleBtn, inputField) {
     toggleBtn.addEventListener('click', () => {
@@ -21,8 +21,8 @@ function setupPasswordToggle(toggleBtn, inputField) {
     });
 }
 
-setupPasswordToggle(togglePassword, passwordInput);
-setupPasswordToggle(toggleConfirmPassword, confirmPasswordInput);
+setupPasswordToggle(toggleNewPassword, newPasswordInput);
+setupPasswordToggle(toggleConfirmNewPassword, confirmNewPasswordInput);
 
 // 验证码发送
 const sendCodeBtn = document.getElementById('sendCodeBtn');
@@ -65,21 +65,12 @@ sendCodeBtn.addEventListener('click', () => {
 });
 
 // 表单提交处理
-const registerForm = document.getElementById('registerForm');
-const registerBtn = document.getElementById('registerBtn');
+const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+const submitBtn = document.getElementById('submitBtn');
 
-registerForm.addEventListener('submit', (e) => {
+forgotPasswordForm.addEventListener('submit', (e) => {
     e.preventDefault();
     let isValid = true;
-
-    // 用户名验证
-    const username = document.getElementById('username').value.trim();
-    if (username === '') {
-        document.getElementById('usernameError').style.display = 'block';
-        isValid = false;
-    } else {
-        document.getElementById('usernameError').style.display = 'none';
-    }
 
     // 邮箱验证
     const email = document.getElementById('email').value.trim();
@@ -88,24 +79,6 @@ registerForm.addEventListener('submit', (e) => {
         isValid = false;
     } else {
         document.getElementById('emailError').style.display = 'none';
-    }
-
-    // 密码验证
-    const password = passwordInput.value.trim();
-    if (password.length < 8) {
-        document.getElementById('passwordError').style.display = 'block';
-        isValid = false;
-    } else {
-        document.getElementById('passwordError').style.display = 'none';
-    }
-
-    // 确认密码验证
-    const confirmPassword = confirmPasswordInput.value.trim();
-    if (confirmPassword !== password) {
-        document.getElementById('confirmError').style.display = 'block';
-        isValid = false;
-    } else {
-        document.getElementById('confirmError').style.display = 'none';
     }
 
     // 验证码验证
@@ -118,20 +91,38 @@ registerForm.addEventListener('submit', (e) => {
         document.getElementById('codeError').style.display = 'none';
     }
 
-    // 如果验证通过，模拟注册过程
+    // 新密码验证
+    const newPassword = newPasswordInput.value.trim();
+    if (newPassword.length < 8) {
+        document.getElementById('newPasswordError').style.display = 'block';
+        isValid = false;
+    } else {
+        document.getElementById('newPasswordError').style.display = 'none';
+    }
+
+    // 确认新密码验证
+    const confirmNewPassword = confirmNewPasswordInput.value.trim();
+    if (confirmNewPassword !== newPassword) {
+        document.getElementById('confirmError').style.display = 'block';
+        isValid = false;
+    } else {
+        document.getElementById('confirmError').style.display = 'none';
+    }
+
+    // 如果验证通过，模拟重置密码过程
     if (isValid) {
         // 显示加载状态
-        registerBtn.disabled = true;
-        registerBtn.innerHTML = '<span class="loading-spinner"></span> 注册中...';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading-spinner"></span> 重置中...';
 
-        // 模拟注册请求
+        // 模拟重置请求
         setTimeout(() => {
-            // 注册成功提示
-            alert('注册成功！即将跳转到登录页面');
+            // 重置成功提示
+            alert('密码重置成功！即将跳转到登录页面');
             
             // 重置按钮状态
-            registerBtn.disabled = false;
-            registerBtn.innerHTML = '注册';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '重置密码';
             
             // 实际项目中此处跳转到登录页面
             // window.location.href = '/login';
