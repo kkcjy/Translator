@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找回密码</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/page-auth.css">
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-decoration">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <!-- 找回密码容器 -->
+    <div class="login-container">
+        <h2 class="login-title">找回密码</h2>
+        <form id="forgotPasswordForm">
+            <!-- 邮箱输入 -->
+            <div class="form-group">
+                <label class="form-label" for="email">电子邮箱</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" class="form-input" placeholder="请输入您的注册邮箱" required>
+                </div>
+                <div class="error-message" id="emailError">请输入有效的电子邮箱地址</div>
+            </div>
+
+            <!-- 验证码 -->
+            <div class="form-group">
+                <label class="form-label" for="verificationCode">验证码</label>
+                <div class="input-wrapper" style="display: flex; gap: 10px;">
+                    <div style="flex: 1; position: relative;">
+                        <i class="fas fa-shield-alt input-icon"></i>
+                        <input type="text" id="verificationCode" class="form-input" placeholder="请输入验证码" required>
+                    </div>
+                    <button type="button" class="login-btn" id="sendCodeBtn" style="padding: 0 20px; width: auto;">
+                        发送验证码
+                    </button>
+                </div>
+                <div class="error-message" id="codeError">验证码错误</div>
+            </div>
+
+            <!-- 新密码输入 -->
+            <div class="form-group">
+                <label class="form-label" for="newPassword">新密码</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="newPassword" class="form-input" placeholder="请设置新密码" required>
+                    <button type="button" class="toggle-password" id="toggleNewPassword">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="error-message" id="newPasswordError">密码长度不能少于8个字符</div>
+            </div>
+
+            <!-- 确认新密码输入 -->
+            <div class="form-group">
+                <label class="form-label" for="confirmNewPassword">确认新密码</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="confirmNewPassword" class="form-input" placeholder="请再次输入新密码" required>
+                    <button type="button" class="toggle-password" id="toggleConfirmNewPassword">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="error-message" id="confirmError">两次输入的密码不一致</div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <button type="submit" class="login-btn" id="submitBtn">
+                重置密码
+            </button>
+
+            <!-- 登录链接 -->
+            <div class="register-link">
+                想起密码了？<a href="#" class="register-btn">立即登录</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 引入page-forget.js -->
+    <script src="js/page-forget.js"></script>
+</body>
+</html>
