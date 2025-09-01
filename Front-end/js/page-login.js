@@ -65,7 +65,6 @@ loginForm.addEventListener('submit', (e) => {
 
             // 登录成功提示
             alert('登录成功！即将跳转到首页');
-            window.location.href = 'http://localhost:52330/page-translate.html';
             
             // 重置按钮状态
             loginBtn.disabled = false;
