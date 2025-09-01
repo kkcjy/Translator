@@ -71,6 +71,7 @@ loginForm.addEventListener('submit', (e) => {
             loginBtn.innerHTML = '登录';
             
             // 实际项目中此处跳转到首页
+            window.location.href="page-translate.html"
             // window.location.href = '/home';
         }, 1500);
     }

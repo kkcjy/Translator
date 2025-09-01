@@ -134,6 +134,7 @@ registerForm.addEventListener('submit', (e) => {
             registerBtn.innerHTML = '注册';
             
             // 实际项目中此处跳转到登录页面
+            window.location.href="page-login.html";
             // window.location.href = '/login';
         }, 1500);
     }
