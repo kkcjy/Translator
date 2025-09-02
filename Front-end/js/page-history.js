@@ -1,120 +1,142 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 选项卡功能
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-        });
+    const historyUrl = 'page-translate.html'; 
+    const backUrl = 'page-translate.html'; 
+
+    const historyBody = document.getElementById('history-body');
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notification-text');
+
+    // 返回按钮
+    document.getElementById('back-btn').addEventListener('click', () => {
+        window.location.href = backUrl;
     });
-    
+
+    // 刷新按钮
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+        loadHistory();
+    });
+
+    // 加载历史记录
+    async function loadHistory() {
+        try {
+            const response = await fetch(historyUrl);
+            const data = await response.json(); // 假设返回 [{time, original, translation, type}, ...]
+            
+            historyBody.innerHTML = ''; // 清空表格
+            
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+
+                // 时间列
+                const timeTd = document.createElement('td');
+                timeTd.className = 'time-col';
+                timeTd.textContent = item.time;
+                
+                // 原文列
+                const originalTd = document.createElement('td');
+                originalTd.className = 'original-col';
+                if (item.type === 'image') {
+                    originalTd.innerHTML = `<span class="file-indicator"><i class="fas fa-image"></i> 图片</span>`;
+                } else if (item.type === 'file') {
+                    originalTd.innerHTML = `<span class="file-indicator"><i class="fas fa-file"></i> 文件</span>`;
+                } else {
+                    originalTd.textContent = item.original;
+                }
+                
+                // 译文列
+                const translationTd = document.createElement('td');
+                translationTd.className = 'translation-col';
+                translationTd.textContent = item.translation;
+
+                // 操作列
+                const actionsTd = document.createElement('td');
+                actionsTd.className = 'actions-col';
+                actionsTd.innerHTML = `
+                    <div class="action-buttons">
+                        <button class="action-btn copy-btn" title="复制译文"><i class="fas fa-copy"></i></button>
+                        <button class="action-btn sound-btn" title="播放声音"><i class="fas fa-volume-up"></i></button>
+                    </div>
+                `;
+
+                tr.append(timeTd, originalTd, translationTd, actionsTd);
+                historyBody.appendChild(tr);
+
+                // 创建每行复选框
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'checkbox';
+                checkbox.style.marginRight = '10px';
+                timeTd.prepend(checkbox);
+
+                // 行点击选择
+                tr.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox' &&
+                        !e.target.classList.contains('action-btn') &&
+                        !e.target.parentElement.classList.contains('action-btn')) {
+                        checkbox.checked = !checkbox.checked;
+                    }
+                });
+            });
+
+            attachRowActions(); // 给新行绑定复制和朗读事件
+        } catch (err) {
+            console.error('加载历史失败:', err);
+        }
+    }
+
+    // 绑定复制和朗读
+    function attachRowActions() {
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const text = this.closest('tr').querySelector('.translation-col').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    notificationText.textContent = '已复制到剪贴板';
+                    notification.classList.add('show');
+                    setTimeout(() => notification.classList.remove('show'), 2000);
+                });
+            });
+        });
+
+        const soundButtons = document.querySelectorAll('.sound-btn');
+        soundButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const text = this.closest('tr').querySelector('.translation-col').textContent;
+                if ('speechSynthesis' in window) {
+                    const speech = new SpeechSynthesisUtterance(text);
+                    speech.lang = 'zh-CN';
+                    window.speechSynthesis.speak(speech);
+                    notificationText.textContent = '正在播放音频';
+                    notification.classList.add('show');
+                    setTimeout(() => notification.classList.remove('show'), 2000);
+                } else {
+                    alert('浏览器不支持文本转语音');
+                }
+            });
+        });
+    }
+
     // 全选功能
     const selectAll = document.getElementById('select-all');
     selectAll.addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('tbody .checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = selectAll.checked;
-        });
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
     });
-    
-    // 行选择功能
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        // 创建每行的复选框
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'checkbox';
-        checkbox.style.marginRight = '10px';
-        
-        // 插入到行的第一个单元格
-        const firstCell = row.firstElementChild;
-        firstCell.prepend(checkbox);
-        
-        // 行点击事件
-        row.addEventListener('click', (e) => {
-            if (e.target.type !== 'checkbox' && 
-                !e.target.classList.contains('action-btn') &&
-                !e.target.parentElement.classList.contains('action-btn')) {
-                checkbox.checked = !checkbox.checked;
-            }
-        });
-    });
-    
-    // 删除按钮功能
-    const deleteBtn = document.querySelector('.delete-btn');
-    deleteBtn.addEventListener('click', () => {
-        const selectedItems = document.querySelectorAll('tbody .checkbox:checked');
-        if (selectedItems.length > 0) {
-            if (confirm(`确定要删除选中的 ${selectedItems.length} 条记录吗？`)) {
-                alert('删除操作已执行（演示功能）');
+
+    // 删除按钮
+    document.querySelector('.delete-btn').addEventListener('click', () => {
+        const selected = document.querySelectorAll('tbody .checkbox:checked');
+        if (selected.length > 0) {
+            if (confirm(`确定要删除选中的 ${selected.length} 条记录吗？`)) {
+                alert('删除操作已执行（演示）');
             }
         } else {
-            alert('请先选择要删除的记录');
+            alert('请先选择记录');
         }
     });
-    
-    // 复制功能
-    const copyButtons = document.querySelectorAll('.copy-btn');
-    const notification = document.getElementById('notification');
-    const notificationText = document.getElementById('notification-text');
-    
-    copyButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const textToCopy = this.closest('tr').querySelector('.translation-col').textContent;
-            
-            // 使用Clipboard API复制文本
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                // 显示通知
-                notificationText.textContent = '已复制到剪贴板';
-                notification.classList.add('show');
-                
-                // 2秒后隐藏通知
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 2000);
-            }).catch(err => {
-                console.error('无法复制文本: ', err);
-                notificationText.textContent = '复制失败';
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 2000);
-            });
-        });
-    });
-    
-    // 播放声音功能
-    const soundButtons = document.querySelectorAll('.sound-btn');
-    
-    soundButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const textToSpeak = this.closest('tr').querySelector('.translation-col').textContent;
-            
-            // 使用Web Speech API播放声音
-            if ('speechSynthesis' in window) {
-                const speech = new SpeechSynthesisUtterance();
-                speech.text = textToSpeak;
-                speech.lang = 'zh-CN'; // 设置为中文
-                speech.volume = 1;
-                speech.rate = 1;
-                speech.pitch = 1;
-                
-                window.speechSynthesis.speak(speech);
-                
-                // 显示通知
-                notificationText.textContent = '正在播放音频';
-                notification.classList.add('show');
-                
-                // 2秒后隐藏通知
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 2000);
-            } else {
-                alert('您的浏览器不支持文本转语音功能');
-            }
-        });
-    });
+
+    // 初次加载
+    loadHistory();
 });
