@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>翻译历史记录</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<<<<<<< HEAD
     <style>
         * {
             margin: 0;
@@ -363,6 +364,9 @@
             }
         }
     </style>
+=======
+    <link rel="stylesheet" href="css/page-history.css">
+>>>>>>> 3bf6164ebdfe9abf68e8addb712e863c5940256a
 </head>
 <body>
     <div class="container">
@@ -384,8 +388,9 @@
             </div>
             
             <div class="header-actions">
-                <button class="btn btn-primary"><i class="fas fa-sync-alt"></i> 刷新</button>
-                <button class="btn btn-secondary"><i class="fas fa-download"></i> 导出记录</button>
+                <button class="btn btn-primary" id="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                <button class="btn btn-secondary" id="export-btn"><i class="fas fa-download"></i> 导出记录</button>
+                <button class="btn btn-tertiary" id="back-btn"><i class="fas fa-arrow-left"></i> 返回</button>
             </div>
         </header>
         
@@ -408,6 +413,7 @@
                 </tr>
             </thead>
             <tbody id="history-body">
+<<<<<<< HEAD
                 <tr>
                     <td class="time-col">2025-8-18</td>
                     <td class="original-col">Hello</td>
@@ -485,6 +491,9 @@
                         </div>
                     </td>
                 </tr>
+=======
+                <!-- 历史记录将通过JS动态生成 -->
+>>>>>>> 3bf6164ebdfe9abf68e8addb712e863c5940256a
             </tbody>
         </table>
         
@@ -506,6 +515,7 @@
         <span id="notification-text">已复制到剪贴板</span>
     </div>
 
+<<<<<<< HEAD
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 获取DOM元素
@@ -714,5 +724,9 @@
             bindRowEvents();
         });
     </script>
+=======
+    <!-- 引入page-history.js -->
+    <script src="js/page-history.js"></script>
+>>>>>>> 3bf6164ebdfe9abf68e8addb712e863c5940256a
 </body>
 </html>
