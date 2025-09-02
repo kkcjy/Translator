@@ -24,6 +24,35 @@ const emailInput = document.getElementById('email');
 const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
 
+//FastAPI base URL
+const API_URL="http://127.0.0.1:8000";
+
+function getCookie(name)
+{
+    const cookies=document.cookie.split(';');
+    for(index in cookies)
+    {
+        let c=cookies[index];
+        while(c.charAt(0)===' ')c=c.substring(1,c.length);
+        if(c.indexOf(name+'=')===0)return c.substring(name.length+1,c.length);
+    }
+}
+function setCookie(name,value,days)
+{
+    let expires="";
+    if(days)
+    {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie=name+'='+(value || "")+expires+"; path=/";
+}
+function requestToken(mail)//TODO:Request token from server.(additionally, do some cleaning)
+{
+    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + Math.random().toString(36).substring(2) + '.' + Math.random().toString(36).substring(2);
+}
+
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     let isValid = true;
@@ -56,11 +85,14 @@ loginForm.addEventListener('submit', (e) => {
         setTimeout(() => {
             // 检查"记住我"选项
             const rememberMe = document.getElementById('rememberMe').checked;
+            let token=requestToken(email);
             if (rememberMe) {
                 // 记住密码（实际项目中应使用安全的方式存储，如HttpOnly Cookie）
                 localStorage.setItem('savedEmail', email);
+                setCookie("authToken",token,7);
             } else {
                 localStorage.removeItem('savedEmail');
+                setCookie("authToken",token);
             }
 
             // 登录成功提示
@@ -70,12 +102,24 @@ loginForm.addEventListener('submit', (e) => {
             loginBtn.disabled = false;
             loginBtn.innerHTML = '登录';
             
-            // 实际项目中此处跳转到首页
+            // 此处跳转到首页
             window.location.href="page-translate.html"
-            // window.location.href = '/home';
         }, 1500);
     }
 });
+
+function savedPassword(account,token)
+{
+    if(token)
+    {
+        //Fetch account&password according to token.
+        
+        return "true";
+    }else
+    {
+        return null;
+    }
+}
 
 // 邮箱验证函数
 function validateEmail(email) {
@@ -89,6 +133,12 @@ window.addEventListener('load', () => {
     if (savedEmail) {
         emailInput.value = savedEmail;
         document.getElementById('rememberMe').checked = true;
+        let token=getCookie("authToken");
+        let saved_password=savedPassword(email,token);
+        if(saved_password)
+        {
+            passwordInput.value=saved_password;
+        }
     }
 });
 
