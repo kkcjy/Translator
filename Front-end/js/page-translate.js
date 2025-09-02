@@ -20,7 +20,6 @@ const notification = document.getElementById('notification');
 const notificationText = document.getElementById('notification-text');
 
 let selectedModel = null;
-let translationHistoryList = [];
 let isChineseToEnglish = true;
 
 function init() {
@@ -112,50 +111,13 @@ function performTranslation() {
         ${result}
       </div>
     `;
-    addToHistory(source, result);
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
     showNotification('翻译完成');
+    if (typeof window.applyResultsTheme === 'function') {
+      window.applyResultsTheme();
+    }
   }, 1500);
-}
-
-function addToHistory(source, result) {
-  const timestamp = new Date().toLocaleString();
-  const historyItem = {
-    id: Date.now(),
-    source,
-    result,
-    model: selectedModel,
-    timestamp,
-    direction: isChineseToEnglish ? 'zh→en' : 'en→zh'
-  };
-  translationHistoryList.unshift(historyItem);
-  renderHistory();
-}
-
-function renderHistory() {
-  if (translationHistoryList.length === 0) {
-    translationHistory.innerHTML = `
-      <div class="text-center text-gray-500 py-6">
-        暂无翻译历史
-      </div>
-    `;
-    return;
-  }
-  let historyHtml = '';
-  translationHistoryList.forEach(item => {
-    historyHtml += `
-      <div class="border-b border-gray-100 pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs text-gray-500">${item.timestamp}</span>
-          <span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full">${item.direction}</span>
-        </div>
-        <p class="text-sm mb-1 line-clamp-1">${item.source}</p>
-        <p class="text-sm text-primary line-clamp-1">${item.result}</p>
-      </div>
-    `;
-  });
-  translationHistory.innerHTML = historyHtml;
 }
 
 function copyResults() {
@@ -214,5 +176,57 @@ function showNotification(message, type = 'success') {
     notification.classList.add('translate-y-20', 'opacity-0');
   }, 3000);
 }
+
+// 翻译结果和特色卡片主题应用
+window.applyResultsTheme = function() {
+  // 翻译结果文本块
+  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
+  const resultBlocks = document.querySelectorAll('#results-content .p-3');
+  resultBlocks.forEach(function(block) {
+    if (mode === 'light') {
+      block.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
+      block.classList.add('bg-gray-50', 'text-dark');
+      block.style.backgroundColor = '';
+      block.style.color = '';
+      block.style.borderColor = '';
+    } else {
+      block.classList.remove('bg-gray-50', 'text-dark');
+      block.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+      block.style.backgroundColor = '#1e293b';
+      block.style.color = '#e5e7eb';
+      block.style.borderColor = '#334155';
+    }
+  });
+
+  // 翻译结果文本框
+  const resultTextareas = document.querySelectorAll('#results-content textarea');
+  resultTextareas.forEach(function(textarea) {
+    if (mode === 'light') {
+      textarea.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
+      textarea.classList.add('bg-white', 'text-dark', 'border-gray-200');
+      textarea.style.backgroundColor = '';
+      textarea.style.color = '';
+      textarea.style.borderColor = '';
+    } else {
+      textarea.classList.remove('bg-white', 'text-dark', 'border-gray-200');
+      textarea.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+      textarea.style.backgroundColor = '#1e293b';
+      textarea.style.color = '#e5e7eb';
+      textarea.style.borderColor = '#334155';
+    }
+  });
+
+  // 特色卡片
+  const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
+  featureCards.forEach(card => {
+    if (mode === 'light') {
+      card.classList.remove('bg-gray-900', 'text-white');
+      card.classList.add('bg-white', 'text-dark');
+    } else {
+      card.classList.remove('bg-white', 'text-dark');
+      card.classList.add('bg-gray-900', 'text-white');
+    }
+  });
+};
 
 document.addEventListener('DOMContentLoaded', init);
