@@ -440,7 +440,7 @@
     }
     closeSettingBtn && closeSettingBtn.addEventListener('click', closeSettingModal);
     cancelBtn && cancelBtn.addEventListener('click', closeSettingModal);
-
+    confirmBtn && confirmBtn.addEventListener('click', closeSettingModal);
     // 头像上传（只更新临时设置，不立即应用）
     avatarUpload && avatarUpload.addEventListener('change', function() {
       const file = this.files[0];
