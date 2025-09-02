@@ -146,8 +146,23 @@ function savedPassword(account,token)
     if(token)
     {
         //Fetch account&password according to token.
-        
-        return "true";
+        async ()=>{
+            try{
+                const data=await makeRequest("${API_URL}/token",{
+                    method:"GET",
+                    body:JSON.stringify({
+                        email:account,
+                        token:token
+                    })
+                })
+                return data;
+            }catch(error)
+            {
+                console.warn("Failed to fetch password accordingly, automatic password filling may not work.");
+                console.error("Failed to read password accordingly.",error);
+                return null;
+            }
+        }
     }else
     {
         return null;
