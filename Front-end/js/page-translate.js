@@ -66,7 +66,8 @@ function showModelSelection() {
   translationResultsContainer.style.opacity = '0';
   translationResultsContainer.style.height = '0';
   translationInputContainer.style.marginTop = '80px';
-  disableTranslateButton();
+  selectedModel = null;
+  updateTranslateButtonState();
 }
 
 function updateTextInput() {
@@ -228,5 +229,6 @@ window.applyResultsTheme = function() {
     }
   });
 };
+
 
 document.addEventListener('DOMContentLoaded', init);
