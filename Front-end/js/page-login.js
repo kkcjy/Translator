@@ -26,6 +26,25 @@ const passwordError = document.getElementById('passwordError');
 
 //FastAPI base URL
 const API_URL="http://127.0.0.1:8000";
+//General request function
+async function makeRequest(url,options={})
+{
+    try{
+        const response=await fetch(url,{
+            headers:{
+                'Content-Type':'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        if(!response.ok)throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+    }catch(error)
+    {
+        console.error("Failed to make request:",error);
+        throw error;
+    }
+}
 
 function getCookie(name)
 {
@@ -48,9 +67,21 @@ function setCookie(name,value,days)
     }
     document.cookie=name+'='+(value || "")+expires+"; path=/";
 }
-function requestToken(mail)//TODO:Request token from server.(additionally, do some cleaning)
+function requestToken(mail)
 {
-    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + Math.random().toString(36).substring(2) + '.' + Math.random().toString(36).substring(2);
+    async ()=>{
+        try{
+            const data=await makeRequest("${API_URL}/token",{
+                method:"POST",
+                body:JSON.stringify({email:mail})
+            });
+        }catch(error)
+        {
+            console.warn("Failed to get token from server, automatic password filling may not work.");
+            console.error("Failed to request token:",error);
+        }
+    }
+    return data;
 }
 
 loginForm.addEventListener('submit', (e) => {
@@ -85,14 +116,16 @@ loginForm.addEventListener('submit', (e) => {
         setTimeout(() => {
             // 检查"记住我"选项
             const rememberMe = document.getElementById('rememberMe').checked;
-            let token=requestToken(email);
             if (rememberMe) {
                 // 记住密码（实际项目中应使用安全的方式存储，如HttpOnly Cookie）
                 localStorage.setItem('savedEmail', email);
-                setCookie("authToken",token,7);
+                if(savedPassword(email,getCookie("authToken"))==null)
+                {
+                    let token=requestToken(email);
+                    setCookie("authToken",token,7);
+                }
             } else {
                 localStorage.removeItem('savedEmail');
-                setCookie("authToken",token);
             }
 
             // 登录成功提示
