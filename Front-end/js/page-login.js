@@ -142,7 +142,6 @@ async function savedPassword(account,token)
     if(token && typeof token == "string")
     {
         try{
-console.log(account);
             const data=await makeRequest(`${API_URL}/password`,{
                 method:"POST",
                 body:JSON.stringify({
