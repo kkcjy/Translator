@@ -18,6 +18,15 @@ togglePassword.addEventListener('click', () => {
     }
 });
 
+
+
+// 表单提交处理
+const loginForm = document.getElementById('loginForm');
+const loginBtn = document.getElementById('loginBtn');
+const emailInput = document.getElementById('email');
+const emailError = document.getElementById('emailError');
+const passwordError = document.getElementById('passwordError');
+
 // FastAPI base URL
 const API_URL = "http://127.0.0.1:8001";
 
@@ -44,12 +53,41 @@ async function makeRequest(url, options = {}) {
     }
 }
 
-// 表单提交处理
-const loginForm = document.getElementById('loginForm');
-const loginBtn = document.getElementById('loginBtn');
-const emailInput = document.getElementById('email');
-const emailError = document.getElementById('emailError');
-const passwordError = document.getElementById('passwordError');
+function getCookie(name)
+{
+    const cookies=document.cookie.split(';');
+    for(index in cookies)
+    {
+        let c=cookies[index];
+        while(c.charAt(0)===' ')c=c.substring(1,c.length);
+        if(c.indexOf(name+'=')===0)return c.substring(name.length+1,c.length);
+    }
+}
+function setCookie(name,value,days)
+{
+    let expires="";
+    if(days)
+    {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie=name+'='+(value || "")+expires+"; path=/";
+}
+async function requestToken(mail)
+{
+    try{
+        let data=await makeRequest(`${API_URL}/token`,{
+            method:"POST",
+            body:JSON.stringify({mail:mail})
+        });
+        return data;
+    }catch(error)
+    {
+        console.warn("Failed to get token from server, automatic password filling may not work.");
+        console.error("Failed to request token:",error);
+    }
+}
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -122,11 +160,17 @@ function validateEmail(email) {
 }
 
 // 页面加载时检查是否有保存的邮箱
-window.addEventListener('load', () => {
+window.addEventListener('load', async() => {
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
         emailInput.value = savedEmail;
         document.getElementById('rememberMe').checked = true;
+        let token=getCookie("authToken");
+        let saved_password=await savedPassword(savedEmail,token);
+        if(saved_password)
+        {
+            passwordInput.value=saved_password;
+        }
     }
 });
 
