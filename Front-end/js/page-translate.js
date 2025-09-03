@@ -22,6 +22,8 @@ const loginOrAvatar = document.getElementById('login-or-avatar');
 
 let selectedModel = null;
 let isChineseToEnglish = true;
+let sourceLang = "zh";
+let targetLang = "en";
 
 function init() {
   window.addEventListener('scroll', handleScroll);
@@ -41,8 +43,6 @@ function init() {
   copyResultsBtn.addEventListener('click', copyResults);
   swapLanguagesBtn.addEventListener('click', swapLanguages);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
-  let sourceLang = "zh";
-  let targetLang = "en";
 }
 
 function handleScroll() {
