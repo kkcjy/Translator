@@ -1,3 +1,4 @@
+// 修改后的page-login.js
 // 密码显示/隐藏切换
 const togglePassword = document.getElementById('togglePassword');
 const passwordInput = document.getElementById('password');
@@ -17,6 +18,8 @@ togglePassword.addEventListener('click', () => {
     }
 });
 
+
+
 // 表单提交处理
 const loginForm = document.getElementById('loginForm');
 const loginBtn = document.getElementById('loginBtn');
@@ -24,24 +27,28 @@ const emailInput = document.getElementById('email');
 const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
 
-//FastAPI base URL
-const API_URL="http://127.0.0.1:8000";
-//General request function
-async function makeRequest(url,options={})
-{
-    try{
-        const response=await fetch(url,{
-            headers:{
-                'Content-Type':'application/json',
+// FastAPI base URL
+const API_URL = "http://127.0.0.1:8001";
+
+// 通用请求函数
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
                 ...options.headers
             },
             ...options
         });
-        if(!response.ok)throw new Error(`HTTP error! status: ${response.status}`);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
         return await response.json();
-    }catch(error)
-    {
-        console.error("Failed to make request:",error);
+    } catch (error) {
+        console.error("请求失败:", error);
         throw error;
     }
 }
@@ -70,11 +77,10 @@ function setCookie(name,value,days)
 async function requestToken(mail)
 {
     try{
-        let data=await makeRequest("${API_URL}/token",{
+        let data=await makeRequest(`${API_URL}/token`,{
             method:"POST",
-            body:JSON.stringify({email:mail})
+            body:JSON.stringify({mail:mail})
         });
-console.log("Token data:",data);
         return data;
     }catch(error)
     {
@@ -105,63 +111,47 @@ loginForm.addEventListener('submit', async (e) => {
         passwordError.style.display = 'none';
     }
 
-    // 如果验证通过，进行登录过程
+    // 如果验证通过，发送登录请求
     if (isValid) {
         // 显示加载状态
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> 登录中...';
 
-        // 检查"记住我"选项
-        const rememberMe = document.getElementById('rememberMe').checked;
-        if (rememberMe) {
-            // 记住密码（实际项目中应使用安全的方式存储，如HttpOnly Cookie）
-            localStorage.setItem('savedEmail', email);
-            const hasSavedPassword=await savedPassword(email,getCookie("authToken"));
-            if(hasSavedPassword==null)
-            {
-                let token=await requestToken(email);
-                setCookie("authToken",token,7);
-            }
-        } else {
-            localStorage.removeItem('savedEmail');
-        }
+        try {
+            // 发送登录请求到FastAPI后端
+            const data = await makeRequest(`${API_URL}/login`, {
+                method: "POST",
+                body: JSON.stringify({ email, password })
+            });
 
-        // 登录成功提示
-        alert('登录成功！即将跳转到首页');
-        
-        // 重置按钮状态
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '登录';
-        
-        // 此处跳转到首页
-        window.location.href="page-translate.html"
+            // 登录成功
+            alert('登录成功！即将跳转到首页');
+            
+            // 检查"记住我"选项
+            const rememberMe = document.getElementById('rememberMe').checked;
+            if (rememberMe) {
+                // 保存邮箱到localStorage
+                localStorage.setItem('savedEmail', email);
+                // 保存token到localStorage
+                localStorage.setItem('authToken', data.access_token);
+            } else {
+                localStorage.removeItem('savedEmail');
+                localStorage.removeItem('authToken');
+            }
+
+            // 跳转到首页
+            window.location.href = "page-translate.html";
+            
+        } catch (error) {
+            // 登录失败
+            alert('登录失败: ' + error.message);
+            
+            // 重置按钮状态
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '登录';
+        }
     }
 });
-
-async function savedPassword(account,token)
-{
-    if(token)
-    {
-        try{
-            const data=await makeRequest("${API_URL}/token",{
-                method:"GET",
-                body:JSON.stringify({
-                    email:account,
-                    token:token
-                })
-            })
-            return data;
-        }catch(error)
-        {
-            console.warn("Failed to fetch password accordingly, automatic password filling may not work.");
-            console.error("Failed to read password accordingly.",error);
-            return null;
-        }
-    }else
-    {
-        return null;
-    }
-}
 
 // 邮箱验证函数
 function validateEmail(email) {
@@ -170,13 +160,13 @@ function validateEmail(email) {
 }
 
 // 页面加载时检查是否有保存的邮箱
-window.addEventListener('load', async () => {
+window.addEventListener('load', async() => {
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
         emailInput.value = savedEmail;
         document.getElementById('rememberMe').checked = true;
         let token=getCookie("authToken");
-        let saved_password=await savedPassword(email,token);
+        let saved_password=await savedPassword(savedEmail,token);
         if(saved_password)
         {
             passwordInput.value=saved_password;
