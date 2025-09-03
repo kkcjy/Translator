@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 app=FastAPI()
 
+#跨域请求开放，需根据前端地址更改。
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://0.0.0.0:8080"],
@@ -22,8 +23,14 @@ app.add_middleware(
     allow_methods='*',
     allow_headers='*'
 )
+#用于申请Token的Model
 class EmailItem(BaseModel):
     mail:EmailStr
+
+#用于根据邮箱和Token查找保存的密码的Model
+class EmailTokenItem(BaseModel):
+    email:EmailStr
+    token:str
 
 class TranslationRequest(BaseModel):
     source_text: str
@@ -122,7 +129,7 @@ async def verify_token(authorization: str = Header(...), db: cursors.Cursor = De
 def test_message():
     return {"message": "文枢翻译API服务", "status": "运行中"}
 
-
+#请求Token
 @app.post("/token/")
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
@@ -136,16 +143,13 @@ def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Token generate failed: {str(e)}")
-class EmailTokenItem(BaseModel):
-    email:EmailStr
-    token:str
+#根据邮箱和Token查找保存的密码
 @app.post("/password")
 def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
     cmd=f"SELECT account FROM TRS_AUTHTOKEN WHERE token = '{item.token}' AND deadline > '{time.strftime('%Y-%m-%d',time.localtime())}'"
     db.execute(cmd)
     tokenRecords=db.fetchall()
     for record in tokenRecords:
-        print(record[0])
         if record[0]==item.email:
             cmd=f"SELECT password FROM TRS_USER WHERE email = '{item.email}'"
             db.execute(cmd)
