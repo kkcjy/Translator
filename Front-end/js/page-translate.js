@@ -21,6 +21,8 @@ const notificationText = document.getElementById('notification-text');
 
 let selectedModel = null;
 let isChineseToEnglish = true;
+let sourceLang = "zh";
+let targetLang = "en";
 
 function init() {
   window.addEventListener('scroll', handleScroll);
@@ -33,8 +35,6 @@ function init() {
   copyResultsBtn.addEventListener('click', copyResults);
   swapLanguagesBtn.addEventListener('click', swapLanguages);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
-  let sourceLang = "zh";
-  let targetLang = "en";
 }
 
 function handleScroll() {
