@@ -67,24 +67,23 @@ function setCookie(name,value,days)
     }
     document.cookie=name+'='+(value || "")+expires+"; path=/";
 }
-function requestToken(mail)
+async function requestToken(mail)
 {
-    async ()=>{
-        try{
-            const data=await makeRequest("${API_URL}/token",{
-                method:"POST",
-                body:JSON.stringify({email:mail})
-            });
-        }catch(error)
-        {
-            console.warn("Failed to get token from server, automatic password filling may not work.");
-            console.error("Failed to request token:",error);
-        }
+    try{
+        let data=await makeRequest("${API_URL}/token",{
+            method:"POST",
+            body:JSON.stringify({email:mail})
+        });
+console.log("Token data:",data);
+        return data;
+    }catch(error)
+    {
+        console.warn("Failed to get token from server, automatic password filling may not work.");
+        console.error("Failed to request token:",error);
     }
-    return data;
 }
 
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     let isValid = true;
 
@@ -106,61 +105,57 @@ loginForm.addEventListener('submit', (e) => {
         passwordError.style.display = 'none';
     }
 
-    // 如果验证通过，模拟登录过程
+    // 如果验证通过，进行登录过程
     if (isValid) {
         // 显示加载状态
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> 登录中...';
 
-        // 模拟登录请求（实际项目中替换为真实接口请求）
-        setTimeout(() => {
-            // 检查"记住我"选项
-            const rememberMe = document.getElementById('rememberMe').checked;
-            if (rememberMe) {
-                // 记住密码（实际项目中应使用安全的方式存储，如HttpOnly Cookie）
-                localStorage.setItem('savedEmail', email);
-                if(savedPassword(email,getCookie("authToken"))==null)
-                {
-                    let token=requestToken(email);
-                    setCookie("authToken",token,7);
-                }
-            } else {
-                localStorage.removeItem('savedEmail');
+        // 检查"记住我"选项
+        const rememberMe = document.getElementById('rememberMe').checked;
+        if (rememberMe) {
+            // 记住密码（实际项目中应使用安全的方式存储，如HttpOnly Cookie）
+            localStorage.setItem('savedEmail', email);
+            const hasSavedPassword=await savedPassword(email,getCookie("authToken"));
+            if(hasSavedPassword==null)
+            {
+                let token=await requestToken(email);
+                setCookie("authToken",token,7);
             }
+        } else {
+            localStorage.removeItem('savedEmail');
+        }
 
-            // 登录成功提示
-            alert('登录成功！即将跳转到首页');
-            
-            // 重置按钮状态
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '登录';
-            
-            // 此处跳转到首页
-            window.location.href="page-translate.html"
-        }, 1500);
+        // 登录成功提示
+        alert('登录成功！即将跳转到首页');
+        
+        // 重置按钮状态
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '登录';
+        
+        // 此处跳转到首页
+        window.location.href="page-translate.html"
     }
 });
 
-function savedPassword(account,token)
+async function savedPassword(account,token)
 {
     if(token)
     {
-        async ()=>{
-            try{
-                const data=await makeRequest("${API_URL}/token",{
-                    method:"GET",
-                    body:JSON.stringify({
-                        email:account,
-                        token:token
-                    })
+        try{
+            const data=await makeRequest("${API_URL}/token",{
+                method:"GET",
+                body:JSON.stringify({
+                    email:account,
+                    token:token
                 })
-                return data;
-            }catch(error)
-            {
-                console.warn("Failed to fetch password accordingly, automatic password filling may not work.");
-                console.error("Failed to read password accordingly.",error);
-                return null;
-            }
+            })
+            return data;
+        }catch(error)
+        {
+            console.warn("Failed to fetch password accordingly, automatic password filling may not work.");
+            console.error("Failed to read password accordingly.",error);
+            return null;
         }
     }else
     {
@@ -175,13 +170,13 @@ function validateEmail(email) {
 }
 
 // 页面加载时检查是否有保存的邮箱
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
         emailInput.value = savedEmail;
         document.getElementById('rememberMe').checked = true;
         let token=getCookie("authToken");
-        let saved_password=savedPassword(email,token);
+        let saved_password=await savedPassword(email,token);
         if(saved_password)
         {
             passwordInput.value=saved_password;

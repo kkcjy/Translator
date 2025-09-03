@@ -27,4 +27,19 @@ def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Token generate failed: {str(e)}")
-
+class EmailTokenItem(BaseModel):
+    email:str
+    token:str
+@app.post("/password")
+def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
+    cmd=f"SELECT account FROM TRS_AUTHTOKEN WHERE token = '{item.token}' AND deadline > '{time.strftime('%Y-%m-%d',time.localtime())}'"
+    db.execute(cmd)
+    tokenRecords=db.fetchall()
+    for record in tokenRecords:
+        print(record[0])
+        if record[0]==item.email:
+            cmd=f"SELECT password FROM TRS_USER WHERE email = '{item.email}'"
+            db.execute(cmd)
+            password=db.fetchone()
+            return password
+    return None
