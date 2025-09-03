@@ -5,7 +5,7 @@ def getConnection():
         user="server",
         password="server",
         database="Translator",
-        charset="UTF8"
+        charset="utf8"
     )
     return connection
 def getdb():
