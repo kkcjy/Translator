@@ -164,7 +164,7 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
             return password
     return None
 
-#根据邮箱查找用户密码和ID（登录验证）
+#根据邮箱查找用户密码，ID（登录验证）和头像
 @app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
@@ -173,7 +173,10 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         return None
     else:
         user=db.fetchone()
-        return user
+        cmd=f"SELECT avatar FROM TRS_SETTING WHERE userId = {user[1]}"
+        db.execute(cmd)
+        avatar=db.fetchone()
+        return user+(avatar,)
 
 #查找可能已经注册的邮箱
 @app.get("/users")
