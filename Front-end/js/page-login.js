@@ -24,11 +24,7 @@ const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
 
 // FastAPI base URL
-<<<<<<< HEAD
-const API_URL = "https://3fbe9a9d6d60.ngrok-free.app/";
-=======
 const API_URL = "http://127.0.0.1:8000";
->>>>>>> 814b2468d4f0c24414052b0fd1dcd83c9fde1a52
 
 // 通用请求函数
 async function makeRequest(url, options = {}) {
@@ -150,36 +146,6 @@ loginForm.addEventListener('submit', async (e) => {
         // 显示加载状态
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> 登录中...';
-<<<<<<< HEAD
-        try {
-            // 发送登录请求到FastAPI后端
-            const data = await makeRequest(`${API_URL}/login`, {
-                method: "POST",
-                body: JSON.stringify({ email, password })
-            });
-            // 登录成功
-            alert('登录成功！即将跳转到首页');
-            // 检查"记住我"选项
-            const rememberMe = document.getElementById('rememberMe').checked;
-            if (rememberMe) {
-                // 保存邮箱到localStorage
-                localStorage.setItem('savedEmail', email);
-                // 保存token到localStorage
-                localStorage.setItem('authToken', data.access_token);
-            } else {
-                localStorage.removeItem('savedEmail');
-                localStorage.removeItem('authToken');
-            }
-            // 跳转到首页
-            window.location.href = "page-translate.html";
-        } catch (error) {
-            // 登录失败
-            alert('登录失败: ' + error.message);
-            
-            // 重置按钮状态
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '登录';
-=======
         // 登录成功
         alert('登录成功！即将跳转到首页');
         
@@ -196,7 +162,6 @@ loginForm.addEventListener('submit', async (e) => {
             }
         } else {
             localStorage.removeItem('savedEmail');
->>>>>>> 814b2468d4f0c24414052b0fd1dcd83c9fde1a52
         }
 
         // 跳转到首页
