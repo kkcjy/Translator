@@ -23,7 +23,7 @@ app.add_middleware(
     allow_methods='*',
     allow_headers='*'
 )
-#用于申请Token的Model
+#用于申请Token/获取账户密码的Model
 class EmailItem(BaseModel):
     mail:EmailStr
 
@@ -143,6 +143,7 @@ def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Token generate failed: {str(e)}")
+
 #根据邮箱和Token查找保存的密码
 @app.post("/password")
 def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
@@ -157,7 +158,16 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
             return password
     return None
 
-
+#根据邮箱查找密码（登录验证）
+@app.put("/password")
+def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
+    cmd=f"SELECT password FROM TRS_USER WHERE email = '{item.mail}'"
+    db.execute(cmd)
+    if db.rowcount!=1:
+        return None
+    else:
+        password=db.fetchone()
+        return password
 
 @app.post("/translate/", response_model=TranslationResponse)
 async def translate_text(

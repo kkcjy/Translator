@@ -22,7 +22,9 @@ const loginForm = document.getElementById('loginForm');
 const loginBtn = document.getElementById('loginBtn');
 const emailInput = document.getElementById('email');
 const emailError = document.getElementById('emailError');
+const emailNotFoundError = document.getElementById('emailNotFoundError');
 const passwordError = document.getElementById('passwordError');
+const incorrectPasswordError = document.getElementById('incorrectPasswordError');
 
 //FastAPI base URL
 const API_URL="http://127.0.0.1:8000";
@@ -93,6 +95,15 @@ loginForm.addEventListener('submit', async (e) => {
         isValid = false;
     } else {
         emailError.style.display = 'none';
+    }
+    //Fetch email -> password from server.
+    try{
+        const data=await makeRequest(`${API_URL}/password`,{
+            method:"PUT",
+            body:JSON.stringify({mail:email})
+        })
+    }catch(error){
+        
     }
 
     // 密码验证
