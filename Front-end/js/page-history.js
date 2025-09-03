@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const historyUrl = 'page-translate.html'; 
+    const historyUrl = '/history/'; 
     const backUrl = 'page-translate.html'; 
 
     const historyBody = document.getElementById('history-body');
