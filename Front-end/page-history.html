@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>翻译历史记录</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<<<<<<< HEAD
     <style>
         * {
             margin: 0;
@@ -36,6 +37,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         h1 {
@@ -50,9 +52,62 @@
             font-size: 28px;
         }
         
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-input {
+            padding: 10px 15px 10px 40px;
+            border-radius: 6px;
+            border: none;
+            width: 220px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            width: 250px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .sort-select {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .sort-select:focus {
+            outline: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
         .header-actions {
             display: flex;
             gap: 15px;
+            margin-top: 15px;
+            width: 100%;
         }
         
         .btn {
@@ -251,10 +306,44 @@
             transform: translateX(0);
         }
         
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 border-radius: 0;
                 box-shadow: none;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header-controls {
+                flex-direction: column;
+                align-items: stretch;
+                margin-bottom: 15px;
+            }
+            
+            .search-box, .sort-select {
+                width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .search-input:focus {
+                width: 100%;
+            }
+            
+            .header-actions {
+                flex-direction: column;
             }
             
             .time-col {
@@ -266,23 +355,6 @@
                 padding: 12px 15px;
             }
             
-            .header-actions {
-                flex-direction: column;
-                gap: 10px;
-                width: 100%;
-                margin-top: 15px;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
             .actions-col {
                 width: 100px;
             }
@@ -292,22 +364,43 @@
             }
         }
     </style>
+=======
+    <link rel="stylesheet" href="css/page-history.css">
+>>>>>>> 3bf6164ebdfe9abf68e8addb712e863c5940256a
 </head>
 <body>
     <div class="container">
         <header>
             <h1><i class="fas fa-history"></i> 翻译历史记录</h1>
+            
+            <div class="header-controls">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="按原文搜索..." id="search-input">
+                </div>
+                
+                <select class="sort-select" id="sort-select">
+                    <option value="newest">由新到旧</option>
+                    <option value="oldest">由旧到新</option>
+                    <option value="a-z">原文 A-Z</option>
+                    <option value="z-a">原文 Z-A</option>
+                </select>
+            </div>
+            
             <div class="header-actions">
-                <button class="btn btn-primary"><i class="fas fa-sync-alt"></i> 刷新</button>
-                <button class="btn btn-secondary"><i class="fas fa-download"></i> 导出记录</button>
+                <button class="btn btn-primary" id="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                <button class="btn btn-secondary" id="export-btn"><i class="fas fa-download"></i> 导出记录</button>
+                <button class="btn btn-tertiary" id="back-btn"><i class="fas fa-arrow-left"></i> 返回</button>
             </div>
         </header>
         
-        <div class="tabs">
-            <div class="tab active">所有记录</div>
-            <div class="tab">仅文本</div>
-            <div class="tab">含图片</div>
-            <div class="tab">含文件</div>
+        <div class="container">
+                <select class="sort-select" id="sort-select">
+                    <option value="all">所有记录</option>
+                    <option value="text">仅文本</option>
+                    <option value="picture">含图片</option>
+                    <option value="file">含文件</option>
+                </select>
         </div>
         
         <table class="history-table">
@@ -319,7 +412,8 @@
                     <th class="actions-col">操作</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="history-body">
+<<<<<<< HEAD
                 <tr>
                     <td class="time-col">2025-8-18</td>
                     <td class="original-col">Hello</td>
@@ -397,8 +491,15 @@
                         </div>
                     </td>
                 </tr>
+=======
+                <!-- 历史记录将通过JS动态生成 -->
+>>>>>>> 3bf6164ebdfe9abf68e8addb712e863c5940256a
             </tbody>
         </table>
+        
+        <div id="no-results" class="no-results" style="display: none;">
+            没有找到匹配的记录
+        </div>
         
         <div class="footer-actions">
             <div class="select-all">
@@ -414,16 +515,188 @@
         <span id="notification-text">已复制到剪贴板</span>
     </div>
 
+<<<<<<< HEAD
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const searchInput = document.getElementById('search-input');
+            const sortSelect = document.getElementById('sort-select');
+            const historyBody = document.getElementById('history-body');
+            const noResults = document.getElementById('no-results');
+            const rows = Array.from(historyBody.querySelectorAll('tr'));
+            
+            // 保存原始数据
+            const originalData = rows.map(row => {
+                return {
+                    element: row,
+                    time: row.querySelector('.time-col').textContent,
+                    original: row.querySelector('.original-col').textContent,
+                    translation: row.querySelector('.translation-col').textContent,
+                    isMedia: row.querySelector('.file-indicator') !== null
+                };
+            });
+            
             // 选项卡功能
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
+                    filterAndSort();
                 });
             });
+            
+            // 搜索功能
+            searchInput.addEventListener('input', filterAndSort);
+            
+            // 排序功能
+            sortSelect.addEventListener('change', filterAndSort);
+            
+            // 过滤和排序函数
+            function filterAndSort() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const sortBy = sortSelect.value;
+                const activeTab = document.querySelector('.tab.active').textContent;
+                
+                // 过滤数据
+                let filteredData = originalData.filter(item => {
+                    // 根据选项卡过滤
+                    if (activeTab === '仅文本' && item.isMedia) return false;
+                    if (activeTab === '含图片' && !item.original.includes('图片')) return false;
+                    if (activeTab === '含文件' && !item.original.includes('文件')) return false;
+                    
+                    // 根据搜索词过滤
+                    if (searchTerm && !item.original.toLowerCase().includes(searchTerm)) return false;
+                    
+                    return true;
+                });
+                
+                // 排序数据
+                filteredData.sort((a, b) => {
+                    switch(sortBy) {
+                        case 'newest':
+                            return new Date(b.time) - new Date(a.time);
+                        case 'oldest':
+                            return new Date(a.time) - new Date(b.time);
+                        case 'a-z':
+                            return a.original.localeCompare(b.original);
+                        case 'z-a':
+                            return b.original.localeCompare(a.original);
+                        default:
+                            return 0;
+                    }
+                });
+                
+                // 更新表格
+                historyBody.innerHTML = '';
+                
+                if (filteredData.length === 0) {
+                    noResults.style.display = 'block';
+                } else {
+                    noResults.style.display = 'none';
+                    filteredData.forEach(item => {
+                        historyBody.appendChild(item.element);
+                    });
+                }
+                
+                // 重新绑定行事件
+                bindRowEvents();
+            }
+            
+            // 绑定行事件函数
+            function bindRowEvents() {
+                // 行选择功能
+                const currentRows = document.querySelectorAll('tbody tr');
+                
+                currentRows.forEach(row => {
+                    // 创建每行的复选框
+                    if (!row.querySelector('.checkbox')) {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'checkbox';
+                        checkbox.style.marginRight = '10px';
+                        
+                        // 插入到行的第一个单元格
+                        const firstCell = row.firstElementChild;
+                        firstCell.prepend(checkbox);
+                    }
+                    
+                    // 行点击事件
+                    row.addEventListener('click', (e) => {
+                        const checkbox = row.querySelector('.checkbox');
+                        if (e.target.type !== 'checkbox' && 
+                            !e.target.classList.contains('action-btn') &&
+                            !e.target.parentElement.classList.contains('action-btn')) {
+                            checkbox.checked = !checkbox.checked;
+                        }
+                    });
+                });
+                
+                // 复制功能
+                const copyButtons = document.querySelectorAll('.copy-btn');
+                const notification = document.getElementById('notification');
+                const notificationText = document.getElementById('notification-text');
+                
+                copyButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const textToCopy = this.closest('tr').querySelector('.translation-col').textContent;
+                        
+                        // 使用Clipboard API复制文本
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            // 显示通知
+                            notificationText.textContent = '已复制到剪贴板';
+                            notification.classList.add('show');
+                            
+                            // 2秒后隐藏通知
+                            setTimeout(() => {
+                                notification.classList.remove('show');
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('无法复制文本: ', err);
+                            notificationText.textContent = '复制失败';
+                            notification.classList.add('show');
+                            
+                            setTimeout(() => {
+                                notification.classList.remove('show');
+                            }, 2000);
+                        });
+                    });
+                });
+                
+                // 播放声音功能
+                const soundButtons = document.querySelectorAll('.sound-btn');
+                
+                soundButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const textToSpeak = this.closest('tr').querySelector('.translation-col').textContent;
+                        
+                        // 使用Web Speech API播放声音
+                        if ('speechSynthesis' in window) {
+                            const speech = new SpeechSynthesisUtterance();
+                            speech.text = textToSpeak;
+                            speech.lang = 'zh-CN'; // 设置为中文
+                            speech.volume = 1;
+                            speech.rate = 1;
+                            speech.pitch = 1;
+                            
+                            window.speechSynthesis.speak(speech);
+                            
+                            // 显示通知
+                            notificationText.textContent = '正在播放音频';
+                            notification.classList.add('show');
+                            
+                            // 2秒后隐藏通知
+                            setTimeout(() => {
+                                notification.classList.remove('show');
+                            }, 2000);
+                        } else {
+                            alert('您的浏览器不支持文本转语音功能');
+                        }
+                    });
+                });
+            }
             
             // 全选功能
             const selectAll = document.getElementById('select-all');
@@ -431,29 +704,6 @@
                 const checkboxes = document.querySelectorAll('tbody .checkbox');
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = selectAll.checked;
-                });
-            });
-            
-            // 行选择功能
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                // 创建每行的复选框
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'checkbox';
-                checkbox.style.marginRight = '10px';
-                
-                // 插入到行的第一个单元格
-                const firstCell = row.firstElementChild;
-                firstCell.prepend(checkbox);
-                
-                // 行点击事件
-                row.addEventListener('click', (e) => {
-                    if (e.target.type !== 'checkbox' && 
-                        !e.target.classList.contains('action-btn') &&
-                        !e.target.parentElement.classList.contains('action-btn')) {
-                        checkbox.checked = !checkbox.checked;
-                    }
                 });
             });
             
@@ -470,71 +720,13 @@
                 }
             });
             
-            // 复制功能
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notification-text');
-            
-            copyButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const textToCopy = this.closest('tr').querySelector('.translation-col').textContent;
-                    
-                    // 使用Clipboard API复制文本
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        // 显示通知
-                        notificationText.textContent = '已复制到剪贴板';
-                        notification.classList.add('show');
-                        
-                        // 2秒后隐藏通知
-                        setTimeout(() => {
-                            notification.classList.remove('show');
-                        }, 2000);
-                    }).catch(err => {
-                        console.error('无法复制文本: ', err);
-                        notificationText.textContent = '复制失败';
-                        notification.classList.add('show');
-                        
-                        setTimeout(() => {
-                            notification.classList.remove('show');
-                        }, 2000);
-                    });
-                });
-            });
-            
-            // 播放声音功能
-            const soundButtons = document.querySelectorAll('.sound-btn');
-            
-            soundButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const textToSpeak = this.closest('tr').querySelector('.translation-col').textContent;
-                    
-                    // 使用Web Speech API播放声音
-                    if ('speechSynthesis' in window) {
-                        const speech = new SpeechSynthesisUtterance();
-                        speech.text = textToSpeak;
-                        speech.lang = 'zh-CN'; // 设置为中文
-                        speech.volume = 1;
-                        speech.rate = 1;
-                        speech.pitch = 1;
-                        
-                        window.speechSynthesis.speak(speech);
-                        
-                        // 显示通知
-                        notificationText.textContent = '正在播放音频';
-                        notification.classList.add('show');
-                        
-                        // 2秒后隐藏通知
-                        setTimeout(() => {
-                            notification.classList.remove('show');
-                        }, 2000);
-                    } else {
-                        alert('您的浏览器不支持文本转语音功能');
-                    }
-                });
-            });
+            // 初始绑定行事件
+            bindRowEvents();
         });
     </script>
+=======
+    <!-- 引入page-history.js -->
+    <script src="js/page-history.js"></script>
+>>>>>>> 3bf6164ebdfe9abf68e8addb712e863c5940256a
 </body>
 </html>
