@@ -1,5 +1,7 @@
 from fastapi import FastAPI,Depends,HTTPException
 from pydantic import BaseModel, EmailStr
+from starlette.middleware.cors import CORSMiddleware
+
 from db import getdb
 from pymysql import cursors
 import secrets
@@ -8,6 +10,13 @@ from datetime import datetime, timedelta
 
 app=FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://0.0.0.0:8080"],
+    allow_credentials=True,
+    allow_methods='*',
+    allow_headers='*'
+)
 @app.get('/')
 def testMessage():
     return {"Hello":"World"}
@@ -18,7 +27,7 @@ class EmailItem(BaseModel):
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
         token=secrets.token_hex(16)
-        cmd=f"INSERT INTO TRS_AUTHTOKEN (account,token,deadline) VALUES ({item.mail},{token},{time.strftime('%Y-%m-%d',time.localtime())})"
+        cmd=f"INSERT INTO TRS_AUTHTOKEN (account,token,deadline) VALUES ('{item.mail}','{token}','{time.strftime('%Y-%m-%d',time.localtime(time.time()+7*86400))}')"
         db.execute(cmd)
         cmd=f"DELETE FROM TRS_AUTHTOKEN WHERE deadline < '{time.strftime('%Y-%m-%d',time.localtime())}'"
         db.execute(cmd)
@@ -28,7 +37,7 @@ def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Token generate failed: {str(e)}")
 class EmailTokenItem(BaseModel):
-    email:str
+    email:EmailStr
     token:str
 @app.post("/password")
 def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
