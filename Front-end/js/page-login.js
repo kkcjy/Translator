@@ -145,7 +145,6 @@ function savedPassword(account,token)
 {
     if(token)
     {
-        //Fetch account&password according to token.
         async ()=>{
             try{
                 const data=await makeRequest("${API_URL}/token",{
