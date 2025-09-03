@@ -98,7 +98,7 @@ loginForm.addEventListener('submit', async (e) => {
     } else {
         emailError.style.display = 'none';
     }
-    //Fetch email -> {password,userId} from server.
+    //Fetch email -> {password,userId,avatar} from server.
     var userInfo;
     try{
         userInfo=await makeRequest(`${API_URL}/login`,{
@@ -140,7 +140,19 @@ loginForm.addEventListener('submit', async (e) => {
     }
 
     localStorage.setItem("currentUserId",userInfo[1]);
-
+    const DBRequest=indexedDB.open("avatars");
+    DBRequest.onupgradeneeded=function(){
+        const db=DBRequest.result;
+        const store=db.createObjectStore("avatar",{keyPath:"userId"});
+        store.createIndex("userId","userId",{unique:true});
+    }
+    DBRequest.onsuccess=function(){
+        if(userInfo[2])
+        {
+            const store=DBRequest.result.transaction("avatar","readwrite").objectStore("avatar");
+            store.put({userId:userInfo[1],image:userInfo[2]});
+        }
+    }
     // 如果验证通过，执行登录
     if (isValid) {
         // 显示加载状态
