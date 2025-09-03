@@ -97,8 +97,8 @@ def process_ocr(image: Image.Image) -> dict:
 # 原有接口保持不变
 # ------------------------------
 @app.get('/')
-def testMessage():
-    return {"Hello": "World"}
+def test_message():
+    return {"message": "文枢翻译API服务", "status": "运行中"}
 
 
 class EmailItem(BaseModel):
