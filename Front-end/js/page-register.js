@@ -21,6 +21,32 @@ function setupPasswordToggle(toggleBtn, inputField) {
     });
 }
 
+// FastAPI base URL
+const API_URL = "http://127.0.0.1:8000";
+
+// 通用请求函数
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("请求失败:", error);
+        throw error;
+    }
+}
+
 setupPasswordToggle(togglePassword, passwordInput);
 setupPasswordToggle(toggleConfirmPassword, confirmPasswordInput);
 
@@ -68,7 +94,7 @@ sendCodeBtn.addEventListener('click', () => {
 const registerForm = document.getElementById('registerForm');
 const registerBtn = document.getElementById('registerBtn');
 
-registerForm.addEventListener('submit', (e) => {
+registerForm.addEventListener('submit', async(e) => {
     e.preventDefault();
     let isValid = true;
 
@@ -84,9 +110,18 @@ registerForm.addEventListener('submit', (e) => {
     // 邮箱验证
     const email = document.getElementById('email').value.trim();
     if (!validateEmail(email)) {
+        document.getElementById('emailError').textContent='请输入有效的邮箱地址';
         document.getElementById('emailError').style.display = 'block';
         isValid = false;
     } else {
+        document.getElementById('emailError').style.display = 'none';
+    }
+    var optionalExistingEmail=await makeRequest(`${API_URL}/users?email=${encodeURIComponent(email)}`);
+    if(optionalExistingEmail && optionalExistingEmail.length>0){
+        document.getElementById('emailError').textContent='该邮箱已被注册';
+        document.getElementById('emailError').style.display = 'block';
+        isValid = false;
+    }else{
         document.getElementById('emailError').style.display = 'none';
     }
 
@@ -123,20 +158,31 @@ registerForm.addEventListener('submit', (e) => {
         // 显示加载状态
         registerBtn.disabled = true;
         registerBtn.innerHTML = '<span class="loading-spinner"></span> 注册中...';
-
-        // 模拟注册请求
-        setTimeout(() => {
-            // 注册成功提示
-            alert('注册成功！即将跳转到登录页面');
-            
+        try{
+            const data=await makeRequest(`${API_URL}/register`,{
+                method:"POST",
+                body:JSON.stringify({
+                    username:username,
+                    email:email,
+                    password:password
+                })
+            });
+        }catch(error){
+            alert("注册失败："+error.message);
             // 重置按钮状态
             registerBtn.disabled = false;
             registerBtn.innerHTML = '注册';
-            
-            // 实际项目中此处跳转到登录页面
-            window.location.href="page-login.html";
-            // window.location.href = '/login';
-        }, 1500);
+            return;
+        }
+        // 注册成功提示
+        alert('注册成功！即将跳转到登录页面');
+        
+        // 重置按钮状态
+        registerBtn.disabled = false;
+        registerBtn.innerHTML = '注册';
+        
+        // 此处跳转到登录页面
+        window.location.href="page-login.html";
     }
 });
 
