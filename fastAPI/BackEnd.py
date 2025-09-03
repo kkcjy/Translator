@@ -164,16 +164,16 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
             return password
     return None
 
-#根据邮箱查找密码（登录验证）
-@app.put("/password")
+#根据邮箱查找用户密码和ID（登录验证）
+@app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
-    cmd=f"SELECT password FROM TRS_USER WHERE email = '{item.mail}'"
+    cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
     db.execute(cmd)
     if db.rowcount!=1:
         return None
     else:
-        password=db.fetchone()
-        return password
+        user=db.fetchone()
+        return user
 
 #查找可能已经注册的邮箱
 @app.get("/users")
@@ -189,6 +189,7 @@ def registered(email:str,db:cursors.Cursor=Depends(getdb)):
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
     try:
+        print(item.email)
         cmd=f"INSERT INTO TRS_USER (email,password) VALUE ('{item.email}','{item.password}')"
         db.execute(cmd)
         db.execute("COMMIT")

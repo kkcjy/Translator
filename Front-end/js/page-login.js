@@ -102,14 +102,14 @@ loginForm.addEventListener('submit', async (e) => {
     } else {
         emailError.style.display = 'none';
     }
-    //Fetch email -> password from server.
-    var password_;
+    //Fetch email -> {password,userId} from server.
+    var userInfo;
     try{
-        password_=await makeRequest(`${API_URL}/password`,{
-            method:"PUT",
+        userInfo=await makeRequest(`${API_URL}/login`,{
+            method:"POST",
             body:JSON.stringify({mail:email})
         });
-        if(password_[0] && typeof password_[0]=="string")
+        if(userInfo[0] && typeof userInfo[0]=="string")
         {
             emailError.style.display='none';
         }else
@@ -133,15 +133,17 @@ loginForm.addEventListener('submit', async (e) => {
     } else {
         passwordError.style.display = 'none';
     }
-    if(password===password_[0])
+    if(password===userInfo[0])
     {
         passwordError.style.display='none';
-    }else if(password_[0] && typeof password_[0]=="string")
+    }else if(userInfo[0] && typeof userInfo[0]=="string")
     {
         passwordError.textContent='密码与邮箱不匹配';
         passwordError.style.display='block';
         isValid=false;
     }
+
+    localStorage.setItem("currentUserId",userInfo[1]);
 
     // 如果验证通过，执行登录
     if (isValid) {
@@ -205,6 +207,7 @@ async function savedPassword(account,token)
 }
 // 页面加载时检查是否有保存的邮箱
 window.addEventListener('load', async() => {
+    localStorage.removeItem("currentUserId");
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
         emailInput.value = savedEmail;
