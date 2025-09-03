@@ -1,206 +1,146 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // 获取DOM元素
-    const searchInput = document.getElementById('search-input');
-    const sortSelect = document.getElementById('sort-select');
-    const historyBody = document.getElementById('history-body');
-    const noResults = document.getElementById('no-results');
-    const rows = Array.from(historyBody.querySelectorAll('tr'));
-    
-    // 保存原始数据
-    const originalData = rows.map(row => {
-        return {
-            element: row,
-            time: row.querySelector('.time-col').textContent,
-            original: row.querySelector('.original-col').textContent,
-            translation: row.querySelector('.translation-col').textContent,
-            isMedia: row.querySelector('.file-indicator') !== null
-        };
-    });
-    
-    // 选项卡功能
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            filterAndSort();
-        });
-    });
-    
-    // 搜索功能
-    searchInput.addEventListener('input', filterAndSort);
-    
-    // 排序功能
-    sortSelect.addEventListener('change', filterAndSort);
-    
-    // 过滤和排序函数
-    function filterAndSort() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const sortBy = sortSelect.value;
-        const activeTab = document.querySelector('.tab.active').textContent;
-        
-        // 过滤数据
-        let filteredData = originalData.filter(item => {
-            // 根据选项卡过滤
-            if (activeTab === '仅文本' && item.isMedia) return false;
-            if (activeTab === '含图片' && !item.original.includes('图片')) return false;
-            if (activeTab === '含文件' && !item.original.includes('文件')) return false;
-            
-            // 根据搜索词过滤
-            if (searchTerm && !item.original.toLowerCase().includes(searchTerm)) return false;
-            
-            return true;
-        });
-        
-        // 排序数据
-        filteredData.sort((a, b) => {
-            switch(sortBy) {
-                case 'newest':
-                    return new Date(b.time) - new Date(a.time);
-                case 'oldest':
-                    return new Date(a.time) - new Date(b.time);
-                case 'a-z':
-                    return a.original.localeCompare(b.original);
-                case 'z-a':
-                    return b.original.localeCompare(a.original);
-                default:
-                    return 0;
-            }
-        });
-        
-        // 更新表格
-        historyBody.innerHTML = '';
-        
-        if (filteredData.length === 0) {
-            noResults.style.display = 'block';
-        } else {
-            noResults.style.display = 'none';
-            filteredData.forEach(item => {
-                historyBody.appendChild(item.element);
-            });
-        }
-        
-        // 重新绑定行事件
-        bindRowEvents();
+// js/page-history.js
+
+// 模拟历史数据
+let historyData = [
+    {time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text'},
+    {time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text'},
+    {time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture'},
+    {time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file'}
+];
+
+const historyBody = document.getElementById('history-body');
+const searchInput = document.getElementById('search-input');
+const sortSelects = document.querySelectorAll('.sort-select');
+const notification = document.getElementById('notification');
+const notificationText = document.getElementById('notification-text');
+const selectAllCheckbox = document.getElementById('select-all');
+const deleteBtn = document.querySelector('.delete-btn');
+
+// 渲染表格
+function renderHistory(data) {
+    historyBody.innerHTML = '';
+    if (data.length === 0) {
+        document.getElementById('no-results').style.display = 'block';
+        return;
+    } else {
+        document.getElementById('no-results').style.display = 'none';
     }
-    
-    // 绑定行事件函数
-    function bindRowEvents() {
-        // 行选择功能
-        const currentRows = document.querySelectorAll('tbody tr');
-        
-        currentRows.forEach(row => {
-            // 创建每行的复选框
-            if (!row.querySelector('.checkbox')) {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'checkbox';
-                checkbox.style.marginRight = '10px';
-                
-                // 插入到行的第一个单元格
-                const firstCell = row.firstElementChild;
-                firstCell.prepend(checkbox);
-            }
-            
-            // 行点击事件
-            row.addEventListener('click', (e) => {
-                const checkbox = row.querySelector('.checkbox');
-                if (e.target.type !== 'checkbox' && 
-                    !e.target.classList.contains('action-btn') &&
-                    !e.target.parentElement.classList.contains('action-btn')) {
-                    checkbox.checked = !checkbox.checked;
-                }
+
+    data.forEach((item, index) => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td>${item.time}</td>
+            <td>${item.original}</td>
+            <td>${item.translation}</td>
+            <td>
+                <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
+                <input type="checkbox" class="checkbox" data-index="${index}">
+            </td>
+        `;
+
+        historyBody.appendChild(tr);
+    });
+
+    // 绑定复制事件
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = btn.dataset.index;
+            navigator.clipboard.writeText(data[idx].translation).then(() => {
+                showNotification('已复制到剪贴板');
             });
-        });
-        
-        // 复制功能
-        const copyButtons = document.querySelectorAll('.copy-btn');
-        const notification = document.getElementById('notification');
-        const notificationText = document.getElementById('notification-text');
-        
-        copyButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const textToCopy = this.closest('tr').querySelector('.translation-col').textContent;
-                
-                // 使用Clipboard API复制文本
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    // 显示通知
-                    notificationText.textContent = '已复制到剪贴板';
-                    notification.classList.add('show');
-                    
-                    // 2秒后隐藏通知
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 2000);
-                }).catch(err => {
-                    console.error('无法复制文本: ', err);
-                    notificationText.textContent = '复制失败';
-                    notification.classList.add('show');
-                    
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 2000);
-                });
-            });
-        });
-        
-        // 播放声音功能
-        const soundButtons = document.querySelectorAll('.sound-btn');
-        
-        soundButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const textToSpeak = this.closest('tr').querySelector('.translation-col').textContent;
-                
-                // 使用Web Speech API播放声音
-                if ('speechSynthesis' in window) {
-                    const speech = new SpeechSynthesisUtterance();
-                    speech.text = textToSpeak;
-                    speech.lang = 'zh-CN'; // 设置为中文
-                    speech.volume = 1;
-                    speech.rate = 1;
-                    speech.pitch = 1;
-                    
-                    window.speechSynthesis.speak(speech);
-                    
-                    // 显示通知
-                    notificationText.textContent = '正在播放音频';
-                    notification.classList.add('show');
-                    
-                    // 2秒后隐藏通知
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 2000);
-                } else {
-                    alert('您的浏览器不支持文本转语音功能');
-                }
-            });
-        });
-    }
-    
-    // 全选功能
-    const selectAll = document.getElementById('select-all');
-    selectAll.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('tbody .checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = selectAll.checked;
         });
     });
-    
-    // 删除按钮功能
-    const deleteBtn = document.querySelector('.delete-btn');
-    deleteBtn.addEventListener('click', () => {
-        const selectedItems = document.querySelectorAll('tbody .checkbox:checked');
-        if (selectedItems.length > 0) {
-            if (confirm(`确定要删除选中的 ${selectedItems.length} 条记录吗？`)) {
-                alert('删除操作已执行（演示功能）');
-            }
-        } else {
-            alert('请先选择要删除的记录');
-        }
-    });
-    
-    // 初始绑定行事件
-    bindRowEvents();
+}
+
+// 显示通知
+function showNotification(msg) {
+    notificationText.textContent = msg;
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 2000);
+}
+
+// 搜索功能
+searchInput.addEventListener('input', () => {
+    filterAndSort();
 });
+
+// 筛选和排序功能
+sortSelects.forEach(select => {
+    select.addEventListener('change', () => {
+        filterAndSort();
+    });
+});
+
+function filterAndSort() {
+    let filtered = [...historyData];
+    const searchValue = searchInput.value.toLowerCase();
+    const typeFilter = sortSelects[0].value;
+    const sortOption = sortSelects[1].value;
+
+    // 搜索
+    if (searchValue) {
+        filtered = filtered.filter(item => item.original.toLowerCase().includes(searchValue));
+    }
+
+    // 类型筛选
+    if (typeFilter !== 'all') {
+        filtered = filtered.filter(item => item.type === typeFilter);
+    }
+
+    // 排序
+    filtered.sort((a, b) => {
+        if (sortOption === 'newest') return new Date(b.time) - new Date(a.time);
+        if (sortOption === 'oldest') return new Date(a.time) - new Date(b.time);
+        if (sortOption === 'a-z') return a.original.localeCompare(b.original);
+        if (sortOption === 'z-a') return b.original.localeCompare(a.original);
+    });
+
+    renderHistory(filtered);
+}
+
+// 全选/取消全选
+selectAllCheckbox.addEventListener('change', () => {
+    const checkboxes = document.querySelectorAll('.history-table .checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+});
+
+// 删除选中
+deleteBtn.addEventListener('click', () => {
+    const checkboxes = document.querySelectorAll('.history-table .checkbox');
+    const toDeleteIndexes = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) toDeleteIndexes.push(Number(cb.dataset.index));
+    });
+    historyData = historyData.filter((_, idx) => !toDeleteIndexes.includes(idx));
+    renderHistory(historyData);
+});
+
+// 导出 CSV
+document.getElementById('export-btn').addEventListener('click', () => {
+    let csvContent = '时间,原文,译文,类型\n';
+    historyData.forEach(item => {
+        csvContent += `"${item.time}","${item.original}","${item.translation}","${item.type}"\n`;
+    });
+
+    const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'translation_history.csv';
+    link.click();
+});
+
+// 刷新按钮
+document.getElementById('refresh-btn').addEventListener('click', () => {
+    renderHistory(historyData);
+});
+
+// 返回按钮
+document.getElementById('back-btn').addEventListener('click', () => {
+    window.history.back();
+});
+
+// 初始渲染
+renderHistory(historyData);

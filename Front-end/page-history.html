@@ -17,7 +17,14 @@
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" placeholder="按原文搜索..." id="search-input">
                 </div>
-                
+
+                <select class="sort-select" id="sort-select">
+                    <option value="all">所有记录</option>
+                    <option value="text">仅文本</option>
+                    <option value="picture">含图片</option>
+                    <option value="file">含文件</option>
+                </select>
+
                 <select class="sort-select" id="sort-select">
                     <option value="newest">由新到旧</option>
                     <option value="oldest">由旧到新</option>
@@ -27,20 +34,11 @@
             </div>
             
             <div class="header-actions">
-                <button class="btn btn-primary" id="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新</button>
-                <button class="btn btn-secondary" id="export-btn"><i class="fas fa-download"></i> 导出记录</button>
                 <button class="btn btn-tertiary" id="back-btn"><i class="fas fa-arrow-left"></i> 返回</button>
+                <button class="btn btn-secondary" id="export-btn"><i class="fas fa-download"></i> 导出记录</button>
+                <button class="btn btn-primary" id="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新</button>
             </div>
         </header>
-        
-        <div class="container">
-                <select class="sort-select" id="sort-select">
-                    <option value="all">所有记录</option>
-                    <option value="text">仅文本</option>
-                    <option value="picture">含图片</option>
-                    <option value="file">含文件</option>
-                </select>
-        </div>
         
         <table class="history-table">
             <thead>
