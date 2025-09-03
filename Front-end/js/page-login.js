@@ -6,7 +6,6 @@ const passwordInput = document.getElementById('password');
 togglePassword.addEventListener('click', () => {
     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
     passwordInput.setAttribute('type', type);
-    
     // 切换图标
     const icon = togglePassword.querySelector('i');
     if (type === 'text') {
@@ -17,9 +16,6 @@ togglePassword.addEventListener('click', () => {
         icon.classList.add('fa-eye-slash');
     }
 });
-
-
-
 // 表单提交处理
 const loginForm = document.getElementById('loginForm');
 const loginBtn = document.getElementById('loginBtn');
@@ -28,7 +24,7 @@ const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
 
 // FastAPI base URL
-const API_URL = "http://127.0.0.1:8001";
+const API_URL = "https://3fbe9a9d6d60.ngrok-free.app/";
 
 // 通用请求函数
 async function makeRequest(url, options = {}) {
@@ -116,17 +112,14 @@ loginForm.addEventListener('submit', async (e) => {
         // 显示加载状态
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> 登录中...';
-
         try {
             // 发送登录请求到FastAPI后端
             const data = await makeRequest(`${API_URL}/login`, {
                 method: "POST",
                 body: JSON.stringify({ email, password })
             });
-
             // 登录成功
             alert('登录成功！即将跳转到首页');
-            
             // 检查"记住我"选项
             const rememberMe = document.getElementById('rememberMe').checked;
             if (rememberMe) {
@@ -138,10 +131,8 @@ loginForm.addEventListener('submit', async (e) => {
                 localStorage.removeItem('savedEmail');
                 localStorage.removeItem('authToken');
             }
-
             // 跳转到首页
             window.location.href = "page-translate.html";
-            
         } catch (error) {
             // 登录失败
             alert('登录失败: ' + error.message);
