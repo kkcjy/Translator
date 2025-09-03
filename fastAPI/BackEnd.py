@@ -32,6 +32,12 @@ class EmailTokenItem(BaseModel):
     email:EmailStr
     token:str
 
+#用于注册的Model
+class UserItem(BaseModel):
+    username:str
+    email:EmailStr
+    password:str
+
 class TranslationRequest(BaseModel):
     source_text: str
     source_lang: str = "zh"
@@ -168,6 +174,32 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     else:
         password=db.fetchone()
         return password
+
+#查找可能已经注册的邮箱
+@app.get("/users")
+def registered(email:str,db:cursors.Cursor=Depends(getdb)):
+    cmd=f"SELECT * FROM TRS_USER WHERE email = '{email}'"
+    db.execute(cmd)
+    if db.rowcount>=1:
+        return "registered"
+    else:
+        return None
+
+#注册
+@app.post("/register")
+def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"INSERT INTO TRS_USER (email,password) VALUE ('{item.email}','{item.password}')"
+        db.execute(cmd)
+        db.execute("COMMIT")
+        db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
+        UID=db.fetchone()
+        cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
+        db.execute(cmd)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
 @app.post("/translate/", response_model=TranslationResponse)
 async def translate_text(
