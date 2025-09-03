@@ -18,12 +18,20 @@ const mobileMenu = document.getElementById('mobile-menu');
 const navbar = document.getElementById('navbar');
 const notification = document.getElementById('notification');
 const notificationText = document.getElementById('notification-text');
+const loginOrAvatar = document.getElementById('login-or-avatar');
 
 let selectedModel = null;
 let isChineseToEnglish = true;
 
 function init() {
   window.addEventListener('scroll', handleScroll);
+  if(localStorage.getItem("currentUserId")!==null)
+  {
+    loginOrAvatar.style.display="null";
+    loginOrAvatar.innerHTML="<img src='default_ava.jpg' alt='Avatar' class='w-8 h-8 rounded-full'>";
+    mobileMenuButton.style.display="null";
+    mobileMenuButton.innerHTML="<img src='default_ava.jpg' alt='Avatar' class='w-8 h-8 rounded-full'>";
+  }
   modelCards.forEach(card => {
     card.addEventListener('click', () => selectModel(card));
   });
