@@ -33,6 +33,8 @@ function init() {
   copyResultsBtn.addEventListener('click', copyResults);
   swapLanguagesBtn.addEventListener('click', swapLanguages);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
+  let sourceLang = "zh";
+  let targetLang = "en";
 }
 
 function handleScroll() {
@@ -95,30 +97,58 @@ function disableTranslateButton() {
   translateBtn.classList.remove('hover:shadow-md');
 }
 
-function performTranslation() {
+async function performTranslation() {
   if (!selectedModel || !sourceText.value.trim()) return;
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
-  setTimeout(() => {
-    const source = sourceText.value.trim();
-    let result = '';
-    if (isChineseToEnglish) {
-      result = `[${selectedModel} 翻译] This is a simulated translation result for: "${source.substring(0, 20)}${source.length > 20 ? '...' : ''}"`;
-    } else {
-      result = `[${selectedModel} 翻译] 这是模拟翻译结果："${source.substring(0, 20)}${source.length > 20 ? '...' : ''}"`;
+   try {
+    const response = await fetch('http://0.0.0.0:8000/translate/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({
+        source_text: sourceText.value.trim(),
+        source_lang: isChineseToEnglish ? "zh" : "en",
+        target_lang: isChineseToEnglish ? "en" : "zh",
+        model_name: selectedModel
+      })
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        showNotification('认证失败，请重新登录', 'error');
+        // 清除无效token
+        localStorage.removeItem('authToken');
+        window.location.href = 'page-login.html';
+        return;
+      }
+      throw new Error('翻译请求失败');
     }
+
+    const data = await response.json();
+    
+    // 显示翻译结果
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
-        ${result}
+        ${data.translated_text}
       </div>
     `;
-    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
-    enableTranslateButton();
+    
     showNotification('翻译完成');
+    
+    // 应用主题设置
     if (typeof window.applyResultsTheme === 'function') {
       window.applyResultsTheme();
     }
-  }, 1500);
+  } catch (error) {
+    console.error('翻译错误:', error);
+    showNotification('翻译失败，请重试', 'error');
+  } finally {
+    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
+    enableTranslateButton();
+  }
 }
 
 function copyResults() {
@@ -136,12 +166,14 @@ function copyResults() {
 }
 
 function swapLanguages() {
+  [sourceLang, targetLang] = [targetLang, sourceLang];
   isChineseToEnglish = !isChineseToEnglish;
   const langLeftText = document.getElementById('lang-left').querySelector('span');
   const langRightText = document.getElementById('lang-right').querySelector('span');
   const tempText = langLeftText.textContent;
   langLeftText.textContent = langRightText.textContent;
   langRightText.textContent = tempText;
+  const direction = sourceLang === "zh" ? '中文→英文' : '英文→中文';
   showNotification(`已切换为${isChineseToEnglish ? '中文→英文' : '英文→中文'}`);
 }
 
