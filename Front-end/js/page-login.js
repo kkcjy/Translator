@@ -70,11 +70,10 @@ function setCookie(name,value,days)
 async function requestToken(mail)
 {
     try{
-        let data=await makeRequest("${API_URL}/token",{
+        let data=await makeRequest(`${API_URL}/token`,{
             method:"POST",
-            body:JSON.stringify({email:mail})
+            body:JSON.stringify({mail:mail})
         });
-console.log("Token data:",data);
         return data;
     }catch(error)
     {
@@ -140,11 +139,12 @@ loginForm.addEventListener('submit', async (e) => {
 
 async function savedPassword(account,token)
 {
-    if(token)
+    if(token && typeof token == "string")
     {
         try{
-            const data=await makeRequest("${API_URL}/token",{
-                method:"GET",
+console.log(account);
+            const data=await makeRequest(`${API_URL}/password`,{
+                method:"POST",
                 body:JSON.stringify({
                     email:account,
                     token:token
@@ -176,7 +176,7 @@ window.addEventListener('load', async () => {
         emailInput.value = savedEmail;
         document.getElementById('rememberMe').checked = true;
         let token=getCookie("authToken");
-        let saved_password=await savedPassword(email,token);
+        let saved_password=await savedPassword(savedEmail,token);
         if(saved_password)
         {
             passwordInput.value=saved_password;
