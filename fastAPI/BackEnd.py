@@ -6,18 +6,12 @@ import secrets
 import time
 from datetime import datetime, timedelta
 import logging
-import json
-import requests
-from typing import Optional, List, Dict, Any
+from typing import List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app=FastAPI()
-
-@app.get('/')
-def testMessage():
-    return {"Hello":"World"}
 
 class EmailItem(BaseModel):
     mail:EmailStr
@@ -33,7 +27,7 @@ class TranslationResponse(BaseModel):
     source_text: str
     translated_text: str
     source_lang: str
-    targe_lang: str
+    target_lang: str
     model_name: str
     translation_time: datetime
 
@@ -133,6 +127,23 @@ def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Token generate failed: {str(e)}")
+class EmailTokenItem(BaseModel):
+    email:str
+    token:str
+@app.post("/password")
+def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
+    cmd=f"SELECT account FROM TRS_AUTHTOKEN WHERE token = '{item.token}' AND deadline > '{time.strftime('%Y-%m-%d',time.localtime())}'"
+    db.execute(cmd)
+    tokenRecords=db.fetchall()
+    for record in tokenRecords:
+        print(record[0])
+        if record[0]==item.email:
+            cmd=f"SELECT password FROM TRS_USER WHERE email = '{item.email}'"
+            db.execute(cmd)
+            password=db.fetchone()
+            return password
+    return None
+
 
 
 @app.post("/translate/", response_model=TranslationResponse)
@@ -195,11 +206,11 @@ async def translate_text(
         raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
 
 
-@app.get("/history/{user_email}", response_model=List[TranslationResponse])
+@app.get("/history/", response_model=List[TranslationResponse])
 async def get_translation_history(
-        user_email: str,
         limit: int = 10,
         offset: int = 0,
+        user_email: str = Depends(verify_token),
         db: cursors.Cursor = Depends(getdb)
 ):
     try:
