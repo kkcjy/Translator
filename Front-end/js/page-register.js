@@ -117,7 +117,6 @@ registerForm.addEventListener('submit', async(e) => {
         document.getElementById('emailError').style.display = 'none';
     }
     var optionalExistingEmail=await makeRequest(`${API_URL}/users?email=${encodeURIComponent(email)}`);
-console.log(optionalExistingEmail);
     if(optionalExistingEmail && optionalExistingEmail.length>0){
         document.getElementById('emailError').textContent='该邮箱已被注册';
         document.getElementById('emailError').style.display = 'block';
