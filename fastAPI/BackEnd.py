@@ -4,7 +4,7 @@ from db import getdb
 from pymysql import cursors
 import secrets
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 from typing import List
 
