@@ -11,6 +11,31 @@ const fontSizeRange = document.getElementById('font-size-range');
 const fontSizeValue = document.getElementById('font-size-value');
 const bgModeBtns = document.querySelectorAll('.bg-mode-btn');
 const bgModeRadios = document.querySelectorAll('.bg-mode-radio');
+// FastAPI base URL
+const API_URL = "http://127.0.0.1:8000";
+
+// 通用请求函数
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("请求失败:", error);
+        throw error;
+    }
+}
 // 从localStorage加载设置
 const savedSettings = localStorage.getItem('appSettings');
 window.currentSettings = savedSettings ? JSON.parse(savedSettings) : {
@@ -158,7 +183,8 @@ function applySettings(settings) {
   // 功能特点卡片
   // 修改选择器，确保所有卡片都能切换
   const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
-
+  document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
+  document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
   if (settings.bgMode === 'light') {
     document.body.classList.remove('dark');
     document.body.classList.add('bg-gradient-to-br', 'from-light', 'to-blue-50', 'text-dark');
@@ -208,7 +234,7 @@ function applySettings(settings) {
     // 设置弹窗浅色
     settingModal.classList.remove('bg-gray-900', 'bg-black/30');
     settingModal.classList.add('bg-transparent');
-    const modalBox = settingModal.querySelector('> div');
+    const modalBox = settingModal.querySelector("#setting-modal-box");
     if (modalBox) {
       modalBox.classList.remove('bg-gray-900', 'text-white');
       modalBox.classList.add('bg-white', 'text-dark');
@@ -262,7 +288,7 @@ function applySettings(settings) {
     // 设置弹窗深色
     settingModal.classList.remove('bg-black/30', 'bg-gray-900');
     settingModal.classList.add('bg-transparent');
-    const modalBox = settingModal.querySelector('> div');
+    const modalBox = settingModal.querySelector("#setting-modal-box");
     if (modalBox) {
       modalBox.classList.remove('bg-white', 'text-dark');
       modalBox.classList.add('bg-gray-900', 'text-white');
@@ -329,8 +355,27 @@ function applyResultsTheme() {
 }
 
 // 确定按钮：应用临时设置到主界面
-confirmBtn && confirmBtn.addEventListener('click', function () {
+confirmBtn && confirmBtn.addEventListener('click', async()=>{
   currentSettings = { ...tempSettings };
+  if(sessionStorage.getItem("currentUserId"))
+  {
+
+    try{
+      const data=await makeRequest(`${API_URL}/settings`,{
+        method:"PUT",
+        body:JSON.stringify({
+          userId:parseInt(sessionStorage.getItem("currentUserId"),10),
+          avatar:currentSettings.avatar,
+          fontSize:parseInt(currentSettings.fontSize.match(/\d+/)[0],10),
+          bgMode:currentSettings.bgMode
+        })
+      });
+    }catch(error)
+    {
+      console.error("保存设置到服务器失败:", error);
+    }
+  }
+  sessionStorage.setItem("currentUserAvatar",currentSettings.avatar);
   applySettings(currentSettings);
   applyResultsTheme();
   // 新增：应用结果和特色卡片主题
