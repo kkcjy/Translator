@@ -48,7 +48,7 @@ app=FastAPI()
 #跨域请求开放，需根据前端地址更改。
 app.add_middleware(
     CORSMiddleware,
-    allow_origins='*',
+    allow_origins=['http://127.0.0.1:8080','http://0.0.0.0:8080','https://www.r4286138.nyat.app:10434'],
     allow_credentials=True,
     allow_methods='*',
     allow_headers='*'
