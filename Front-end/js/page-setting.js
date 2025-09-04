@@ -1,11 +1,3 @@
-let currentSettings = {
-  avatar: 'img/logo_purple.jpg',
-  fontSize: '16px',
-  bgMode: 'light'
-};
-// 临时设置（弹窗内的值）
-let tempSettings = { ...currentSettings };
-
 // 设置弹窗显示/隐藏
 const settingModal = document.getElementById('setting-modal');
 const openSettingBtn = document.getElementById('open-setting-btn');
@@ -19,7 +11,16 @@ const fontSizeRange = document.getElementById('font-size-range');
 const fontSizeValue = document.getElementById('font-size-value');
 const bgModeBtns = document.querySelectorAll('.bg-mode-btn');
 const bgModeRadios = document.querySelectorAll('.bg-mode-radio');
-
+// 从localStorage加载设置
+const savedSettings = localStorage.getItem('appSettings');
+window.currentSettings = savedSettings ? JSON.parse(savedSettings) : {
+  avatar: 'default_ava.jpg',
+  fontSize: '16px',
+  bgMode: 'light'
+};
+function saveSettings() {
+  localStorage.setItem('appSettings', JSON.stringify(currentSettings));
+}
 // radio按钮逻辑
 function updateBgModeRadioUI(selectedMode) {
   bgModeRadios.forEach(radio => {
@@ -96,6 +97,7 @@ bgModeRadios.forEach(radio => {
 
 // 应用设置（点击“确定”后才应用）
 function applySettings(settings) {
+  saveSettings(settings);
   window.applyResultsTheme();
   // 只设置所有输入和结果区域内的 textarea 字体大小
   document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
@@ -341,10 +343,6 @@ confirmBtn && confirmBtn.addEventListener('click', function () {
 // 页面初始化时应用当前设置
 window.addEventListener('DOMContentLoaded', function () {
   applySettings(currentSettings);
-  // 新增：初始化时应用结果和特色卡片主题
-  if (typeof window.applyResultsTheme === 'function') {
-    window.applyResultsTheme();
-  }
-});
+})
 // 挂载到 window，供外部 JS 调用
 window.applyResultsTheme = applyResultsTheme;
