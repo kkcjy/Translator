@@ -36,15 +36,15 @@ async function makeRequest(url, options = {}) {
         throw error;
     }
 }
-// 从localStorage加载设置
-const savedSettings = localStorage.getItem('appSettings');
+// 从sessionStorage加载设置
+const savedSettings = sessionStorage.getItem('appSettings');
 window.currentSettings = savedSettings ? JSON.parse(savedSettings) : {
   avatar: 'default_ava.jpg',
   fontSize: '16px',
   bgMode: 'light'
 };
 function saveSettings() {
-  localStorage.setItem('appSettings', JSON.stringify(currentSettings));
+  sessionStorage.setItem('appSettings', JSON.stringify(currentSettings));
 }
 // radio按钮逻辑
 function updateBgModeRadioUI(selectedMode) {
@@ -62,7 +62,7 @@ function updateBgModeRadioUI(selectedMode) {
 // 打开弹窗时同步临时设置
 function openSettingModal() {
   // 头像
-  avatarPreview.src = currentSettings.avatar;
+  avatarPreview.src = currentSettings.avatar?currentSettings.avatar:'default_ava.jpg';
   // 字体滑动条
   let sizeNum = parseInt(currentSettings.fontSize);
   fontSizeRange.value = sizeNum;
