@@ -144,3 +144,7 @@ document.getElementById('back-btn').addEventListener('click', () => {
 
 // 初始渲染
 renderHistory(historyData);
+
+window.addEventListener('unload',()=>{
+    localStorage.removeItem("currentUserId");
+});
