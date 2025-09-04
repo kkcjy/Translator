@@ -39,6 +39,13 @@ class UserItem(BaseModel):
     email:EmailStr
     password:str
 
+#用于设置修改的Model
+class USettingItem(BaseModel):
+    userId:int
+    avatar:str
+    fontSize:int
+    bgMode:str
+
 class TranslationRequest(BaseModel):
     source_text: str
     source_lang: str = "zh"
@@ -165,7 +172,7 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
             return password
     return None
 
-#根据邮箱查找用户密码，ID（登录验证）和头像
+#根据邮箱查找用户密码，ID（登录验证）和设置
 @app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
@@ -174,10 +181,10 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         return None
     else:
         user=db.fetchone()
-        cmd=f"SELECT avatar FROM TRS_SETTING WHERE userId = {user[1]}"
+        cmd=f"SELECT avatar,size,color FROM TRS_SETTING WHERE userId = {user[1]}"
         db.execute(cmd)
-        avatar=db.fetchone()
-        if not avatar:
+        setting=db.fetchone()
+        if not setting:
             return {
                 "user":user,
                 "data":None,
@@ -185,7 +192,7 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         else:
             return {
                 "user":user,
-                "data":avatar[0],
+                "data":setting,
             }
 
 #查找可能已经注册的邮箱
@@ -202,7 +209,6 @@ def registered(email:str,db:cursors.Cursor=Depends(getdb)):
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
     try:
-        print(item.email)
         cmd=f"INSERT INTO TRS_USER (email,password) VALUE ('{item.email}','{item.password}')"
         db.execute(cmd)
         db.execute("COMMIT")
@@ -210,7 +216,18 @@ def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
         UID=db.fetchone()
         with open("default_ava.jpg",'rb') as file:
             image_blob=file.read()
-        cmd=f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{image_blob}')"
+        cmd=f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{'data:image/jpeg;base64,'+base64.b64encode(image_blob).decode('utf-8')}')"
+        db.execute(cmd)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
+
+#修改设置
+@app.put("/settings")
+def setting(item:USettingItem, db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"UPDATE TRS_SETTING SET avatar='{item.avatar}', size={item.fontSize}, color='{item.bgMode}' WHERE userId={item.userId}"
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:
