@@ -27,20 +27,12 @@ let targetLang = "en";
 
 function init() {
   window.addEventListener('scroll', handleScroll);
-  if (localStorage.getItem("currentUserId") !== null) {
-    const DBRequest = indexedDB.open("avatars");
-    DBRequest.onsuccess = function () {
-      const store = DBRequest.result.transaction("avatar", "readonly").objectStore("avatar");
-      const getRequest = store.get(localStorage.getItem("currentUserId"));
-      getRequest.onsuccess = function () {
-        if (getRequest.result.encoding) {
-          loginOrAvatar.style.display = "null";
-          loginOrAvatar.innerHTML = `<img src='data:${getRequest.result.mime_type};base64,${getRequest.result.pic_data}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
-          mobileMenuButton.style.display = "null";
-          mobileMenuButton.innerHTML = `<img src='data:${getRequest.result.mime_type};base64,${getRequest.result.pic_data}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
-        }
-      }
-    }
+  if(sessionStorage.getItem("currentUserId")!==null)
+  {
+    loginOrAvatar.style.display="null";
+    loginOrAvatar.innerHTML=`<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
+    mobileMenuButton.style.display="null";
+    mobileMenuButton.innerHTML=`<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
   }
   modelCards.forEach(card => {
     card.addEventListener('click', () => selectModel(card));
@@ -263,10 +255,6 @@ window.applyResultsTheme = function () {
       textarea.style.color = '#e5e7eb';
       textarea.style.borderColor = '#334155';
     }
-  });
-
-  window.addEventListener('unload', () => {
-    localStorage.removeItem("currentUserId");
   });
 
   // 特色卡片
