@@ -27,21 +27,19 @@ let targetLang = "en";
 
 function init() {
   window.addEventListener('scroll', handleScroll);
-  if(localStorage.getItem("currentUserId")!==null)
-  {
-    const DBRequest=indexedDB.open("avatars");
-    DBRequest.onsuccess=function(){
-        const store=DBRequest.result.transaction("avatar","readonly").objectStore("avatar");
-        const getRequest=store.get(localStorage.getItem("currentUserId"));
-        getRequest.onsuccess=function(){
-            if(getRequest.result.encoding)
-            {
-              loginOrAvatar.style.display="null";
-              loginOrAvatar.innerHTML=`<img src='data:${getRequest.result.mime_type};base64,${getRequest.result.pic_data}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
-              mobileMenuButton.style.display="null";
-              mobileMenuButton.innerHTML=`<img src='data:${getRequest.result.mime_type};base64,${getRequest.result.pic_data}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
-            }
-          }
+  if (localStorage.getItem("currentUserId") !== null) {
+    const DBRequest = indexedDB.open("avatars");
+    DBRequest.onsuccess = function () {
+      const store = DBRequest.result.transaction("avatar", "readonly").objectStore("avatar");
+      const getRequest = store.get(localStorage.getItem("currentUserId"));
+      getRequest.onsuccess = function () {
+        if (getRequest.result.encoding) {
+          loginOrAvatar.style.display = "null";
+          loginOrAvatar.innerHTML = `<img src='data:${getRequest.result.mime_type};base64,${getRequest.result.pic_data}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
+          mobileMenuButton.style.display = "null";
+          mobileMenuButton.innerHTML = `<img src='data:${getRequest.result.mime_type};base64,${getRequest.result.pic_data}' alt='Avatar' class='w-8 h-8 rounded-full'>`;
+        }
+      }
     }
   }
   modelCards.forEach(card => {
@@ -119,7 +117,7 @@ async function performTranslation() {
   if (!selectedModel || !sourceText.value.trim()) return;
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
-   try {
+  try {
     const response = await fetch('http://0.0.0.0:8000/translate/', {
       method: 'POST',
       headers: {
@@ -146,16 +144,16 @@ async function performTranslation() {
     }
 
     const data = await response.json();
-    
+
     // 显示翻译结果
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
         ${data.translated_text}
       </div>
     `;
-    
+
     showNotification('翻译完成');
-    
+
     // 应用主题设置
     if (typeof window.applyResultsTheme === 'function') {
       window.applyResultsTheme();
@@ -229,11 +227,11 @@ function showNotification(message, type = 'success') {
 }
 
 // 翻译结果和特色卡片主题应用
-window.applyResultsTheme = function() {
+window.applyResultsTheme = function () {
   // 翻译结果文本块
   const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
   const resultBlocks = document.querySelectorAll('#results-content .p-3');
-  resultBlocks.forEach(function(block) {
+  resultBlocks.forEach(function (block) {
     if (mode === 'light') {
       block.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
       block.classList.add('bg-gray-50', 'text-dark');
@@ -251,7 +249,7 @@ window.applyResultsTheme = function() {
 
   // 翻译结果文本框
   const resultTextareas = document.querySelectorAll('#results-content textarea');
-  resultTextareas.forEach(function(textarea) {
+  resultTextareas.forEach(function (textarea) {
     if (mode === 'light') {
       textarea.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
       textarea.classList.add('bg-white', 'text-dark', 'border-gray-200');
@@ -267,9 +265,9 @@ window.applyResultsTheme = function() {
     }
   });
 
-window.addEventListener('unload',()=>{
+  window.addEventListener('unload', () => {
     localStorage.removeItem("currentUserId");
-});
+  });
 
   // 特色卡片
   const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
