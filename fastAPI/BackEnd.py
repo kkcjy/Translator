@@ -1,16 +1,45 @@
-from fastapi import FastAPI,Depends,HTTPException, status, Header,Response
+import random
+from fastapi import FastAPI,Depends,HTTPException, status, Header
 from pydantic import BaseModel, EmailStr
 from starlette.middleware.cors import CORSMiddleware
-import base64
-
-from db import getdb
 from pymysql import cursors
 import secrets
 import time
 from datetime import datetime
 import logging
 from typing import List
-
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from typing import Dict
+import asyncio
+import pymysql
+# 配置FastAPI-Mail
+conf = ConnectionConfig(
+    MAIL_USERNAME="2790598460@qq.com",  # 替换为您的邮箱
+    MAIL_PASSWORD="stcgixwiimlxdejc",     # 替换为您的邮箱密码或应用专用密码
+    MAIL_FROM="2790598460@qq.com",      # 替换为您的邮箱
+    MAIL_PORT=465,
+    MAIL_SERVER="smtp.qq.com",            # 替换为您的邮件服务器
+    MAIL_STARTTLS=False,
+    MAIL_SSL_TLS=True,
+    VALIDATE_CERTS=True
+)
+def getConnection():
+    connection=pymysql.connect(
+        host="localhost",
+        user="root",
+        password="123456",
+        database="db",
+        charset="utf8mb4"
+    )
+    return connection
+def getdb():
+    connection=getConnection()
+    db=connection.cursor()
+    try:
+        yield db
+    finally:
+        db.close()
+        connection.close()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,7 +48,7 @@ app=FastAPI()
 #跨域请求开放，需根据前端地址更改。
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://0.0.0.0:8080"],
+    allow_origins='*',
     allow_credentials=True,
     allow_methods='*',
     allow_headers='*'
@@ -98,8 +127,6 @@ class TranslationModel:
 
 
 translation_model = TranslationModel()
-
-
 async def verify_token(authorization: str = Header(...), db: cursors.Cursor = Depends(getdb)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(
@@ -165,7 +192,7 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
             return password
     return None
 
-#根据邮箱查找用户密码，ID（登录验证）和头像
+#根据邮箱查找用户密码和ID（登录验证）
 @app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
@@ -174,30 +201,7 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         return None
     else:
         user=db.fetchone()
-        cmd=f"SELECT avatar FROM TRS_SETTING WHERE userId = {user[1]}"
-        db.execute(cmd)
-        avatar=db.fetchone()
-        if not avatar:
-            return {
-                "user":user,
-                "data":None,
-                "mime_type":None,
-                "file_name":None,
-                "encoding":''
-            }
-        else:
-            blob_data=avatar[0]
-            print(blob_data)
-            mime_type=avatar[1]
-            filename=avatar[2]
-            b64=base64.b64encode(blob_data).decode("urf-8")
-            return {
-                "user":user,
-                "data":b64,
-                "mime_type":mime_type,
-                "file_name":filename,
-                "encoding":"base64"
-            }
+        return user
 
 #查找可能已经注册的邮箱
 @app.get("/users")
@@ -209,6 +213,31 @@ def registered(email:str,db:cursors.Cursor=Depends(getdb)):
     else:
         return None
 
+# 请求模型
+class EmailRequest(BaseModel):
+    email: EmailStr
+class RegisterRequest(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    verification_code: str
+# 发送验证码端点
+@app.post("/send-verification-code")
+async def send_verification_code(request: EmailRequest):
+    email = request.email
+    # 生成6位随机验证码
+    code = ''.join(random.choices('0123456789', k=6))
+    # 创建邮件内容
+    message = MessageSchema(
+        subject="您的验证码",
+        recipients=[email],
+        body=f"您的验证码是: {code}。该验证码10分钟内有效。",
+        subtype="plain"
+    )
+    # 发送邮件
+    fm = FastMail(conf)
+    await fm.send_message(message)
+    return {"message": "验证码已发送"}
 #注册
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
@@ -219,9 +248,7 @@ def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
-        with open("default_ava.jpg",'rb') as file:
-            image_blob=file.read()
-        cmd=f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{image_blob}')"
+        cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:
@@ -340,7 +367,6 @@ async def get_translation_by_id(
             FROM TRS_TRANSLATION_HISTORY 
             WHERE id = %s
         """
-
         db.execute(query, (translation_id,))
         result = db.fetchone()
 
@@ -350,7 +376,6 @@ async def get_translation_by_id(
         # 检查用户是否有权访问此记录
         if result[1] != user_email:
             raise HTTPException(status_code=403, detail="Access denied")
-
         # 返回结果
         return TranslationResponse(
             translation_id=result[0],
@@ -373,3 +398,6 @@ async def get_translation_by_id(
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "timestamp": datetime.now()}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
