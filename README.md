@@ -232,5 +232,83 @@
 
 
 ### 5.3 模型服务
+
 #### 5.3.1 类图设计
 ##### 5.3.1.1 类关系结构图
+![模型服务类关系图](24.png)
+
+##### 5.3.1.2 时序图
+![模型服务时序图](25.png)
+
+
+#### 5.3.2 类的详细设计描述
+##### 5.3.2.1 DataSet（数据集类）
+![DataSet类图](26.png)
+
+| 说明                | 详情                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| 1. 成员变量         | • src_file：str（源语言文本文件路径）<br/>• tgt_file：str（目标语言文本文件路径）<br/>• src_vocab：dict（源语言词汇表，词到索引的映射）<br/>• tgt_vocab：dict（目标语言词汇表，词到索引的映射）<br/>• max_len：int（序列最大长度）<br/>• data：list（存储处理后的数据样本） |
+| 2. __init__(self, src_file, tgt_file, src_vocab, tgt_vocab, max_len) | 功能：初始化数据集<br/>参数：src_file（源语言文件路径）、tgt_file（目标语言文件路径）、src_vocab（源语言词汇表）、tgt_vocab（目标语言词汇表）、max_len（序列最大长度） |
+| 3. __getitem__(self, index) | 功能：获取指定索引的样本<br/>返回值：(src_tensor, tgt_tensor)（源语言张量、目标语言张量） |
+| 4. __len__(self)     | 功能：返回数据集大小（样本总数）<br/>返回值：int |
+| 5. preprocess(self, src_sent, tgt_sent) | 功能：预处理单个句子对（如分词、索引转换、截断/填充）<br/>参数：src_sent（源语言句子）、tgt_sent（目标语言句子） |
+
+
+##### 5.3.2.2 DataLoader（数据加载类）
+![DataLoader类图](27.png)
+
+| 说明                | 详情                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| 1. 成员变量         | • dataset：DataSet（数据集实例）<br/>• batch_size：int（批量大小）<br/>• shuffle：bool（是否打乱数据）<br/>• batchify_fn：function（批处理函数，处理填充和打包） |
+| 2. __init__(self, dataset, batch_size=32, shuffle=True) | 功能：初始化数据加载器<br/>参数：dataset（数据集实例）、batch_size（批量大小，默认32）、shuffle（是否打乱数据，默认True） |
+| 3. __iter__(self)   | 功能：返回迭代器（用于遍历批次数据）<br/>返回值：迭代器对象 |
+| 4. __next__(self)   | 功能：获取下一批数据<br/>返回值：处理后的批量数据 |
+| 5. _collate_fn(self, batch) | 功能：整理批量数据（如填充统一长度、转换为张量）<br/>参数：batch（单批原始数据）<br/>返回值：整理后的批量张量数据 |
+
+
+##### 5.3.2.3 Model（Transformer模型类）
+![Model类图](28.png)
+
+| 说明                | 详情                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| 1. 成员变量         | • encoder：Encoder（Transformer编码器）<br/>• decoder：Decoder（Transformer译码器）<br/>• generator：nn.Linear（线性层，将解码器输出映射到词汇表空间）<br/>• src_embed：Embedding（源语言词嵌入层）<br/>• tgt_embed：Embedding（目标语言嵌入层）<br/>• positional_encoding：PositionalEncoding（位置编码层） |
+| 2. __init__(self, src_vocab_size, tgt_vocab_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, dropout=0.1) | 功能：初始化Transformer模型<br/>参数：src_vocab_size（源语言词汇表大小）、tgt_vocab_size（目标语言词汇表大小）、d_model（模型维度）、nhead（多头注意力头数）、num_encoder_layers（编码器层数）、num_decoder_layers（解码器层数）、dim_feedforward（前馈网络维度）、dropout（ dropout概率，默认0.1） |
+| 3. forward(self, src, tgt, src_mask=None, tgt_mask=None, memory_mask=None, memory_key_padding_mask=None) | 功能：模型前向传播<br/>参数：src（源语言输入张量）、tgt（目标语言输入张量）、src_mask（源语言掩码，可选）、tgt_mask（目标语言掩码，可选）、memory_mask（记忆掩码，可选）、memory_key_padding_mask（记忆键填充掩码，可选）<br/>返回值：模型输出张量 |
+| 4. encode(self, tgt, memory, tgt_mask) | 功能：解码目标序列（基于编码器输出的记忆向量）<br/>参数：tgt（目标语言输入张量）、memory（编码器输出记忆向量）、tgt_mask（目标语言掩码）<br/>返回值：解码器输出张量 |
+| 5. generate(self, memory, max_len, start_symbol) | 功能：生成目标语言序列（推理阶段）<br/>参数：memory（编码器输出记忆向量）、max_len（生成序列最大长度）、start_symbol（序列起始符号索引）<br/>返回值：生成的目标序列张量 |
+
+
+##### 5.3.2.4 LossFunction（损失函数类）
+![LossFunction类图](29.png)
+
+| 说明                | 详情                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| 1. 成员变量         | • criterion：nn.CrossEntropyLoss（交叉熵损失函数）<br/>• ignore_index：int（需要忽略的索引，如填充符索引） |
+| 2. __init__(self, ignore_index=0) | 功能：初始化损失函数<br/>参数：ignore_index（忽略索引，默认0） |
+| 3. compute(self, predictions, targets) | 功能：计算模型预测与目标标签的损失值<br/>参数：predictions（模型预测输出）、targets（目标标签张量）<br/>返回值：损失值（标量） |
+
+
+##### 5.3.2.5 Optimizer（优化器类）
+![Optimizer类图](30.png)
+
+| 说明                | 详情                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| 1. 成员变量         | • optimizer：torch.optim.Adam（Adam优化器实例）<br/>• scheduler：torch.optim.lr_scheduler（学习率调度器） |
+| 2. __init__(self, model, lr=0.001, betas=(0.9, 0.98), eps=1e-9, weight_decay=0) | 功能：初始化优化器与学习率调度器<br/>参数：model（待优化的模型）、lr（初始学习率，默认0.001）、betas（Adam动量参数，默认(0.9, 0.98)）、eps（数值稳定性参数，默认1e-9）、weight_decay（权重衰减，默认0） |
+| 3. step(self)       | 功能：更新模型参数（执行优化步骤） |
+| 4. zero_grad(self)   | 功能：清零模型参数梯度（避免梯度累积） |
+| 5. update_lr(self)  | 功能：通过调度器更新学习率 |
+
+
+##### 5.3.2.6 Trainer（模型训练类）
+![Trainer类图](31.png)
+
+| 说明                | 详情                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| 1. 成员变量         | • model：Model（待训练的Transformer模型）<br/>• loss_fn：LossFunction（损失函数实例）<br/>• optimizer：Optimizer（优化器实例）<br/>• train_loader：DataLoader（训练数据加载器）<br/>• val_loader：DataLoader（验证数据加载器，可选）<br/>• device：torch.device（训练设备，CPU/GPU） |
+| 2. __init__(self, model, loss_fn, optimizer, train_loader, val_loader=None, device='cuda') | 功能：初始化模型训练器<br/>参数：model（模型实例）、loss_fn（损失函数实例）、optimizer（优化器实例）、train_loader（训练数据加载器）、val_loader（验证数据加载器，默认None）、device（训练设备，默认'cuda'，即GPU） |
+| 3. train(self, epochs) | 功能：训练模型指定轮数<br/>参数：epochs（训练总轮数） |
+| 4. train_epoch(self) | 功能：训练单个epoch（遍历一次训练集）<br/>返回值：当前epoch的平均训练损失 |
+| 5. evaluate(self)   | 功能：在验证集上评估模型性能（计算损失、BLEU Score等）<br/>返回值：验证集平均损失、验证集BLEU Score |
+| 6. save_model(self, path) | 功能：保存模型检查点（含模型参数、优化器状态等）<br/>参数：path（保存路径） |
+| 7. load_model(self, path) | 功能：加载模型检查点（恢复模型训练或用于推理）<br/>参数：path（模型文件路径） |
