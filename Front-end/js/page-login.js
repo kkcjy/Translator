@@ -139,13 +139,18 @@ loginForm.addEventListener('submit', async (e) => {
         isValid=false;
     }
 
-    sessionStorage.setItem("currentUserId",userInfo.user[1]);
-    sessionStorage.setItem("currentUserAvatar",userInfo.data);
     // 如果验证通过，执行登录
     if (isValid) {
         // 显示加载状态
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> 登录中...';
+        sessionStorage.setItem("currentUserId",userInfo.user[1]);
+        sessionStorage.setItem("currentUserAvatar",userInfo.data[0]);
+        localStorage.setItem("appSettings",JSON.stringify({
+            avatar:userInfo.data[0],
+            fontSize:userInfo.data[1]+"px",
+            bgMode:userInfo.data[2]
+        }))
         // 登录成功
         alert('登录成功！即将跳转到首页');
         
