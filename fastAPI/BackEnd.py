@@ -48,11 +48,7 @@ app=FastAPI()
 #跨域请求开放，需根据前端地址更改。
 app.add_middleware(
     CORSMiddleware,
-<<<<<<< HEAD
     allow_origins='*',
-=======
-    allow_origins=["http://0.0.0.0:8080","http://127.0.0.1:8080"],
->>>>>>> ef004214baf64895c4160105f1dd9cdebd9946f3
     allow_credentials=True,
     allow_methods='*',
     allow_headers='*'
@@ -71,13 +67,6 @@ class UserItem(BaseModel):
     username:str
     email:EmailStr
     password:str
-
-#用于设置修改的Model
-class USettingItem(BaseModel):
-    userId:int
-    avatar:str
-    fontSize:int
-    bgMode:str
 
 class TranslationRequest(BaseModel):
     source_text: str
@@ -203,11 +192,7 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
             return password
     return None
 
-<<<<<<< HEAD
 #根据邮箱查找用户密码和ID（登录验证）
-=======
-#根据邮箱查找用户密码，ID（登录验证）和设置
->>>>>>> ef004214baf64895c4160105f1dd9cdebd9946f3
 @app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
@@ -216,23 +201,7 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         return None
     else:
         user=db.fetchone()
-<<<<<<< HEAD
         return user
-=======
-        cmd=f"SELECT avatar,size,color FROM TRS_SETTING WHERE userId = {user[1]}"
-        db.execute(cmd)
-        setting=db.fetchone()
-        if not setting:
-            return {
-                "user":user,
-                "data":None,
-            }
-        else:
-            return {
-                "user":user,
-                "data":setting,
-            }
->>>>>>> ef004214baf64895c4160105f1dd9cdebd9946f3
 
 #查找可能已经注册的邮箱
 @app.get("/users")
@@ -273,29 +242,13 @@ async def send_verification_code(request: EmailRequest):
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
     try:
+        print(item.email)
         cmd=f"INSERT INTO TRS_USER (email,password) VALUE ('{item.email}','{item.password}')"
         db.execute(cmd)
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
-<<<<<<< HEAD
         cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
-=======
-        with open("default_ava.jpg",'rb') as file:
-            image_blob=file.read()
-        cmd=f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{'data:image/jpeg;base64,'+base64.b64encode(image_blob).decode('utf-8')}')"
-        db.execute(cmd)
-        db.execute("COMMIT")
-    except Exception as e:
-        db.execute("ROLLBACK")
-        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
-
-#修改设置
-@app.put("/settings")
-def setting(item:USettingItem, db:cursors.Cursor=Depends(getdb)):
-    try:
-        cmd=f"UPDATE TRS_SETTING SET avatar='{item.avatar}', size={item.fontSize}, color='{item.bgMode}' WHERE userId={item.userId}"
->>>>>>> ef004214baf64895c4160105f1dd9cdebd9946f3
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:
