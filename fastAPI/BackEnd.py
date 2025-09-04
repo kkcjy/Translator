@@ -1,6 +1,7 @@
-from fastapi import FastAPI,Depends,HTTPException, status, Header
+from fastapi import FastAPI,Depends,HTTPException, status, Header,Response
 from pydantic import BaseModel, EmailStr
 from starlette.middleware.cors import CORSMiddleware
+import base64
 
 from db import getdb
 from pymysql import cursors
@@ -176,7 +177,27 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         cmd=f"SELECT avatar FROM TRS_SETTING WHERE userId = {user[1]}"
         db.execute(cmd)
         avatar=db.fetchone()
-        return user+(avatar,)
+        if not avatar:
+            return {
+                "user":user,
+                "data":None,
+                "mime_type":None,
+                "file_name":None,
+                "encoding":''
+            }
+        else:
+            blob_data=avatar[0]
+            print(blob_data)
+            mime_type=avatar[1]
+            filename=avatar[2]
+            b64=base64.b64encode(blob_data).decode("urf-8")
+            return {
+                "user":user,
+                "data":b64,
+                "mime_type":mime_type,
+                "file_name":filename,
+                "encoding":"base64"
+            }
 
 #查找可能已经注册的邮箱
 @app.get("/users")
@@ -198,7 +219,9 @@ def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
-        cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
+        with open("default_ava.jpg",'rb') as file:
+            image_blob=file.read()
+        cmd=f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{image_blob}')"
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:
