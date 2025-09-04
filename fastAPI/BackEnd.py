@@ -9,6 +9,7 @@ from datetime import datetime
 import logging
 from typing import List
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from db import getdb
 from typing import Dict
 import asyncio
 import pymysql
@@ -23,23 +24,6 @@ conf = ConnectionConfig(
     MAIL_SSL_TLS=True,
     VALIDATE_CERTS=True
 )
-def getConnection():
-    connection=pymysql.connect(
-        host="localhost",
-        user="root",
-        password="123456",
-        database="db",
-        charset="utf8mb4"
-    )
-    return connection
-def getdb():
-    connection=getConnection()
-    db=connection.cursor()
-    try:
-        yield db
-    finally:
-        db.close()
-        connection.close()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
