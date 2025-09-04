@@ -181,22 +181,11 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
             return {
                 "user":user,
                 "data":None,
-                "mime_type":None,
-                "file_name":None,
-                "encoding":''
             }
         else:
-            blob_data=avatar[0]
-            print(blob_data)
-            mime_type=avatar[1]
-            filename=avatar[2]
-            b64=base64.b64encode(blob_data).decode("urf-8")
             return {
                 "user":user,
-                "data":b64,
-                "mime_type":mime_type,
-                "file_name":filename,
-                "encoding":"base64"
+                "data":avatar[0],
             }
 
 #查找可能已经注册的邮箱

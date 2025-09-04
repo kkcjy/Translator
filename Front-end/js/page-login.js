@@ -139,45 +139,8 @@ loginForm.addEventListener('submit', async (e) => {
         isValid=false;
     }
 
-    localStorage.setItem("currentUserId",userInfo.user[1]);
-    const DBRequest=indexedDB.open("avatars");
-    DBRequest.onupgradeneeded=function(){
-        const db=DBRequest.result;
-        const store=db.createObjectStore("avatar",{keyPath:"userId"});
-        store.createIndex("userId","userId",{unique:true});
-    }
-    DBRequest.onsuccess=function(){
-        const store=DBRequest.result.transaction("avatar","readwrite").objectStore("avatar");
-        if(userInfo.encoding)
-        {
-            try{
-                store.put({
-                    userId:userInfo.user[1],
-                    pic_data:userInfo.data,
-                    mime_type:userInfo.mime_type,
-                    filename:userInfo.file_name,
-                    encoding:userInfo.encoding
-                });
-            }catch(error)
-            {
-                if(error.name=="ConstraintError")
-                {
-                    store.delete(userInfo.user[1]).onsuccess=function(){
-                        store.put({
-                            userId:userInfo.user[1],
-                            pic_data:userInfo.data,
-                            mime_type:userInfo.mime_type,
-                            filename:userInfo.file_name,
-                            encoding:userInfo.encoding
-                        });
-                    }
-                }else
-                {
-                    console.error("Failed to store avatar image:",error);
-                }
-            }
-        }
-    }
+    sessionStorage.setItem("currentUserId",userInfo.user[1]);
+    sessionStorage.setItem("currentUserAvatar",userInfo.data);
     // 如果验证通过，执行登录
     if (isValid) {
         // 显示加载状态
@@ -206,6 +169,10 @@ loginForm.addEventListener('submit', async (e) => {
         // 重置按钮状态
         loginBtn.disabled = false;
         loginBtn.innerHTML = '登录';
+    }else
+    {
+        sessionStorage.removeItem("currentUserId");
+        sessionStorage.removeItem("currentUserAvatar");
     }
 });
 
@@ -240,7 +207,8 @@ async function savedPassword(account,token)
 }
 // 页面加载时检查是否有保存的邮箱
 window.addEventListener('load', async() => {
-    localStorage.removeItem("currentUserId");
+    sessionStorage.removeItem("currentUserId");
+    sessionStorage.removeItem("currentUserAvatar");
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
         emailInput.value = savedEmail;
@@ -252,10 +220,6 @@ window.addEventListener('load', async() => {
             passwordInput.value=saved_password;
         }
     }
-});
-
-window.addEventListener('unload',()=>{
-    localStorage.removeItem("currentUserId");
 });
 
 // 输入框聚焦时隐藏错误提示
