@@ -105,7 +105,7 @@ loginForm.addEventListener('submit', async (e) => {
             method:"POST",
             body:JSON.stringify({mail:email})
         });
-        if(userInfo[0] && typeof userInfo[0]=="string")
+        if(userInfo.user[0] && typeof userInfo.user[0]=="string")
         {
             emailError.style.display='none';
         }else
@@ -129,17 +129,17 @@ loginForm.addEventListener('submit', async (e) => {
     } else {
         passwordError.style.display = 'none';
     }
-    if(password===userInfo[0])
+    if(password===userInfo.user[0])
     {
         passwordError.style.display='none';
-    }else if(userInfo[0] && typeof userInfo[0]=="string")
+    }else if(userInfo.user[0] && typeof userInfo.user[0]=="string")
     {
         passwordError.textContent='密码与邮箱不匹配';
         passwordError.style.display='block';
         isValid=false;
     }
 
-    localStorage.setItem("currentUserId",userInfo[1]);
+    localStorage.setItem("currentUserId",userInfo.user[1]);
     const DBRequest=indexedDB.open("avatars");
     DBRequest.onupgradeneeded=function(){
         const db=DBRequest.result;
@@ -147,10 +147,35 @@ loginForm.addEventListener('submit', async (e) => {
         store.createIndex("userId","userId",{unique:true});
     }
     DBRequest.onsuccess=function(){
-        if(userInfo[2])
+        const store=DBRequest.result.transaction("avatar","readwrite").objectStore("avatar");
+        if(userInfo.encoding)
         {
-            const store=DBRequest.result.transaction("avatar","readwrite").objectStore("avatar");
-            store.put({userId:userInfo[1],image:userInfo[2]});
+            try{
+                store.put({
+                    userId:userInfo.user[1],
+                    pic_data:userInfo.data,
+                    mime_type:userInfo.mime_type,
+                    filename:userInfo.file_name,
+                    encoding:userInfo.encoding
+                });
+            }catch(error)
+            {
+                if(error.name=="ConstraintError")
+                {
+                    store.delete(userInfo.user[1]).onsuccess=function(){
+                        store.put({
+                            userId:userInfo.user[1],
+                            pic_data:userInfo.data,
+                            mime_type:userInfo.mime_type,
+                            filename:userInfo.file_name,
+                            encoding:userInfo.encoding
+                        });
+                    }
+                }else
+                {
+                    console.error("Failed to store avatar image:",error);
+                }
+            }
         }
     }
     // 如果验证通过，执行登录
@@ -227,6 +252,10 @@ window.addEventListener('load', async() => {
             passwordInput.value=saved_password;
         }
     }
+});
+
+window.addEventListener('unload',()=>{
+    localStorage.removeItem("currentUserId");
 });
 
 // 输入框聚焦时隐藏错误提示
