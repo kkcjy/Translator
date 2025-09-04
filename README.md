@@ -146,6 +146,90 @@
 ### 5.2 业务服务
 #### 5.2.1 类图设计
 ##### 5.2.1.1 类关系结构图
+![业务服务类关系图](img/pic15.png)
+
+##### 5.2.1.2 时序图
+![业务服务时序图](img/pic16.png)
+
+
+#### 5.2.2 类的详细设计描述
+##### 5.2.2.1 User（用户管理类）
+![User类图](img/pic17.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| bool register(string account, string password, string username) | 用户注册新账户         |
+| AuthorityToken login(string account, string password) | 用户登录并获取令牌     |
+| bool forgotPassword(string account, string newPassword) | 用户重置账户密码       |
+
+
+##### 5.2.2.2 Setting（设置管理类）
+![Setting类图](img/pic18.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| bool setUsername(string account, string username) | 初始化或更改用户名     |
+| string getUsername(string account)         | 查询用户用户名         |
+| bool setAvatar(string account, pic avatar) | 用户更改头像           |
+| pic getAvatar(string account)             | 查询用户头像           |
+| bool setSize(string account, int size)    | 用户更改字体大小       |
+| int getSize(string account)                | 查询用户字体大小       |
+| bool setColor(string account, string color) | 用户更改背景颜色       |
+| string getColor(string account)           | 查询用户背景颜色       |
+| void resetSetting(string account)         | 重置设置信息           |
+
+
+##### 5.2.2.3 Model（模型配置类）
+![Model类图](img/pic19.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| bool setZH_EN(string token, bool zh_en)   | 用户更改翻译方向       |
+| bool getZH_EN(string token)               | 查询用户翻译方向       |
+| bool setModels(string token, array models) | 用户更改模型配置       |
+| array getModels(string token)             | 查询用户模型配置       |
+
+
+##### 5.2.2.4 History（历史记录类）
+![History类图](img/pic20.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| string copyInput(string input)            | 复制原文               |
+| string copyOutput(string output)          | 复制译文               |
+| List<History> filterByDirection(bool zh_en) | 按翻译方向筛选记录     |
+| List<History> filterByType(int type)      | 按翻译方式筛选记录     |
+| void showCompleteRecord(int number)       | 在主界面显示完整记录   |
+| void deleteHistory(List<int> recordNumbers) | 批量删除历史记录       |
+| bool selectAllRecords()                   | 全选/取消全选记录      |
+
+##### 5.2.2.5 Feedback（反馈类）
+![Feedback类图](img/pic21.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| bool submitFeedback(Model model, bool judge, string text) | 提交用户反馈           |
+| void setJudge(bool judge)                 | 设置反馈类型（好评/差评） |
+
+
+##### 5.2.2.6 AuthCode（验证码管理类）
+![AuthCode类图](img/pic22.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| bool request(string account)              | 请求验证码并返回状态（成功/失败） |
+| bool verify(string account, string code)  | 检查验证码是否与账户匹配，返回匹配结果（正确/错误） |
+
+
+##### 5.2.2.7 AuthorityToken（本地令牌管理类）
+![AuthorityToken类图](img/pic23.png)
+
+| 方法签名                                  | 功能描述               |
+|-------------------------------------------|------------------------|
+| void saveToken(string account)            | 为指定账户生成并保存令牌 |
+| bool loadToken(string account)            | 加载指定账户的本地令牌，返回加载结果（成功/失败） |
+| bool verifyToken(string account)          | 验证指定账户的令牌有效性，返回验证结果（有效/无效） |
+
 
 ### 5.3 模型服务
 #### 5.3.1 类图设计
