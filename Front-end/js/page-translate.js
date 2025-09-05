@@ -13,6 +13,8 @@ const resultsContent = document.getElementById('results-content');
 const translationHistory = document.getElementById('translation-history');
 const copyResultsBtn = document.getElementById('copy-results');
 const swapLanguagesBtn = document.getElementById('swap-languages');
+const subscribeText = document.getElementById('subscribe-input');
+const subscribeBtn = document.getElementById('subscribe-btn');
 const mobileMenuButton = document.getElementById('mobile-menu-button');
 const mobileMenu = document.getElementById('mobile-menu');
 const navbar = document.getElementById('navbar');
@@ -42,6 +44,7 @@ function init() {
   translateBtn.addEventListener('click', performTranslation);
   copyResultsBtn.addEventListener('click', copyResults);
   swapLanguagesBtn.addEventListener('click', swapLanguages);
+  subscribeBtn.addEventListener('click', subscribeUpdates);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
 }
 
@@ -185,6 +188,22 @@ function swapLanguages() {
   langRightText.textContent = tempText;
   const direction = sourceLang === "zh" ? '中文→英文' : '英文→中文';
   showNotification(`已切换为${isChineseToEnglish ? '中文→英文' : '英文→中文'}`);
+}
+
+// 邮箱验证函数
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function subscribeUpdates() {
+  const email = subscribeText.value.trim();
+  if (!validateEmail(email)) {
+    showNotification(`请输入有效的邮箱地址`, 'error')
+  } 
+  else {
+    showNotification(`订阅成功！`);
+  }
 }
 
 function toggleMobileMenu() {

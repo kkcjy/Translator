@@ -406,7 +406,7 @@ confirmBtn && confirmBtn.addEventListener('click', async()=>{
     closeSettingModal();
   }
   else {
-    showNotification(`登陆账号后方可设置！`);
+    showNotification(`登陆账号后方可设置！`, 'warning');
   }
 });
 
