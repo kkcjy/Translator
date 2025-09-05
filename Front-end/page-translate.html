@@ -347,7 +347,10 @@
         <div class="flex items-center space-x-4">
           <img id="avatar-preview" src="img/logo_purple.jpg" alt="头像"
             class="w-14 h-14 rounded-full border object-cover">
-          <input type="file" id="avatar-upload" accept="image/*" class="block text-sm">
+          <label for="avatar-upload" class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              上传图片
+          </label>
+          <input type="file" id="avatar-upload" accept="image/*" class="hidden">
         </div>
       </div>
       <!-- 字体大小（滑动条替换按钮） -->

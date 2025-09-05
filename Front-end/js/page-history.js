@@ -1,6 +1,3 @@
-// js/page-history.js
-
-// 模拟历史数据
 let historyData = [
     {time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text'},
     {time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text'},
