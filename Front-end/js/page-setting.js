@@ -296,6 +296,29 @@ function applySettings(settings) {
   }
 }
 
+function showWarning(message) {
+  const notification = document.getElementById('notification'); // 确保 HTML 有这个元素
+
+  // 设置通知内容和图标（警告三角形）
+  notification.innerHTML = `
+    <i class="fa fa-exclamation-triangle mr-2"></i>
+    <span>${message}</span>
+  `;
+
+  // 样式
+  notification.className = 'fixed bottom-4 right-4 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center bg-red-600';
+
+  // 弹出动画
+  setTimeout(() => {
+    notification.classList.remove('translate-y-20', 'opacity-0');
+  }, 10);
+
+  // 自动隐藏
+  setTimeout(() => {
+    notification.classList.add('translate-y-20', 'opacity-0');
+  }, 3000);
+}
+
 // 结果区域样式应用函数
 function applyResultsTheme() {
   const resultsContent = document.getElementById('results-content');
@@ -359,7 +382,6 @@ confirmBtn && confirmBtn.addEventListener('click', async()=>{
   currentSettings = { ...tempSettings };
   if(sessionStorage.getItem("currentUserId"))
   {
-
     try{
       const data=await makeRequest(`${API_URL}/settings`,{
         method:"PUT",
@@ -374,15 +396,18 @@ confirmBtn && confirmBtn.addEventListener('click', async()=>{
     {
       console.error("保存设置到服务器失败:", error);
     }
+    sessionStorage.setItem("currentUserAvatar",currentSettings.avatar);
+    applySettings(currentSettings);
+    applyResultsTheme();
+    // 新增：应用结果和特色卡片主题
+    if (typeof window.applyResultsTheme === 'function') {
+      window.applyResultsTheme();
+    }
+    closeSettingModal();
   }
-  sessionStorage.setItem("currentUserAvatar",currentSettings.avatar);
-  applySettings(currentSettings);
-  applyResultsTheme();
-  // 新增：应用结果和特色卡片主题
-  if (typeof window.applyResultsTheme === 'function') {
-    window.applyResultsTheme();
+  else {
+    showNotification(`登陆账号后方可设置！`);
   }
-  closeSettingModal();
 });
 
 // 页面初始化时应用当前设置
