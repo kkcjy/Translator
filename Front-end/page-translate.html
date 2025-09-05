@@ -278,18 +278,69 @@
         <div>
           <h4 class="text-white font-semibold mb-4">功能</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-primary transition-colors">文本翻译</a></li>
-            <li><a href="#" class="hover:text-primary transition-colors">文档翻译</a></li>
-            <li><a href="#" class="hover:text-primary transition-colors">图片翻译</a></li>
+            <li><span class="transition-colors cursor-default">文本翻译</span></li>
+            <li><span class="transition-colors cursor-default">文档翻译</span></li>
+            <li><span class="transition-colors cursor-default">图片翻译</span></li>
           </ul>
         </div>
 
         <div>
           <h4 class="text-white font-semibold mb-4">支持</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-primary transition-colors">帮助中心</a></li>
-            <li><a href="#" class="hover:text-primary transition-colors">联系我们</a></li>
-            <li><a href="#" class="hover:text-primary transition-colors">使用条款</a></li>
+            <li><a href="https://github.com/kkcjy/Translator" class="hover:text-primary transition-colors">联系我们</a></li>
+            <li><a href="#" id="open-terms" class="hover:text-primary transition-colors">使用条款</a></li>
+
+            <div id="terms-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+              <div style="background:white; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:20px; border-radius:8px; position:relative; color:#000;">
+                <!-- 关闭按钮 -->
+                <button id="close-terms" style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+
+                <h2 style="margin-bottom:10px;">使用条款</h2>
+
+                <p style="margin-bottom:10px;">
+                  欢迎使用本翻译服务。在使用本服务前，请仔细阅读以下使用条款。访问或使用本服务，即表示您已阅读、理解并同意遵守本条款及相关政策。
+                </p>
+
+                <h3>1. 用户资格</h3>
+                <ul>
+                  <li>您必须年满18岁或具备完全民事行为能力才能使用本服务。</li>
+                  <li>未达到法定年龄的用户请勿使用本服务。</li>
+                </ul>
+
+                <h3>2. 账户与安全</h3>
+                <ul>
+                  <li>用户在注册账户时需提供真实、准确的信息。</li>
+                  <li>用户有责任妥善保管账户及密码，对账户下的所有行为负责。</li>
+                  <li>因账户信息泄露或滥用造成的损失由用户自行承担。</li>
+                </ul>
+
+                <h3>3. 使用规则</h3>
+                <ul>
+                  <li>禁止上传、提交或传播违法、侵权、色情、恶意破坏系统的内容。</li>
+                  <li>用户上传的内容仍归用户所有，但您同意授予本服务使用该内容的权利（如翻译、展示）。</li>
+                  <li>翻译结果仅供参考，本服务不保证其绝对准确性或适用性。</li>
+                </ul>
+
+                <h3>4. 免责声明</h3>
+                <ul>
+                  <li>本服务按“现状”提供，可能存在技术故障、中断或翻译错误。</li>
+                  <li>对于因使用本服务产生的任何直接或间接损失，本服务不承担责任。</li>
+                  <li>用户应自行判断翻译结果的使用风险。</li>
+                </ul>
+
+                <h3>5. 条款修改</h3>
+                <p>本公司保留随时修改使用条款的权利。修改后继续使用本服务即表示您接受更新后的条款。</p>
+
+                <h3>6. 终止服务</h3>
+                <ul>
+                  <li>如用户违反本条款，本公司有权暂停或终止用户访问权限。</li>
+                  <li>用户亦可随时停止使用本服务。</li>
+                </ul>
+
+                <h3>7. 法律适用与争议解决</h3>
+                <p>本条款适用中华人民共和国法律。因本条款或使用本服务产生的争议，应先友好协商解决；协商不成时，可向本公司所在地法院提起诉讼。</p>
+              </div>
+            </div>
           </ul>
         </div>
 

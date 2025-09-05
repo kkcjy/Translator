@@ -21,6 +21,9 @@ const navbar = document.getElementById('navbar');
 const notification = document.getElementById('notification');
 const notificationText = document.getElementById('notification-text');
 const loginOrAvatar = document.getElementById('login-or-avatar');
+const openBtn = document.getElementById('open-terms');
+const closeBtn = document.getElementById('close-terms');
+const modal = document.getElementById('terms-modal');
 
 let selectedModel = null;
 let isChineseToEnglish = true;
@@ -291,5 +294,20 @@ window.applyResultsTheme = function () {
   });
 };
 
+// 打开弹窗
+openBtn.addEventListener('click', e => {
+  e.preventDefault();
+  modal.style.display = 'flex';
+});
 
-document.addEventListener('DOMContentLoaded', init);
+// 关闭弹窗
+closeBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+
+// 点击遮罩关闭
+modal.addEventListener('click', e => {
+  if(e.target === modal) {
+    modal.style.display = 'none';
+  }
+});
