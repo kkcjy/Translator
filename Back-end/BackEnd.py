@@ -1,3 +1,4 @@
+import base64
 import random
 from fastapi import FastAPI,Depends,HTTPException, status, Header
 from pydantic import BaseModel, EmailStr
@@ -9,9 +10,9 @@ from datetime import datetime
 import logging
 from typing import List
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from db import getdb
 from typing import Dict
 import asyncio
-import pymysql
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
     MAIL_USERNAME="2790598460@qq.com",  # 替换为您的邮箱
@@ -23,23 +24,6 @@ conf = ConnectionConfig(
     MAIL_SSL_TLS=True,
     VALIDATE_CERTS=True
 )
-def getConnection():
-    connection=pymysql.connect(
-        host="localhost",
-        user="root",
-        password="123456",
-        database="db",
-        charset="utf8mb4"
-    )
-    return connection
-def getdb():
-    connection=getConnection()
-    db=connection.cursor()
-    try:
-        yield db
-    finally:
-        db.close()
-        connection.close()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -48,7 +32,7 @@ app=FastAPI()
 #跨域请求开放，需根据前端地址更改。
 app.add_middleware(
     CORSMiddleware,
-    allow_origins='*',
+    allow_origins=['http://127.0.0.1:8080','http://0.0.0.0:8080','https://www.r4286138.nyat.app:10434'],
     allow_credentials=True,
     allow_methods='*',
     allow_headers='*'
@@ -67,6 +51,18 @@ class UserItem(BaseModel):
     username:str
     email:EmailStr
     password:str
+
+#用于设置修改的Model
+class USettingItem(BaseModel):
+    userId:int
+    avatar:str
+    fontSize:int
+    bgMode:str
+
+#用于密码重置的Model
+class ResetItem(BaseModel):
+    email:EmailStr
+    new_password:str
 
 class TranslationRequest(BaseModel):
     source_text: str
@@ -201,8 +197,19 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         return None
     else:
         user=db.fetchone()
-        return user
-
+        cmd = f"SELECT avatar,size,color FROM TRS_SETTING WHERE userId = {user[1]}"
+        db.execute(cmd)
+        setting = db.fetchone()
+        if not setting:
+            return {
+                "user": user,
+                "data": None,
+            }
+        else:
+            return {
+                "user": user,
+                "data": setting,
+            }
 #查找可能已经注册的邮箱
 @app.get("/users")
 def registered(email:str,db:cursors.Cursor=Depends(getdb)):
@@ -236,19 +243,48 @@ async def send_verification_code(request: EmailRequest):
     )
     # 发送邮件
     fm = FastMail(conf)
-    await fm.send_message(message)
-    return {"message": "验证码已发送"}
+    try:
+        await fm.send_message(message)
+    except Exception as e:
+        print(e)
+    return {
+        "message": "验证码已发送",
+        "code":code
+    }
 #注册
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
     try:
-        print(item.email)
         cmd=f"INSERT INTO TRS_USER (email,password) VALUE ('{item.email}','{item.password}')"
         db.execute(cmd)
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
-        cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
+        with open("default_ava.jpg", 'rb') as file:
+            image_blob = file.read()
+        cmd = f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{'data:image/jpeg;base64,' + base64.b64encode(image_blob).decode('utf-8')}')"
+        db.execute(cmd)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
+
+#修改设置
+@app.put("/settings")
+def setting(item:USettingItem, db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"UPDATE TRS_SETTING SET avatar='{item.avatar}', size={item.fontSize}, color='{item.bgMode}' WHERE userId={item.userId}"
+        db.execute(cmd)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
+
+#修改密码
+@app.put("/password/reset")
+def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"UPDATE TRS_USER SET password='{item.new_password}' WHERE email='{item.email}'"
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:

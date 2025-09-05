@@ -22,7 +22,7 @@ function setupPasswordToggle(toggleBtn, inputField) {
 }
 
 // FastAPI base URL
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://www.r4286138.nyat.app:10434";
 
 // 通用请求函数
 async function makeRequest(url, options = {}) {
@@ -64,12 +64,11 @@ sendCodeBtn.addEventListener('click', async () => {
     sendCodeBtn.disabled = true;
     sendCodeBtn.innerHTML = '发送中...';
     // 调用真实的后端API发送验证码
-    await makeRequest(`${API_URL}/send-verification-code`, {
+    const data=await makeRequest(`${API_URL}/send-verification-code`, {
         method: 'POST',
         body: JSON.stringify({ email: email })
     });
-    // 显示成功消息
-    codeSuccess.style.display = 'block';
+    sessionStorage.setItem('verificationCode', data.code);
     // 开始倒计时
     let countdown = 60;
     setTimeout(() => {
@@ -148,18 +147,21 @@ registerForm.addEventListener('submit', async (e) => {
     } else {
         document.getElementById('confirmError').style.display = 'none';
     }
-
     // 验证码验证
     const verificationCode = document.getElementById('verificationCode').value.trim();
-    if (verificationCode === '') {
+    if (verificationCode == '') {
         document.getElementById('codeError').textContent = '请输入验证码';
+        document.getElementById('codeError').style.display = 'block';
+        isValid = false;
+    } else if(verificationCode!==sessionStorage.getItem('verificationCode')){
+        document.getElementById('codeError').textContent = '验证码错误';
         document.getElementById('codeError').style.display = 'block';
         isValid = false;
     } else {
         document.getElementById('codeError').style.display = 'none';
     }
 
-    // 如果验证通过，模拟注册过程
+    // 如果验证通过，注册过程
     if (isValid) {
         // 显示加载状态
         registerBtn.disabled = true;

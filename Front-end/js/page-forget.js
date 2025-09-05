@@ -20,13 +20,38 @@ function setupPasswordToggle(toggleBtn, inputField) {
         }
     });
 }
+// FastAPI base URL
+const API_URL = "https://www.r4286138.nyat.app:10434";
+
+// 通用请求函数
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("请求失败:", error);
+        throw error;
+    }
+}
 
 setupPasswordToggle(toggleNewPassword, newPasswordInput);
 setupPasswordToggle(toggleConfirmNewPassword, confirmNewPasswordInput);
 
 // 验证码发送
 const sendCodeBtn = document.getElementById('sendCodeBtn');
-sendCodeBtn.addEventListener('click', () => {
+sendCodeBtn.addEventListener('click', async() => {
     const email = document.getElementById('email').value.trim();
     
     if (!validateEmail(email)) {
@@ -37,8 +62,13 @@ sendCodeBtn.addEventListener('click', () => {
     // 模拟发送验证码
     sendCodeBtn.disabled = true;
     sendCodeBtn.innerHTML = '发送中...';
+    const data=await makeRequest(`${API_URL}/send-verification-code`, {
+        method: 'POST',
+        body: JSON.stringify({ email: email })
+    });
+    sessionStorage.setItem('verificationCode', data.code);
+
     let countdown = 60;
-    
     setTimeout(() => {
         const timer = setInterval(() => {
             sendCodeBtn.innerHTML = `重新发送(${countdown})`;
@@ -68,7 +98,7 @@ sendCodeBtn.addEventListener('click', () => {
 const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 const submitBtn = document.getElementById('submitBtn');
 
-forgotPasswordForm.addEventListener('submit', (e) => {
+forgotPasswordForm.addEventListener('submit', async(e) => {
     e.preventDefault();
     let isValid = true;
 
@@ -83,11 +113,15 @@ forgotPasswordForm.addEventListener('submit', (e) => {
 
     // 验证码验证
     const verificationCode = document.getElementById('verificationCode').value.trim();
-    if (verificationCode === '') {
+    if (verificationCode == '') {
         document.getElementById('codeError').textContent = '请输入验证码';
         document.getElementById('codeError').style.display = 'block';
         isValid = false;
-    } else {
+    } else if(verificationCode!==sessionStorage.getItem('verificationCode')){
+        document.getElementById('codeError').textContent = '验证码错误';
+        document.getElementById('codeError').style.display = 'block';
+        isValid = false;
+    }else {
         document.getElementById('codeError').style.display = 'none';
     }
 
@@ -114,20 +148,33 @@ forgotPasswordForm.addEventListener('submit', (e) => {
         // 显示加载状态
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="loading-spinner"></span> 重置中...';
-
-        // 模拟重置请求
-        setTimeout(() => {
-            // 重置成功提示
-            alert('密码重置成功！即将跳转到登录页面');
-            
+        try
+        {
+            await makeRequest(`${API_URL}/password/reset`, {
+                method:"PUT",
+                body:JSON.stringify({
+                    email:email,
+                    new_password:newPassword
+                })
+            });
+        }catch(error)
+        {
+            alert("密码重置失败：" + error.message);
+            console.error("密码重置失败：" + error.message);
             // 重置按钮状态
             submitBtn.disabled = false;
             submitBtn.innerHTML = '重置密码';
-            
-            // 实际项目中此处跳转到登录页面
-            window.location.href="page-login.html";
-            // window.location.href = '/login';
-        }, 1500);
+            return;
+        }
+        // 重置成功提示
+        alert('密码重置成功！即将跳转到登录页面');
+        
+        // 重置按钮状态
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '重置密码';
+        
+        // 实际项目中此处跳转到登录页面
+        window.location.href="page-login.html";
     }
 });
 
