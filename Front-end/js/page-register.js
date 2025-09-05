@@ -200,10 +200,6 @@ function validateEmail(email) {
     return re.test(email);
 }
 
-window.addEventListener('unload', () => {
-    localStorage.removeItem("currentUserId");
-});
-
 // 输入框聚焦时隐藏错误提示
 const inputs = document.querySelectorAll('.form-input');
 inputs.forEach(input => {
