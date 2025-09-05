@@ -260,7 +260,7 @@ def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
-        with open("default_ava.jpg", 'rb') as file:
+        with open("img/default_ava.jpg", 'rb') as file:
             image_blob = file.read()
         cmd = f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{'data:image/jpeg;base64,' + base64.b64encode(image_blob).decode('utf-8')}')"
         db.execute(cmd)
