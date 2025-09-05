@@ -1,3 +1,4 @@
+import base64
 import random
 from fastapi import FastAPI,Depends,HTTPException, status, Header
 from pydantic import BaseModel, EmailStr
@@ -50,6 +51,13 @@ class UserItem(BaseModel):
     username:str
     email:EmailStr
     password:str
+
+#用于设置修改的Model
+class USettingItem(BaseModel):
+    userId:int
+    avatar:str
+    fontSize:int
+    bgMode:str
 
 #用于密码重置的Model
 class ResetItem(BaseModel):
@@ -189,8 +197,19 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
         return None
     else:
         user=db.fetchone()
-        return user
-
+        cmd = f"SELECT avatar,size,color FROM TRS_SETTING WHERE userId = {user[1]}"
+        db.execute(cmd)
+        setting = db.fetchone()
+        if not setting:
+            return {
+                "user": user,
+                "data": None,
+            }
+        else:
+            return {
+                "user": user,
+                "data": setting,
+            }
 #查找可能已经注册的邮箱
 @app.get("/users")
 def registered(email:str,db:cursors.Cursor=Depends(getdb)):
@@ -241,7 +260,20 @@ def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
-        cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
+        with open("default_ava.jpg", 'rb') as file:
+            image_blob = file.read()
+        cmd = f"INSERT INTO TRS_SETTING (userId,username,avatar) VALUE ({UID[0]},'{item.username}','{'data:image/jpeg;base64,' + base64.b64encode(image_blob).decode('utf-8')}')"
+        db.execute(cmd)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
+
+#修改设置
+@app.put("/settings")
+def setting(item:USettingItem, db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"UPDATE TRS_SETTING SET avatar='{item.avatar}', size={item.fontSize}, color='{item.bgMode}' WHERE userId={item.userId}"
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:
