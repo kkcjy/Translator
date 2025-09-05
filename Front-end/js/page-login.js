@@ -116,8 +116,8 @@ loginForm.addEventListener('submit', async (e) => {
         }
     }catch(error){
         isValid=false;
-        console.warn("Login failed:",error);
-        alert("Login failed, please try again later.");
+        console.warn("注册失败：",error);
+        alert("注册失败，请稍后尝试.");
     }
 
     // 密码验证
@@ -151,8 +151,6 @@ loginForm.addEventListener('submit', async (e) => {
             fontSize:userInfo.data[1]+"px",
             bgMode:userInfo.data[2]
         }))
-        // 登录成功
-        alert('登录成功！即将跳转到首页');
         
         // 检查"记住我"选项
         const rememberMe = document.getElementById('rememberMe').checked;
