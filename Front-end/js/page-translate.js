@@ -24,6 +24,7 @@ const loginOrAvatar = document.getElementById('login-or-avatar');
 const openBtn = document.getElementById('open-terms');
 const closeBtn = document.getElementById('close-terms');
 const modal = document.getElementById('terms-modal');
+const historyLink = document.getElementById('page-history');
 
 let selectedModel = null;
 let isChineseToEnglish = true;
@@ -310,6 +311,14 @@ closeBtn.addEventListener('click', () => {
 modal.addEventListener('click', e => {
   if(e.target === modal) {
     modal.style.display = 'none';
+  }
+});
+
+historyLink.addEventListener('click', function(event) {
+  console.log(sessionStorage.getItem("currentUserId"));
+  if (sessionStorage.getItem("currentUserId")==null) {
+    event.preventDefault(); 
+    showNotification(`登陆账号后方可查询`, `warning`);
   }
 });
 
