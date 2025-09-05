@@ -12,7 +12,6 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from db import getdb
 from typing import Dict
 import asyncio
-import pymysql
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
     MAIL_USERNAME="2790598460@qq.com",  # 替换为您的邮箱
@@ -51,6 +50,11 @@ class UserItem(BaseModel):
     username:str
     email:EmailStr
     password:str
+
+#用于密码重置的Model
+class ResetItem(BaseModel):
+    email:EmailStr
+    new_password:str
 
 class TranslationRequest(BaseModel):
     source_text: str
@@ -220,19 +224,35 @@ async def send_verification_code(request: EmailRequest):
     )
     # 发送邮件
     fm = FastMail(conf)
-    await fm.send_message(message)
-    return {"message": "验证码已发送"}
+    try:
+        await fm.send_message(message)
+    except Exception as e:
+        print(e)
+    return {
+        "message": "验证码已发送",
+        "code":code
+    }
 #注册
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
     try:
-        print(item.email)
         cmd=f"INSERT INTO TRS_USER (email,password) VALUE ('{item.email}','{item.password}')"
         db.execute(cmd)
         db.execute("COMMIT")
         db.execute(f"SELECT userId FROM TRS_USER WHERE email = '{item.email}' AND password = '{item.password}'")
         UID=db.fetchone()
         cmd=f"INSERT INTO TRS_SETTING (userId,username) VALUE ({UID[0]},'{item.username}')"
+        db.execute(cmd)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
+
+#修改密码
+@app.put("/password/reset")
+def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"UPDATE TRS_USER SET password='{item.new_password}' WHERE email='{item.email}'"
         db.execute(cmd)
         db.execute("COMMIT")
     except Exception as e:
