@@ -122,7 +122,12 @@
 
 
 #### 5.1.6 AuthCodeDao
-![AuthCodeDao类图](img/pic13.png)
+
+<figure align="center">
+  <img src="img/pic13.png" alt="AuthCodeDao类图" width="600px" style="display:block; margin:auto;" />
+  <figcaption>AuthCodeDao类图</figcaption>
+</figure>
+
 
 | 说明                | 详情                                                                 |
 |---------------------|----------------------------------------------------------------------|
@@ -132,7 +137,10 @@
 | 4. deleteAuthCodeDao(account) | 功能：删除验证信息<br/>参数：account（账户） |
 
 #### 5.1.7 AuthTokenDao
-![AuthTokenDao类图](img/pic14.png)
+<figure align="center">
+  <img src="img/pic14.png" alt="AuthCodeDao类图" width="600px" style="display:block; margin:auto;" />
+  <figcaption>AuthCodeDao类图</figcaption>
+</figure>
 
 | 说明                | 详情                                                                 |
 |---------------------|----------------------------------------------------------------------|
