@@ -49,6 +49,7 @@ function init() {
   swapLanguagesBtn.addEventListener('click', swapLanguages);
   subscribeBtn.addEventListener('click', subscribeUpdates);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
+  updateTranslateButtonState();
 }
 
 function handleScroll() {
