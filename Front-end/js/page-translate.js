@@ -87,8 +87,10 @@ function updateTextInput() {
 
 function updateTranslateButtonState() {
   if (selectedModel && sourceText.value.trim().length > 0) {
+    translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   } else {
+    translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本';
     disableTranslateButton();
   }
 }
