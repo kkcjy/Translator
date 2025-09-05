@@ -121,17 +121,7 @@
 
 
 
-#### 5.1.6 AuthCodeDao
-![AuthCodeDao类图](img/pic13.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • account：账户<br/>• postTime：请求时间<br/>• code：验证码           |
-| 2. createAuthCodeDao(account, postTime, code) | 功能：创建验证信息<br/>参数：account（账户）、postTime（请求时间）、code（验证码） |
-| 3. retrieveAuthCodeDao(account) | 功能：查看验证信息<br/>参数：account（账户） |
-| 4. deleteAuthCodeDao(account) | 功能：删除验证信息<br/>参数：account（账户） |
-
-#### 5.1.7 AuthTokenDao
+#### 5.1.6 AuthTokenDao
 ![AuthTokenDao类图](img/pic14.png)
 
 | 说明                | 详情                                                                 |
@@ -328,8 +318,7 @@
 | :--: | ------------- | -------- |
 |  1   | TRS_USER      | 系统用户 |
 |  2   | TRS_SETTING   | 用户设置 |
-|  3   | TRS_AUTHCODE  | 验证码   |
-|  4   | TRS_AUTHTOKEN | 本地令牌 |
+|  3   | TRS_AUTHTOKEN | 本地令牌 |
 
 #### 6.2.1 TRS_USER表结构
 
@@ -349,15 +338,7 @@
 |  4   |   size   |     INT      |      字号      |
 |  5   |  color   | VARCHAR(10)  |      颜色      |
 
-#### 6.2.3 TRS_AUTHCODE 表结构
-
-| 序号 |   列名   |  数据类型  |   注释   |
-| :--: | :------: | :--------: | :------: |
-|  1   | account  | VARCHAR(n) |   账户   |
-|  2   | postTime |  DATETIME  | 请求时间 |
-|  3   |   code   | VARCHAR(n) |  验证码  |
-
-#### 6.2.4 TRS_AUTHTOKEN 表结构 
+#### 6.2.3 TRS_AUTHTOKEN 表结构 
 
 | 序号 |   列名   |  数据类型   |   注释   |
 | :--: | :------: | :---------: | :------: |
