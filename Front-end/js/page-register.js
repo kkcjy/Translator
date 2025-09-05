@@ -182,8 +182,6 @@ registerForm.addEventListener('submit', async (e) => {
             registerBtn.innerHTML = '注册';
             return;
         }
-        // 注册成功提示
-        alert('注册成功！即将跳转到登录页面');
 
         // 重置按钮状态
         registerBtn.disabled = false;
