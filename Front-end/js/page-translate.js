@@ -30,9 +30,9 @@ function init() {
   if(sessionStorage.getItem("currentUserId")!==null)
   {
     loginOrAvatar.style.display="null";
-    loginOrAvatar.innerHTML=`<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='default_ava.jpg' class='w-8 h-8 rounded-full'>`;
+    loginOrAvatar.innerHTML=`<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
     mobileMenuButton.style.display="null";
-    mobileMenuButton.innerHTML=`<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='default_ava.jpg' class='w-8 h-8 rounded-full'>`;
+    mobileMenuButton.innerHTML=`<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
   modelCards.forEach(card => {
     card.addEventListener('click', () => selectModel(card));
