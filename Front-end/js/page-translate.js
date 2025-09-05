@@ -312,3 +312,5 @@ modal.addEventListener('click', e => {
     modal.style.display = 'none';
   }
 });
+
+document.addEventListener('DOMContentLoaded', init);
