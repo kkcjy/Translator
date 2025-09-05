@@ -359,7 +359,6 @@ confirmBtn && confirmBtn.addEventListener('click', async()=>{
   currentSettings = { ...tempSettings };
   if(sessionStorage.getItem("currentUserId"))
   {
-
     try{
       const data=await makeRequest(`${API_URL}/settings`,{
         method:"PUT",
