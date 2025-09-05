@@ -24,7 +24,7 @@ const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
 
 // FastAPI base URL
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://www.r4286138.nyat.app:10434";
 
 // 通用请求函数
 async function makeRequest(url, options = {}) {
