@@ -9,6 +9,7 @@ const translationResultsContainer = document.getElementById('translation-results
 const translateBtn = document.getElementById('translate-btn');
 const sourceText = document.getElementById('source-text');
 const charCount = document.getElementById('char-count');
+const charCountContainer = document.getElementById('char-count-container');
 const fileInput = document.getElementById('file-upload');
 const fileList = document.getElementById('file-list');
 const resultsContent = document.getElementById('results-content');
@@ -36,12 +37,11 @@ let selectedFiles = [];
 
 function init() {
   window.addEventListener('scroll', handleScroll);
-  if(sessionStorage.getItem("currentUserId")!==null)
-  {
-    loginOrAvatar.style.display="null";
-    loginOrAvatar.innerHTML=`<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
-    mobileMenuButton.style.display="null";
-    mobileMenuButton.innerHTML=`<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
+  if (sessionStorage.getItem("currentUserId") !== null) {
+    loginOrAvatar.style.display = "null";
+    loginOrAvatar.innerHTML = `<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
+    mobileMenuButton.style.display = "null";
+    mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
   modelCards.forEach(card => {
     card.addEventListener('click', () => selectModel(card));
@@ -98,10 +98,10 @@ function updateTextInput() {
 
 function updateTranslateButtonState() {
   if (selectedModel && (sourceText.value.trim().length > 0 || selectedFiles.length)) {
-    translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 开始翻译';
+    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   } else {
-    translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本或文件';
+    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本或文件';
     disableTranslateButton();
   }
 }
@@ -119,18 +119,27 @@ function disableTranslateButton() {
 }
 
 async function performTranslation() {
-  if (!selectedModel || !sourceText.value.trim()) return;
+  if (!selectedModel || (!sourceText.value.trim() && selectedFiles.length === 0)) return;
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
   try {
-    const response = await fetch('http://0.0.0.0:8000/translate/', {//Try to use common request function like other files.Back end URL=https://www.r4286138.nyat.app:10434
+    // 如果有文件，优先使用文件
+    let sourceTextContent = sourceText.value.trim();
+    if (selectedFiles.length > 0) {
+      // 这里应该添加文件上传和处理逻辑
+      sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
+      showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
+      return;
+    }
+
+    const response = await fetch('http://0.0.0.0:8000/translate/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`
       },
       body: JSON.stringify({
-        source_text: sourceText.value.trim(),
+        source_text: sourceTextContent,
         source_lang: isChineseToEnglish ? "zh" : "en",
         target_lang: isChineseToEnglish ? "en" : "zh",
         model_name: selectedModel
@@ -140,7 +149,6 @@ async function performTranslation() {
     if (!response.ok) {
       if (response.status === 401) {
         showNotification('认证失败，请重新登录', 'error');
-        // 清除无效token
         localStorage.removeItem('authToken');
         window.location.href = 'page-login.html';
         return;
@@ -200,15 +208,15 @@ function swapLanguages() {
 
 // 邮箱验证函数
 function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
 }
 
 function subscribeUpdates() {
   const email = subscribeText.value.trim();
   if (!validateEmail(email)) {
     showNotification(`请输入有效的邮箱地址`, 'error')
-  } 
+  }
   else {
     showNotification(`订阅成功！`);
   }
@@ -216,15 +224,32 @@ function subscribeUpdates() {
 
 function renderFileList() {
   fileList.innerHTML = '';
-  if (selectedFiles.length === 0) return;
+  if (selectedFiles.length === 0) {
+    // 没有文件时显示文本框
+    sourceText.style.display = 'block';
+    charCountContainer.style.display = 'block';
+    return;
+  }
 
+  // 有文件时隐藏文本框并显示文件信息
+  sourceText.style.display = 'none';
+  charCountContainer.style.display = 'none';
   selectedFiles.forEach((file, index) => {
     const li = document.createElement('li');
-    li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded";
+    li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded mb-2";
+
+    const fileInfo = document.createElement('div');
+    fileInfo.className = "flex items-center";
+
+    const fileIcon = document.createElement('i');
+    fileIcon.className = "fa fa-file-text-o mr-2 text-primary";
 
     const nameSpan = document.createElement('span');
     nameSpan.textContent = file.name;
     nameSpan.className = "max-w-[200px] truncate";
+
+    fileInfo.appendChild(fileIcon);
+    fileInfo.appendChild(nameSpan);
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = '删除';
@@ -235,7 +260,7 @@ function renderFileList() {
       updateTranslateButtonState();
     }
 
-    li.appendChild(nameSpan);
+    li.appendChild(fileInfo);
     li.appendChild(removeBtn);
     fileList.appendChild(li);
   });
@@ -339,23 +364,23 @@ closeBtn.addEventListener('click', () => {
 
 // 点击遮罩关闭
 modal.addEventListener('click', e => {
-  if(e.target === modal) {
+  if (e.target === modal) {
     modal.style.display = 'none';
   }
 });
 
 fileInput.addEventListener('change', () => {
-  console.log('files selected:', fileInput.files);
-  selectedFiles.push(...Array.from(fileInput.files));
+  // 每次只允许一个文件，替换原有文件
+  selectedFiles = Array.from(fileInput.files).slice(0, 1);
   renderFileList();
   fileInput.value = '';
   updateTranslateButtonState();
 });
 
-historyLink.addEventListener('click', function(event) {
+historyLink.addEventListener('click', function (event) {
   console.log(sessionStorage.getItem("currentUserId"));
-  if (sessionStorage.getItem("currentUserId")==null) {
-    event.preventDefault(); 
+  if (sessionStorage.getItem("currentUserId") == null) {
+    event.preventDefault();
     showNotification(`登陆账号后方可查询`, `warning`);
   }
 });
