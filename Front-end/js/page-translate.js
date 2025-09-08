@@ -9,6 +9,8 @@ const translationResultsContainer = document.getElementById('translation-results
 const translateBtn = document.getElementById('translate-btn');
 const sourceText = document.getElementById('source-text');
 const charCount = document.getElementById('char-count');
+const fileInput = document.getElementById('file-upload');
+const fileList = document.getElementById('file-list');
 const resultsContent = document.getElementById('results-content');
 const translationHistory = document.getElementById('translation-history');
 const copyResultsBtn = document.getElementById('copy-results');
@@ -30,6 +32,7 @@ let selectedModel = null;
 let isChineseToEnglish = true;
 let sourceLang = "zh";
 let targetLang = "en";
+let selectedFiles = [];
 
 function init() {
   window.addEventListener('scroll', handleScroll);
@@ -94,11 +97,11 @@ function updateTextInput() {
 }
 
 function updateTranslateButtonState() {
-  if (selectedModel && sourceText.value.trim().length > 0) {
+  if (selectedModel && (sourceText.value.trim().length > 0 || selectedFiles.length)) {
     translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   } else {
-    translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本';
+    translateBtn.innerHTML='<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本或文件';
     disableTranslateButton();
   }
 }
@@ -211,6 +214,33 @@ function subscribeUpdates() {
   }
 }
 
+function renderFileList() {
+  fileList.innerHTML = '';
+  if (selectedFiles.length === 0) return;
+
+  selectedFiles.forEach((file, index) => {
+    const li = document.createElement('li');
+    li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded";
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = file.name;
+    nameSpan.className = "max-w-[200px] truncate";
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '删除';
+    removeBtn.className = "text-red-500 text-xs ml-2 hover:underline";
+    removeBtn.onclick = () => {
+      selectedFiles.splice(index, 1);
+      renderFileList();
+      updateTranslateButtonState();
+    }
+
+    li.appendChild(nameSpan);
+    li.appendChild(removeBtn);
+    fileList.appendChild(li);
+  });
+}
+
 function toggleMobileMenu() {
   if (mobileMenu.classList.contains('opacity-0')) {
     mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
@@ -312,6 +342,14 @@ modal.addEventListener('click', e => {
   if(e.target === modal) {
     modal.style.display = 'none';
   }
+});
+
+fileInput.addEventListener('change', () => {
+  console.log('files selected:', fileInput.files);
+  selectedFiles.push(...Array.from(fileInput.files));
+  renderFileList();
+  fileInput.value = '';
+  updateTranslateButtonState();
 });
 
 historyLink.addEventListener('click', function(event) {
