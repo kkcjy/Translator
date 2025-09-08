@@ -36,12 +36,12 @@ async function makeRequest(url, options = {}) {
             },
             ...options
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error("请求失败:", error);
@@ -49,39 +49,33 @@ async function makeRequest(url, options = {}) {
     }
 }
 
-function getCookie(name)
-{
-    const cookies=document.cookie.split(';');
-    for(index in cookies)
-    {
-        let c=cookies[index];
-        while(c.charAt(0)===' ')c=c.substring(1,c.length);
-        if(c.indexOf(name+'=')===0)return c.substring(name.length+1,c.length);
+function getCookie(name) {
+    const cookies = document.cookie.split(';');
+    for (index in cookies) {
+        let c = cookies[index];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(name + '=') === 0) return c.substring(name.length + 1, c.length);
     }
 }
-function setCookie(name,value,days)
-{
-    let expires="";
-    if(days)
-    {
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
         const date = new Date();
         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
         expires = "; expires=" + date.toUTCString();
     }
-    document.cookie=name+'='+(value || "")+expires+"; path=/";
+    document.cookie = name + '=' + (value || "") + expires + "; path=/";
 }
-async function requestToken(mail)
-{
-    try{
-        let data=await makeRequest(`${API_URL}/token`,{
-            method:"POST",
-            body:JSON.stringify({mail:mail})
+async function requestToken(mail) {
+    try {
+        let data = await makeRequest(`${API_URL}/token`, {
+            method: "POST",
+            body: JSON.stringify({ mail: mail })
         });
         return data;
-    }catch(error)
-    {
+    } catch (error) {
         console.warn("Failed to get token from server, automatic password filling may not work.");
-        console.error("Failed to request token:",error);
+        console.error("Failed to request token:", error);
     }
 }
 
@@ -100,24 +94,22 @@ loginForm.addEventListener('submit', async (e) => {
     }
     //Fetch email -> {password,userId,avatar} from server.
     var userInfo;
-    try{
-        userInfo=await makeRequest(`${API_URL}/login`,{
-            method:"POST",
-            body:JSON.stringify({mail:email})
+    try {
+        userInfo = await makeRequest(`${API_URL}/login`, {
+            method: "POST",
+            body: JSON.stringify({ mail: email })
         });
-        if(userInfo.user[0] && typeof userInfo.user[0]=="string")
-        {
-            emailError.style.display='none';
-        }else
-        {
-            emailError.textContent="邮箱未注册";
-            emailError.style.display='block';
-            isValid=false;
+        if (userInfo.user[0] && typeof userInfo.user[0] == "string") {
+            emailError.style.display = 'none';
+        } else {
+            emailError.textContent = "邮箱未注册";
+            emailError.style.display = 'block';
+            isValid = false;
         }
-    }catch(error){
-        isValid=false;
-        console.warn("注册失败：",error);
-        alert("注册失败，请稍后尝试.");
+    } catch (error) {
+        isValid = false;
+        console.warn("登录失败：", error);
+        alert("登录失败，请稍后尝试.");
     }
 
     // 密码验证
@@ -129,14 +121,13 @@ loginForm.addEventListener('submit', async (e) => {
     } else {
         passwordError.style.display = 'none';
     }
-    if(password===userInfo.user[0])
-    {
-        passwordError.style.display='none';
-    }else if(userInfo.user[0] && typeof userInfo.user[0]=="string")
-    {
-        passwordError.textContent='密码与邮箱不匹配';
-        passwordError.style.display='block';
-        isValid=false;
+    console.log(typeof userInfo);
+    if (password === userInfo.user[0]) {
+        passwordError.style.display = 'none';
+    } else if (userInfo.user[0] && typeof userInfo.user[0] == "string") {
+        passwordError.textContent = '密码与邮箱不匹配';
+        passwordError.style.display = 'block';
+        isValid = false;
     }
 
     // 如果验证通过，执行登录
@@ -144,24 +135,23 @@ loginForm.addEventListener('submit', async (e) => {
         // 显示加载状态
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> 登录中...';
-        sessionStorage.setItem("currentUserId",userInfo.user[1]);
-        sessionStorage.setItem("currentUserAvatar",userInfo.data[0]);
-        sessionStorage.setItem("appSettings",JSON.stringify({
-            avatar:userInfo.data[0],
-            fontSize:userInfo.data[1]+"px",
-            bgMode:userInfo.data[2]
+        sessionStorage.setItem("currentUserId", userInfo.user[1]);
+        sessionStorage.setItem("currentUserAvatar", userInfo.data[0]);
+        sessionStorage.setItem("appSettings", JSON.stringify({
+            avatar: userInfo.data[0],
+            fontSize: userInfo.data[1] + "px",
+            bgMode: userInfo.data[2]
         }))
-        
+
         // 检查"记住我"选项
         const rememberMe = document.getElementById('rememberMe').checked;
         if (rememberMe) {
             // 保存邮箱到localStorage
             localStorage.setItem('savedEmail', email);
-            const hasSavedPassword=await savedPassword(email,getCookie("authToken"));
-            if(hasSavedPassword==null)
-            {
-                let token=await requestToken(email);
-                setCookie("authToken",token,7);
+            const hasSavedPassword = await savedPassword(email, getCookie("authToken"));
+            if (hasSavedPassword == null) {
+                let token = await requestToken(email);
+                setCookie("authToken", token, 7);
             }
         } else {
             localStorage.removeItem('savedEmail');
@@ -172,8 +162,7 @@ loginForm.addEventListener('submit', async (e) => {
         // 重置按钮状态
         loginBtn.disabled = false;
         loginBtn.innerHTML = '登录';
-    }else
-    {
+    } else {
         sessionStorage.removeItem("currentUserId");
         sessionStorage.removeItem("currentUserAvatar");
     }
@@ -184,43 +173,38 @@ function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
-async function savedPassword(account,token)
-{
-    if(token && typeof token == "string")
-    {
-        try{
-            const data=await makeRequest(`${API_URL}/password`,{
-                method:"POST",
-                body:JSON.stringify({
-                    email:account,
-                    token:token
+async function savedPassword(account, token) {
+    if (token && typeof token == "string") {
+        try {
+            const data = await makeRequest(`${API_URL}/password`, {
+                method: "POST",
+                body: JSON.stringify({
+                    email: account,
+                    token: token
                 })
             })
             return data;
-        }catch(error)
-        {
+        } catch (error) {
             console.warn("Failed to fetch password accordingly, automatic password filling may not work.");
-            console.error("Failed to read password accordingly.",error);
+            console.error("Failed to read password accordingly.", error);
             return null;
         }
-    }else
-    {
+    } else {
         return null;
     }
 }
 // 页面加载时检查是否有保存的邮箱
-window.addEventListener('load', async() => {
+window.addEventListener('load', async () => {
     sessionStorage.removeItem("currentUserId");
     sessionStorage.removeItem("currentUserAvatar");
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
         emailInput.value = savedEmail;
         document.getElementById('rememberMe').checked = true;
-        let token=getCookie("authToken");
-        let saved_password=await savedPassword(savedEmail,token);
-        if(saved_password)
-        {
-            passwordInput.value=saved_password;
+        let token = getCookie("authToken");
+        let saved_password = await savedPassword(savedEmail, token);
+        if (saved_password) {
+            passwordInput.value = saved_password;
         }
     }
 });

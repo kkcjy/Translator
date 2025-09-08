@@ -1,8 +1,8 @@
 let historyData = [
-    {time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text'},
-    {time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text'},
-    {time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture'},
-    {time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file'}
+    { time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text' },
+    { time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text' },
+    { time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture' },
+    { time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file' }
 ];
 
 const historyBody = document.getElementById('history-body');
@@ -12,6 +12,31 @@ const notification = document.getElementById('notification');
 const notificationText = document.getElementById('notification-text');
 const selectAllCheckbox = document.getElementById('select-all');
 const deleteBtn = document.querySelector('.delete-btn');
+// FastAPI base URL
+const API_URL = "https://www.r4286138.nyat.app:10434";
+
+// 通用请求函数
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("请求失败:", error);
+        throw error;
+    }
+}
 
 // 渲染表格
 function renderHistory(data) {
@@ -25,20 +50,32 @@ function renderHistory(data) {
 
     data.forEach((item, index) => {
         const tr = document.createElement('tr');
+        // 为图片和文件类型记录显示图标
+        let originalContent, translationContent;
 
+        if (item.type === 'picture') {
+            originalContent = `<div class="icon-display" data-title="${item.original}"><i class="fas fa-image"></i> 图片</div>`;
+        } else if (item.type === 'file') {
+            originalContent = `<div class="icon-display" data-title="${item.original}"><i class="fas fa-file"></i> 文件</div>`;
+
+        } else {
+            originalContent = item.original;
+
+        }
+        translationContent = item.translation;
         tr.innerHTML = `
-            <td>${item.time}</td>
-            <td>${item.original}</td>
-            <td>${item.translation}</td>
-            <td>
-                <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
-                <input type="checkbox" class="checkbox" data-index="${index}">
-            </td>
-        `;
+                    <td>${item.time}</td>
+                    <td>${originalContent}</td>
+                    <td>${translationContent}</td>
+                    <td>
+                        <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
+                        <input type="checkbox" class="checkbox" data-index="${index}" onchange="updateDeleteButtonState()">
+                    </td>
+                `;
 
         historyBody.appendChild(tr);
     });
-
+    updateDeleteButtonState();
     // 绑定复制事件
     document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -57,6 +94,14 @@ function showNotification(msg) {
     setTimeout(() => {
         notification.style.display = 'none';
     }, 2000);
+}
+
+function updateDeleteButtonState(){
+    const checkboxes = document.querySelectorAll('.history-table .checkbox');
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    deleteBtn.disabled = !anyChecked;
+    deleteBtn.style.cursor = anyChecked ? 'pointer' : 'not-allowed';
+    deleteBtn.style.backgroundColor = anyChecked ? '#ff4757' : '#ff9f9fff';
 }
 
 // 搜索功能
@@ -102,6 +147,15 @@ function filterAndSort() {
 selectAllCheckbox.addEventListener('change', () => {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
     checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+    if(selectAllCheckbox.checked && checkboxes.length>0){
+        deleteBtn.disabled=false;
+        deleteBtn.style.cursor='pointer';
+        deleteBtn.style.backgroundColor='#ff4757';
+    }else{
+        deleteBtn.disabled=true;
+        deleteBtn.style.cursor='not-allowed';
+        deleteBtn.style.backgroundColor='#ff9f9fff';
+    }
 });
 
 // 删除选中
@@ -113,6 +167,9 @@ deleteBtn.addEventListener('click', () => {
     });
     historyData = historyData.filter((_, idx) => !toDeleteIndexes.includes(idx));
     renderHistory(historyData);
+    deleteBtn.disabled=true;
+    deleteBtn.style.cursor='not-allowed';
+    deleteBtn.style.backgroundColor='#ff9f9fff';
 });
 
 // 导出 CSV
@@ -122,7 +179,7 @@ document.getElementById('export-btn').addEventListener('click', () => {
         csvContent += `"${item.time}","${item.original}","${item.translation}","${item.type}"\n`;
     });
 
-    const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'translation_history.csv';
@@ -138,6 +195,22 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
 document.getElementById('back-btn').addEventListener('click', () => {
     window.history.back();
 });
+
+document.onload=async()=>{
+    if(sessionStorage.getItem("currentUserId")==null){
+        showNotification('请先登录!');
+        setTimeout(()=>{
+            window.location.href="page-login.html";
+        },2000);
+        return;
+    }
+    try{
+        const data=await makeRequest(`${API_URL}/history`);
+        historyData=JSON.parse(data);
+    }catch(error){
+        showNotification('无法连接到服务器!');
+    }
+}
 
 // 初始渲染
 renderHistory(historyData);
