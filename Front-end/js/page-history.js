@@ -196,8 +196,7 @@ document.getElementById('back-btn').addEventListener('click', () => {
     window.history.back();
 });
 
-document.onload=async()=>{
-console.log(sessionStorage.getItem("currentUserId"));
+async function getHistoryData(){
     if(sessionStorage.getItem("currentUserId")==null){
         showNotification('请先登录!');
         setTimeout(()=>{
@@ -206,12 +205,19 @@ console.log(sessionStorage.getItem("currentUserId"));
         return;
     }
     try{
-        const data=await makeRequest(`${API_URL}/history`);
-        historyData=JSON.parse(data);
+        const data=await makeRequest(`${API_URL}/history/${sessionStorage.getItem("currentUserId")}`,{
+            method:"GET",
+        });
+        let jsonStr='[';
+        data.forEach(string=>{
+            jsonStr+=string+',';
+        })
+        jsonStr=jsonStr.slice(0,-1)+']';
+        historyData=JSON.parse(jsonStr);
+        // 初始渲染
+        renderHistory(historyData);
     }catch(error){
-        showNotification('无法连接到服务器!');
+        showNotification('无法连接到服务器!:'+error.message);
     }
 }
-
-// 初始渲染
-renderHistory(historyData);
+document.addEventListener('DOMContentLoaded', getHistoryData);
