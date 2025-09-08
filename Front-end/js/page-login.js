@@ -125,7 +125,7 @@ loginForm.addEventListener('submit', async (e) => {
     if (password === userInfo.user[0]) {
         passwordError.style.display = 'none';
     } else if (userInfo.user[0] && typeof userInfo.user[0] == "string") {
-        passwordError.textContent = '密码错误';
+        passwordError.textContent = '密码与邮箱不匹配';
         passwordError.style.display = 'block';
         isValid = false;
     }
