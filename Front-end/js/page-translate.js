@@ -9,6 +9,7 @@ const translationResultsContainer = document.getElementById('translation-results
 const translateBtn = document.getElementById('translate-btn');
 const sourceText = document.getElementById('source-text');
 const charCount = document.getElementById('char-count');
+const charCountContainer = document.getElementById('char-count-container');
 const fileInput = document.getElementById('file-upload');
 const fileList = document.getElementById('file-list');
 const resultsContent = document.getElementById('results-content');
@@ -226,12 +227,13 @@ function renderFileList() {
   if (selectedFiles.length === 0) {
     // 没有文件时显示文本框
     sourceText.style.display = 'block';
+    charCountContainer.style.display = 'block';
     return;
   }
 
   // 有文件时隐藏文本框并显示文件信息
   sourceText.style.display = 'none';
-
+  charCountContainer.style.display = 'none';
   selectedFiles.forEach((file, index) => {
     const li = document.createElement('li');
     li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded mb-2";
