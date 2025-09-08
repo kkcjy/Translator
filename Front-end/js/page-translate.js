@@ -118,6 +118,28 @@ function disableTranslateButton() {
   translateBtn.classList.remove('hover:shadow-md');
 }
 
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("请求失败:", error);
+        throw error;
+    }
+}
+
 async function performTranslation() {
   if (!selectedModel || (!sourceText.value.trim() && selectedFiles.length === 0)) return;
   translateBtn.disabled = true;
@@ -132,36 +154,21 @@ async function performTranslation() {
       return;
     }
 
-    const response = await fetch('http://0.0.0.0:8000/translate/', {
+    const response = await makeRequest(`${API_URL}/translate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
-      },
       body: JSON.stringify({
         source_text: sourceTextContent,
         source_lang: isChineseToEnglish ? "zh" : "en",
         target_lang: isChineseToEnglish ? "en" : "zh",
-        model_name: selectedModel
+        model_name: selectedModel,
+        userId: sessionStorage.getItem("currentUserId")
       })
     });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        showNotification('认证失败，请重新登录', 'error');
-        localStorage.removeItem('authToken');
-        window.location.href = 'page-login.html';
-        return;
-      }
-      throw new Error('翻译请求失败');
-    }
-
-    const data = await response.json();
 
     // 显示翻译结果
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
-        ${data.translated_text}
+        ${response.translated_text}
       </div>
     `;
 
