@@ -197,6 +197,7 @@ document.getElementById('back-btn').addEventListener('click', () => {
 });
 
 document.onload=async()=>{
+console.log(sessionStorage.getItem("currentUserId"));
     if(sessionStorage.getItem("currentUserId")==null){
         showNotification('请先登录!');
         setTimeout(()=>{
