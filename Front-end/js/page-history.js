@@ -25,12 +25,19 @@ function renderHistory(data) {
 
     data.forEach((item, index) => {
         const tr = document.createElement('tr');
-        // 为图片类型记录显示图标
-        const originalContent = item.type === 'picture'
-            ? `<i class="fas fa-image image-icon" data-title="${item.original}"></i>`
-            : item.original;
-        const translationContent = item.translation;
+        // 为图片和文件类型记录显示图标
+        let originalContent, translationContent;
 
+        if (item.type === 'picture') {
+            originalContent = `<div class="icon-display" data-title="${item.original}"><i class="fas fa-image"></i> 图片</div>`;
+        } else if (item.type === 'file') {
+            originalContent = `<div class="icon-display" data-title="${item.original}"><i class="fas fa-file"></i> 文件</div>`;
+
+        } else {
+            originalContent = item.original;
+
+        }
+        translationContent = item.translation;
         tr.innerHTML = `
                     <td>${item.time}</td>
                     <td>${originalContent}</td>
