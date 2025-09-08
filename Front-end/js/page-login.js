@@ -129,6 +129,7 @@ loginForm.addEventListener('submit', async (e) => {
     } else {
         passwordError.style.display = 'none';
     }
+console.log(typeof userInfo);
     if(password===userInfo.user[0])
     {
         passwordError.style.display='none';

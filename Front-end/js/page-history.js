@@ -12,6 +12,31 @@ const notification = document.getElementById('notification');
 const notificationText = document.getElementById('notification-text');
 const selectAllCheckbox = document.getElementById('select-all');
 const deleteBtn = document.querySelector('.delete-btn');
+// FastAPI base URL
+const API_URL = "https://www.r4286138.nyat.app:10434";
+
+// 通用请求函数
+async function makeRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("请求失败:", error);
+        throw error;
+    }
+}
 
 // 渲染表格
 function renderHistory(data) {
@@ -32,13 +57,13 @@ function renderHistory(data) {
             <td>${item.translation}</td>
             <td>
                 <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
-                <input type="checkbox" class="checkbox" data-index="${index}">
+                <input type="checkbox" class="checkbox" data-index="${index}" onchange="updateDeleteButtonState()">
             </td>
         `;
 
         historyBody.appendChild(tr);
     });
-
+    updateDeleteButtonState();
     // 绑定复制事件
     document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -57,6 +82,14 @@ function showNotification(msg) {
     setTimeout(() => {
         notification.style.display = 'none';
     }, 2000);
+}
+
+function updateDeleteButtonState(){
+    const checkboxes = document.querySelectorAll('.history-table .checkbox');
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    deleteBtn.disabled = !anyChecked;
+    deleteBtn.style.cursor = anyChecked ? 'pointer' : 'not-allowed';
+    deleteBtn.style.backgroundColor = anyChecked ? '#ff4757' : '#ff9f9fff';
 }
 
 // 搜索功能
@@ -102,6 +135,15 @@ function filterAndSort() {
 selectAllCheckbox.addEventListener('change', () => {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
     checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+    if(selectAllCheckbox.checked && checkboxes.length>0){
+        deleteBtn.disabled=false;
+        deleteBtn.style.cursor='pointer';
+        deleteBtn.style.backgroundColor='#ff4757';
+    }else{
+        deleteBtn.disabled=true;
+        deleteBtn.style.cursor='not-allowed';
+        deleteBtn.style.backgroundColor='#ff9f9fff';
+    }
 });
 
 // 删除选中
@@ -113,6 +155,9 @@ deleteBtn.addEventListener('click', () => {
     });
     historyData = historyData.filter((_, idx) => !toDeleteIndexes.includes(idx));
     renderHistory(historyData);
+    deleteBtn.disabled=true;
+    deleteBtn.style.cursor='not-allowed';
+    deleteBtn.style.backgroundColor='#ff9f9fff';
 });
 
 // 导出 CSV
@@ -138,6 +183,22 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
 document.getElementById('back-btn').addEventListener('click', () => {
     window.history.back();
 });
+
+document.onload=async()=>{
+    if(sessionStorage.getItem("currentUserId")==null){
+        showNotification('请先登录!');
+        setTimeout(()=>{
+            window.location.href="page-login.html";
+        },2000);
+        return;
+    }
+    try{
+        const data=await makeRequest(`${API_URL}/history`);
+        historyData=JSON.parse(data);
+    }catch(error){
+        showNotification('无法连接到服务器!');
+    }
+}
 
 // 初始渲染
 renderHistory(historyData);
