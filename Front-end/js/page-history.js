@@ -1,8 +1,8 @@
 let historyData = [
-    {time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text'},
-    {time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text'},
-    {time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture'},
-    {time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file'}
+    { time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text' },
+    { time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text' },
+    { time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture' },
+    { time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file' }
 ];
 
 const historyBody = document.getElementById('history-body');
@@ -25,16 +25,21 @@ function renderHistory(data) {
 
     data.forEach((item, index) => {
         const tr = document.createElement('tr');
+        // 为图片类型记录显示图标
+        const originalContent = item.type === 'picture'
+            ? `<i class="fas fa-image image-icon" data-title="${item.original}"></i>`
+            : item.original;
+        const translationContent = item.translation;
 
         tr.innerHTML = `
-            <td>${item.time}</td>
-            <td>${item.original}</td>
-            <td>${item.translation}</td>
-            <td>
-                <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
-                <input type="checkbox" class="checkbox" data-index="${index}">
-            </td>
-        `;
+                    <td>${item.time}</td>
+                    <td>${originalContent}</td>
+                    <td>${translationContent}</td>
+                    <td>
+                        <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
+                        <input type="checkbox" class="checkbox" data-index="${index}">
+                    </td>
+                `;
 
         historyBody.appendChild(tr);
     });
@@ -122,7 +127,7 @@ document.getElementById('export-btn').addEventListener('click', () => {
         csvContent += `"${item.time}","${item.original}","${item.translation}","${item.type}"\n`;
     });
 
-    const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'translation_history.csv';
