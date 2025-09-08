@@ -13,6 +13,7 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from db import getdb
 from typing import Dict
 import asyncio
+
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
     MAIL_USERNAME="2790598460@qq.com",  # 替换为您的邮箱
@@ -37,7 +38,8 @@ app.add_middleware(
     allow_methods='*',
     allow_headers='*'
 )
-#用于申请Token/获取账户密码的Model
+
+#用于申请Token/获取账户密码的Model/获取验证码
 class EmailItem(BaseModel):
     mail:EmailStr
 
@@ -120,7 +122,6 @@ class TranslationModel:
                 return f"Translation: {text}"
             else:
                 return f"翻译: {text}"
-
 
 translation_model = TranslationModel()
 async def verify_token(authorization: str = Header(...), db: cursors.Cursor = Depends(getdb)):
@@ -220,17 +221,9 @@ def registered(email:str,db:cursors.Cursor=Depends(getdb)):
     else:
         return None
 
-# 请求模型
-class EmailRequest(BaseModel):
-    email: EmailStr
-class RegisterRequest(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    verification_code: str
 # 发送验证码端点
 @app.post("/send-verification-code")
-async def send_verification_code(request: EmailRequest):
+async def send_verification_code(request: EmailItem):
     email = request.email
     # 生成6位随机验证码
     code = ''.join(random.choices('0123456789', k=6))
