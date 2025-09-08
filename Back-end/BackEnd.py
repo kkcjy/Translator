@@ -350,6 +350,26 @@ async def translate_text(
         logger.error(f"Translation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
 
+@app.get("/history/{userId}")
+def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd=f"SELECT date,type,input,output FROM TRS_T_HISTORY WHERE userId={userId}"
+        db.execute(cmd)
+        results=db.fetchall()
+        rtn=[]
+        for row in results:
+            jsonstr='"time":"'+row[0].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[2]+'","translation":"'+row[3]+'","type":"'
+            if row[1]==1:
+                jsonstr+='picture"'
+            elif row[1]==2:
+                jsonstr+='file"'
+            else:
+                jsonstr+='text"'
+            rtn.append(jsonstr)
+        return rtn
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to read from database:{e}")
 
 @app.get("/history/", response_model=List[TranslationResponse])
 async def get_translation_history(
