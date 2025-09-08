@@ -358,13 +358,13 @@ def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
         results=db.fetchall()
         rtn=[]
         for row in results:
-            jsonstr='"time":"'+row[0].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[2]+'","translation":"'+row[3]+'","type":"'
+            jsonstr='{"time":"'+row[0].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[2]+'","translation":"'+row[3]+'","type":"'
             if row[1]==1:
-                jsonstr+='picture"'
+                jsonstr+='picture"}'
             elif row[1]==2:
-                jsonstr+='file"'
+                jsonstr+='file"}'
             else:
-                jsonstr+='text"'
+                jsonstr+='text"}'
             rtn.append(jsonstr)
         return rtn
     except Exception as e:
