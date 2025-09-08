@@ -42,7 +42,8 @@
       <div class="hidden md:flex items-center space-x-6">
         <div id="login-or-avatar"><a href="page-login.html"
             class="text-dark/80 hover:text-primary transition-colors">注册/登录</a></div>
-        <a href="page-history.html" class="text-dark/80 hover:text-primary py-2 transition-colors" id="page-history">历史记录</a>
+        <a href="page-history.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
+          id="page-history">历史记录</a>
         <a href="https://github.com/kkcjy/Translator" class="text-dark/80 hover:text-primary transition-colors">关于我们</a>
         <a href="#" class="text-dark/80 hover:text-primary transition-colors" id="open-setting-btn">设置</a>
       </div>
@@ -60,7 +61,8 @@
         <a href="page-login.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
           id="to-page-login">注册/登录</a>
         <a href="page-history.html" class="text-dark/80 hover:text-primary py-2 transition-colors">历史记录</a>
-        <a href="https://github.com/kkcjy/Translator" class="text-dark/80 hover:text-primary py-2 transition-colors">关于我们</a>
+        <a href="https://github.com/kkcjy/Translator"
+          class="text-dark/80 hover:text-primary py-2 transition-colors">关于我们</a>
         <a href="page-setting.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
           id="open-setting-btn-mobile">设置</a>
       </div>
@@ -290,10 +292,13 @@
             <li><a href="https://github.com/kkcjy/Translator" class="hover:text-primary transition-colors">联系我们</a></li>
             <li><a href="#" id="open-terms" class="hover:text-primary transition-colors">使用条款</a></li>
 
-            <div id="terms-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
-              <div style="background:white; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:20px; border-radius:8px; position:relative; color:#000;">
+            <div id="terms-modal"
+              style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+              <div
+                style="background:white; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:20px; border-radius:8px; position:relative; color:#000;">
                 <!-- 关闭按钮 -->
-                <button id="close-terms" style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+                <button id="close-terms"
+                  style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
 
                 <h2 style="margin-bottom:10px;">使用条款</h2>
 
@@ -355,7 +360,8 @@
           <p class="text-sm">订阅获取最新功能更新</p>
           <div class="mt-2 flex">
             <input type="email" placeholder="您的邮箱"
-              class="px-3 py-2 text-sm bg-white/10 rounded-l-lg focus:outline-none focus:bg-white/20 w-full" id="subscribe-input">
+              class="px-3 py-2 text-sm bg-white/10 rounded-l-lg focus:outline-none focus:bg-white/20 w-full"
+              id="subscribe-input">
             <button class="bg-primary hover:bg-primary/90 px-3 py-2 rounded-r-lg transition-colors" id="subscribe-btn">
               <i class="fa fa-paper-plane"></i>
             </button>
@@ -391,17 +397,17 @@
           <img id="avatar-preview" src="img/logo_purple.jpg" alt="头像"
             class="w-14 h-14 rounded-full border object-cover">
           <label for="avatar-upload" class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-              上传图片
+            上传图片
           </label>
           <input type="file" id="avatar-upload" accept="image/*" class="hidden">
         </div>
       </div>
       <!-- 字体大小（滑动条替换按钮） -->
       <div class="mb-6">
-        <label class="block font-medium mb-2 text-dark">字体大小</label>
+        <label class="text-gray-600">字体大小</label>
         <div class="flex items-center space-x-4">
           <input type="range" id="font-size-range" min="14" max="20" step="1" value="16" class="w-full">
-          <span id="font-size-value" class="ml-2 text-dark">16px</span>
+          <span id="font-size-value" class="text-gray-600">16px</span>
         </div>
       </div>
       <!-- 背景色 -->
@@ -414,14 +420,14 @@
             <span class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white">
               <span class="radio-dot w-3 h-3 rounded-full bg-black opacity-0"></span>
             </span>
-            <span class="ml-1 text-sm text-dark">浅色</span>
+            <span class="text-gray-600">浅色</span>
           </label>
           <label class="flex items-center cursor-pointer">
             <input type="radio" name="bg-mode" class="sr-only bg-mode-radio" value="dark" data-mode="dark">
             <span class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white">
               <span class="radio-dot w-3 h-3 rounded-full bg-black opacity-0"></span>
             </span>
-            <span class="ml-1 text-sm text-dark">深色</span>
+            <span class="text-gray-600">深色</span>
           </label>
         </div>
       </div>
