@@ -262,6 +262,7 @@ async def translate_text(
     if request.userId:
         cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
         db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,"测试测试"))
+        db.execute("COMMIT")
     response=TranslationResponse(
         translation_id=666,translation_time=datetime.now(),source_text=request.source_text,translated_text=request.source_text,source_lang="en",target_lang="zh",model_name="AAA"
     )
