@@ -208,6 +208,11 @@ async function getHistoryData(){
         const data=await makeRequest(`${API_URL}/history/${sessionStorage.getItem("currentUserId")}`,{
             method:"GET",
         });
+        if(data.length<=0){
+            historyData=[];
+            renderHistory(historyData);
+            return;
+        }
         let jsonStr='[';
         data.forEach(string=>{
             jsonStr+=string+',';
