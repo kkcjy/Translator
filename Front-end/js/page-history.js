@@ -1,8 +1,8 @@
 let historyData = [
-    { time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text' },
-    { time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text' },
-    { time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture' },
-    { time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file' }
+    // { time: '2025-09-03 16:00', original: '你好', translation: 'Hello', type: 'text' },
+    // { time: '2025-09-03 16:05', original: '世界', translation: 'World', type: 'text' },
+    // { time: '2025-09-03 16:10', original: '图片示例', translation: 'Picture Example', type: 'picture' },
+    // { time: '2025-09-03 16:15', original: '文件示例', translation: 'File Example', type: 'file' }
 ];
 
 const historyBody = document.getElementById('history-body');
