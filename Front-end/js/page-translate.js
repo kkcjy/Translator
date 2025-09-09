@@ -39,7 +39,7 @@ function init() {
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
     loginOrAvatar.style.display = "null";
-    loginOrAvatar.innerHTML = `<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
+    loginOrAvatar.innerHTML = `<a id="avatarLink" href='#'><img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'></a>`;
     mobileMenuButton.style.display = "null";
     mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
