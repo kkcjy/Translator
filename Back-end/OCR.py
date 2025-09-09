@@ -13,7 +13,7 @@ from PIL import Image
 import io
 import json  # 用于处理OCR返回的JSON结果
 
-app = FastAPI()
+ocr_app = FastAPI()
 
 # ------------------------------
 # OCR模型初始化（启动时加载一次）
@@ -23,7 +23,7 @@ ocr_model = None
 ocr_processor = None
 
 
-@app.on_event("startup")
+@ocr_app.on_event("startup")
 def load_ocr_model():
     """服务启动时加载OCR模型（避免每次请求重复加载）"""
     global ocr_model, ocr_processor
@@ -96,7 +96,7 @@ def process_ocr(image: Image.Image) -> dict:
 # ------------------------------
 # 原有接口保持不变
 # ------------------------------
-@app.get('/')
+@ocr_app.get('/')
 def test_message():
     return {"message": "文枢翻译API服务", "status": "运行中"}
 
@@ -105,7 +105,7 @@ class EmailItem(BaseModel):
     mail: EmailStr
 
 
-@app.post("/token/")
+@ocr_app.post("/token/")
 def generateToken(item: EmailItem, db: cursors.Cursor = Depends(getdb)):
     try:
         token = secrets.token_hex(16)
@@ -128,7 +128,7 @@ class EmailTokenItem(BaseModel):
     token: str
 
 
-@app.post("/password")
+@ocr_app.post("/password")
 def getPassword(item: EmailTokenItem, db: cursors.Cursor = Depends(getdb)):
     try:
         current_date = time.strftime('%Y-%m-%d', time.localtime())
@@ -150,7 +150,7 @@ def getPassword(item: EmailTokenItem, db: cursors.Cursor = Depends(getdb)):
 # ------------------------------
 # 新增OCR处理接口
 # ------------------------------
-@app.post("/ocr-process")
+@ocr_app.post("/ocr-process")
 async def ocr_process(
         file: UploadFile = File(...),  # 接收上传的图片文件
         db: cursors.Cursor = Depends(getdb)
