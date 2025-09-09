@@ -36,7 +36,8 @@
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-2">
         <img src="img/logo.jpg" alt="logo" style="width: 40px; height: 40px;" />
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">文枢</h1>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">文枢
+        </h1>
       </div>
 
       <div class="hidden md:flex items-center space-x-6">
@@ -111,7 +112,8 @@
             class="model-card border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group">
             <div class="flex justify-between items-start">
               <div>
-                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">高精度翻译模型</h4>
+                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">高精度翻译模型
+                </h4>
                 <p class="text-gray-600">专业级翻译，适合文档、学术内容</p>
               </div>
               <div class="bg-purple-50 w-10 h-10 rounded-full flex items-center justify-center">
@@ -128,7 +130,8 @@
             class="model-card border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group">
             <div class="flex justify-between items-start">
               <div>
-                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">DeepSeek-R1</h4>
+                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">DeepSeek-R1
+                </h4>
                 <p class="text-gray-600">AI大模型，上下文理解能力强</p>
               </div>
               <div class="bg-indigo-50 w-10 h-10 rounded-full flex items-center justify-center">
@@ -194,26 +197,30 @@
 
           <!-- 输入区域 -->
           <div class="p-4">
-            <textarea id="source-text" placeholder="请输入要翻译的文本..."
-              class="w-full h-32 p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"></textarea>
-              <div class="w-full border p-4 rounded space-y-2 relative">
-                <div class="w-full max-w-md">
-                  <label for="file-upload" class="inline-block cursor-pointer bg-blue-50 text-blue-700 font-semibold py-2 px-4 rounded-full hover:bg-blue-100">
-                    选择文件
-                  </label>
-                  <input id="file-upload" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.png" class="hidden" />
-                  <ul id="file-list" class="mt-2 text-sm text-gray-700 space-y-1 max-h-40 overflow-auto max-w-xs"> </ul>
-                  <div class="text-sm text-gray-500 mt-2">
-                    <span id="char-count">0</span> 字符
-                  </div>
-                </div>
-
-                <button id="translate-btn"
-                  class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-all flex items-center opacity-50 cursor-not-allowed"
-                  disabled>
-                  <i class="fa fa-language mr-2"></i> 开始翻译
-                </button>
+            <div class="relative w-full">
+              <textarea id="source-text" placeholder="请输入要翻译的文本..."
+                class="w-full h-32 p-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"></textarea>
+              <div id="char-count-container"
+                class="absolute bottom-2 right-2 text-sm text-gray-500 bg-white/80 px-2 rounded">
+                <span id="char-count">0</span> 字符
               </div>
+            </div>
+            <div class="w-full p-4 rounded space-y-2 relative">
+              <div class="w-full max-w-md">
+                <ul id="file-list" class="mt-2 text-sm text-gray-700 space-y-1 max-h-40 overflow-auto max-w-xs"> </ul>
+                <label for="file-upload"
+                  class="inline-block cursor-pointer bg-blue-50 text-blue-700 font-semibold py-2 px-4 rounded-full hover:bg-blue-100">
+                  选择文件
+                </label>
+                <input id="file-upload" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.png" class="hidden" />
+
+              </div>
+              <button id="translate-btn"
+                class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-all flex items-center opacity-50 cursor-not-allowed"
+                disabled>
+                <i class="fa fa-language mr-2"></i> 开始翻译
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -400,7 +407,7 @@
       <div class="mb-6">
         <label class="block font-medium mb-2 text-dark">头像上传</label>
         <div class="flex items-center space-x-4">
-          <img id="avatar-preview" src="img/logo_purple.jpg" alt="头像"
+          <img id="avatar-preview" src="img/default_ava.jpg" alt="头像"
             class="w-14 h-14 rounded-full border object-cover">
           <label for="avatar-upload" class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
             上传图片
@@ -410,10 +417,10 @@
       </div>
       <!-- 字体大小（滑动条替换按钮） -->
       <div class="mb-6">
-        <label class="text-gray-600">字体大小</label>
+        <label class="block font-medium mb-2 text-dark">字体大小</label>
         <div class="flex items-center space-x-4">
           <input type="range" id="font-size-range" min="14" max="20" step="1" value="16" class="w-full">
-          <span id="font-size-value" class="text-gray-600">16px</span>
+          <span id="font-size-value" class="ml-2 text-dark">16px</span>
         </div>
       </div>
       <!-- 背景色 -->
@@ -426,14 +433,14 @@
             <span class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white">
               <span class="radio-dot w-3 h-3 rounded-full bg-black opacity-0"></span>
             </span>
-            <span class="text-gray-600">浅色</span>
+            <span class="ml-1 text-sm text-dark">浅色</span>
           </label>
           <label class="flex items-center cursor-pointer">
             <input type="radio" name="bg-mode" class="sr-only bg-mode-radio" value="dark" data-mode="dark">
             <span class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white">
               <span class="radio-dot w-3 h-3 rounded-full bg-black opacity-0"></span>
             </span>
-            <span class="text-gray-600">深色</span>
+            <span class="ml-1 text-sm text-dark">深色</span>
           </label>
         </div>
       </div>
