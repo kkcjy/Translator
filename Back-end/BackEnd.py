@@ -11,6 +11,7 @@ import logging
 from typing import List
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from db import getdb
+from OCR import ocr_app
 from typing import Dict
 import asyncio
 
@@ -129,6 +130,8 @@ translation_model = TranslationModel()
 @app.get('/')
 def test_message():
     return {"message": "文枢翻译API服务", "status": "运行中"}
+
+app.mount("/ocr",ocr_app)
 
 #请求Token
 @app.post("/token/")
