@@ -71,6 +71,7 @@ class TranslationRequest(BaseModel):
     source_lang: str = "zh"
     target_lang: str = "en"
     model_name: str
+    userId:str | None
 
 class TranslationResponse(BaseModel):
     translation_id: int
@@ -124,37 +125,6 @@ class TranslationModel:
                 return f"翻译: {text}"
 
 translation_model = TranslationModel()
-async def verify_token(authorization: str = Header(...), db: cursors.Cursor = Depends(getdb)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication scheme"
-        )
-
-    token = authorization[7:]
-
-    query = "SELECT account, deadline FROM TRS_AUTHTOKEN WHERE token = %s"
-    db.execute(query, (token,))
-    result = db.fetchone()
-
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
-
-    account, deadline = result
-    if datetime.now().date() > deadline:
-        delete_query = "DELETE FROM TRS_AUTHTOKEN WHERE token = %s"
-        db.execute(delete_query, (token,))
-        db.connection.commit()
-
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired"
-        )
-
-    return account
 
 @app.get('/')
 def test_message():
@@ -284,12 +254,18 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
-@app.post("/translate/", response_model=TranslationResponse)
+@app.post("/translate",response_model=TranslationResponse)
 async def translate_text(
         request: TranslationRequest,
-        user_email: str = Depends(verify_token),
         db: cursors.Cursor = Depends(getdb)
 ):
+    if request.userId:
+        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%d,%s,%d,%s,%s)"
+        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,"测试测试"))
+    response=TranslationResponse(
+        translation_id=666,translation_time=datetime.now(),source_text=request.source_text,translated_text="法ioewjfwfe",source_lang="en",target_lang="zh",model_name="AAA"
+    )
+    return response
     try:
         # 调用翻译模型
         translated_text = translation_model.translate(
@@ -305,12 +281,12 @@ async def translate_text(
         # 将翻译结果存入数据库
         insert_cmd = """
             INSERT INTO TRS_TRANSLATION_HISTORY 
-            (account, source_text, translated_text, source_lang, target_lang, model_used, create_time)
+            (account, source_text, translated_text, source_lang, target_lang, model_used, create_time)###############################################################
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
 
         db.execute(insert_cmd, (
-            user_email,
+            #user_email,
             request.source_text,
             translated_text,
             request.source_lang,
@@ -325,7 +301,7 @@ async def translate_text(
         # 提交事务
         db.connection.commit()
 
-        logger.info(f"Translation saved for user {user_email}, ID: {translation_id}")
+        logger.info(f"Translation saved for user {userId}, ID: {translation_id}")
 
         # 返回响应
         return TranslationResponse(
@@ -343,6 +319,7 @@ async def translate_text(
         logger.error(f"Translation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
 
+#获取用户翻译历史记录
 @app.get("/history/{userId}")
 def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
     try:
@@ -363,85 +340,6 @@ def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to read from database:{e}")
-
-@app.get("/history/", response_model=List[TranslationResponse])
-async def get_translation_history(
-        limit: int = 10,
-        offset: int = 0,
-        user_email: str = Depends(verify_token),
-        db: cursors.Cursor = Depends(getdb)
-):
-    try:
-        query = """
-            SELECT id, source_text, translated_text, source_lang, target_lang, model_used, create_time
-            FROM TRS_TRANSLATION_HISTORY 
-            WHERE account = %s 
-            ORDER BY create_time DESC 
-            LIMIT %s OFFSET %s
-        """
-
-        db.execute(query, (user_email, limit, offset))
-        results = db.fetchall()
-
-        # 转换为响应模型
-        history = []
-        for row in results:
-            history.append(TranslationResponse(
-                translation_id=row[0],
-                source_text=row[1],
-                translated_text=row[2],
-                source_lang=row[3],
-                target_lang=row[4],
-                model_name=row[5],
-                translation_time=row[6]
-            ))
-
-        return history
-
-    except Exception as e:
-        logger.error(f"Failed to retrieve translation history: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve history: {str(e)}")
-
-
-@app.get("/translation/{translation_id}", response_model=TranslationResponse)
-async def get_translation_by_id(
-        translation_id: int,
-        user_email: str = Depends(verify_token),
-        db: cursors.Cursor = Depends(getdb)
-):
-    try:
-        # 查询特定翻译记录
-        query = """
-            SELECT id, account, source_text, translated_text, source_lang, target_lang, model_used, create_time
-            FROM TRS_TRANSLATION_HISTORY 
-            WHERE id = %s
-        """
-        db.execute(query, (translation_id,))
-        result = db.fetchone()
-
-        if not result:
-            raise HTTPException(status_code=404, detail="Translation not found")
-
-        # 检查用户是否有权访问此记录
-        if result[1] != user_email:
-            raise HTTPException(status_code=403, detail="Access denied")
-        # 返回结果
-        return TranslationResponse(
-            translation_id=result[0],
-            source_text=result[2],
-            translated_text=result[3],
-            source_lang=result[4],
-            target_lang=result[5],
-            model_name=result[6],
-            translation_time=result[7]
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to retrieve translation: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve translation: {str(e)}")
-
 
 # 健康检查端点
 @app.get("/health")
