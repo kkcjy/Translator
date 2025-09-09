@@ -37,6 +37,95 @@
   opacity: 0;
   transition: opacity 300ms;
 }
+.user-menu{
+  position:relative;
+  display: inline-block;
+}
+.avatar{
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s;
+}
+.avatar:hover{
+  border-color: #3b82f6;
+  transform: scale(1.05);
+}
+.dropdown-menu{
+  position:absolute;
+  top: 100%;
+  right:0;
+  width: 220px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  margin-top: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s;
+  z-index: 1001;
+  overflow: hidden;
+}
+.dropdown-menu.show{
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.user-info{
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.user-info-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.user-details{
+  overflow: hidden;
+}
+.user-name{
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-item{
+  display: flex;
+  align-items: center;
+  gap:12px;
+  padding: 12px 16px;
+  color: #475569;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+.menu-item:hover{
+  background: #f1f5f9;
+  color: #3b82f6;
+  border-left-color: #3b82f6;
+}
+.menu-divider{
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+.logout-btn{
+  color: #ef4444;
+}
+.logout-btn:hover{
+  color: #dc2626;
+  background: #fef2f2;
+  border-left-color: #ef4444;
+}
 
 /* 输入框移动动画 */
 .input-container {
@@ -96,4 +185,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media(max-width: 768px) {
+  .dropdown-menu{
+    right:-20px;
+    width:calc(100vw - 40px);
+  }
 }
