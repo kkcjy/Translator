@@ -183,8 +183,10 @@ function applySettings(settings) {
   // 功能特点卡片
   // 修改选择器，确保所有卡片都能切换
   const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
-  document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
-  document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
+  if(document.getElementById('Avatar'))
+    document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
+  if(document.getElementById('MobileAvatar'))
+    document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
   if (settings.bgMode === 'light') {
     document.body.classList.remove('dark');
     document.body.classList.add('bg-gradient-to-br', 'from-light', 'to-blue-50', 'text-dark');

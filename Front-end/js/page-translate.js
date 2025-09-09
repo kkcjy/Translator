@@ -28,6 +28,9 @@ const openBtn = document.getElementById('open-terms');
 const closeBtn = document.getElementById('close-terms');
 const modal = document.getElementById('terms-modal');
 const historyLink = document.getElementById('page-history');
+const dropdown= document.getElementById('user-dropdown');
+const logoutBtn=document.getElementById('logout-btn');
+let avatarLink;
 
 let selectedModel = null;
 let isChineseToEnglish = true;
@@ -39,10 +42,32 @@ function init() {
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
     loginOrAvatar.style.display = "null";
-    loginOrAvatar.innerHTML = `<a id="avatarLink" href='#'><img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'></a>`;
+    loginOrAvatar.href="javascript:void(0);";
+    loginOrAvatar.innerHTML = `<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='avatar'>`;
+    document.getElementById("Avatar").addEventListener('click', (e)=>{
+      e.stopPropagation();
+      dropdown.classList.toggle('show');
+    });
+    document.getElementsByClassName("user-info-avatar")[0].src=sessionStorage.getItem("currentUserAvatar");
     mobileMenuButton.style.display = "null";
     mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
+  document.addEventListener('click', function(){
+    dropdown.classList.remove('show');
+  });
+  dropdown.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+  logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (confirm('确定要退出登录吗？')) {
+          alert('退出登录成功！');
+          sessionStorage.removeItem("currentUserId");
+          sessionStorage.removeItem("currentUserAvatar");
+          window.location.href="page-translate.html";
+          dropdown.classList.remove('show');
+      }
+  });
   modelCards.forEach(card => {
     card.addEventListener('click', () => selectModel(card));
   });
