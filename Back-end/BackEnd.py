@@ -243,27 +243,11 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
+# 执行翻译任务
 @app.post("/translate")
-async def translate_text(
-        request: TranslationRequest,
-        db: cursors.Cursor = Depends(getdb)
-):
-    # if request.userId:
-    #     cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
-    #     db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,"测试测试"))
-    #     db.execute("COMMIT")
-    
+async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
     try:
-        # 调用翻译模型
-        translated_text = translate(
-            request.source_text,
-            request.source_lang,
-            request.target_lang,
-            request.model_name
-        )
-
-        # 获取当前时间
-        current_time = datetime.now()
+        translated_text = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
 
         cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
         db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
