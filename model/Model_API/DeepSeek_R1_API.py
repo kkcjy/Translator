@@ -33,6 +33,8 @@ translate_text(text: str, direction: str) -> str:
 """
 
 from openai import OpenAI
+from fastapi import FastAPI,Depends,HTTPException, status, Header
+from pydantic import BaseModel
 import re
 
 client = OpenAI(
