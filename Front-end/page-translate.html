@@ -43,21 +43,21 @@
       <div class="hidden md:flex items-center space-x-6">
         <div class="user-menu"><a href="page-login.html" id="login-or-avatar"
             class="text-dark/80 hover:text-primary transition-colors">注册/登录</a>
-            <div class="dropdown-menu" id="user-dropdown">
-              <div class="user-info">
-                  <img src="img/default_ava.jpg" class="user-info-avatar">
-                  <div class="user-details">
-                      <div class="user-name">user</div>
-                  </div>
+          <div class="dropdown-menu" id="user-dropdown">
+            <div class="user-info">
+              <img src="img/default_ava.jpg" class="user-info-avatar">
+              <div class="user-details">
+                <div class="user-name">user</div>
               </div>
-              
-              <div class="menu-divider"></div>
-              
-              <a href="#" class="menu-item logout-btn" id="logout-btn">
-                  <i class="fas fa-sign-out-alt"></i>
-                  <span>退出登录</span>
-              </a>
             </div>
+
+            <div class="menu-divider"></div>
+
+            <a href="#" class="menu-item logout-btn" id="logout-btn">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>退出登录</span>
+            </a>
+          </div>
         </div>
         <a href="page-history.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
           id="page-history">历史记录</a>
@@ -430,6 +430,20 @@
           </label>
           <input type="file" id="avatar-upload" accept="image/*" class="hidden">
         </div>
+      </div>
+      <!-- 用户名修改 -->
+      <div class="mb-6">
+        <label class="block font-medium mb-2 text-dark">用户名</label>
+        <div class="flex items-center space-x-2">
+          <input type="text" id="username-input"
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+            placeholder="输入新用户名">
+          <button id="save-username-btn"
+            class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+            保存
+          </button>
+        </div>
+        <p id="username-error" class="text-red-500 text-sm mt-1 hidden">用户名不能为空</p>
       </div>
       <!-- 字体大小（滑动条替换按钮） -->
       <div class="mb-6">
