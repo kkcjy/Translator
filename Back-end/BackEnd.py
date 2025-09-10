@@ -15,7 +15,7 @@ from OCR import ocr_app
 from typing import Dict
 import asyncio
 from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
-DeepSeek_R1_URI = "https://www.u2985420.nyat.app:26237/"
+DeepSeek_R1_URI = "https://www.u2985420.nyat.app:62835/"
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -76,15 +76,6 @@ class TranslationRequest(BaseModel):
     model_name: str
     userId:str | None
 
-class TranslationResponse(BaseModel):
-    translation_id: int
-    source_text: str
-    translated_text: str
-    source_lang: str
-    target_lang: str
-    model_name: str
-    translation_time: datetime
-
 class UserHistoryRequest(BaseModel):
     user_mail:EmailStr
     limit:int = 10
@@ -106,7 +97,9 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             return f"[Precision Model] 精准中文翻译: {text}"
 
     elif model_name == "DeepSeek-R1":
-        result = DeepSeek_R1_translate(text, direction)
+        # result = DeepSeek_R1_translate(text, direction)
+
+        result = 
         return result
 
     elif model_name == "通义千问":
@@ -129,7 +122,7 @@ def test_message():
 app.mount("/ocr",ocr_app)
 
 #请求Token
-@app.post("/token/")
+@app.post("/token")
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
         token=secrets.token_hex(16)
@@ -179,6 +172,7 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
                 "user": user,
                 "data": setting,
             }
+
 #查找可能已经注册的邮箱
 @app.get("/users")
 def registered(email:str,db:cursors.Cursor=Depends(getdb)):
@@ -212,6 +206,7 @@ async def send_verification_code(request: EmailItem):
         "message": "验证码已发送",
         "code":code
     }
+
 #注册
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
@@ -252,67 +247,17 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
-@app.post("/translate",response_model=TranslationResponse)
-async def translate_text(
-        request: TranslationRequest,
-        db: cursors.Cursor = Depends(getdb)
-):
-    if request.userId:
-        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
-        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,"测试测试"))
-        db.execute("COMMIT")
-    
-    response=TranslationResponse(
-        translation_id=666,translation_time=datetime.now(),source_text=request.source_text,translated_text=request.source_text,source_lang="en",target_lang="zh",model_name="AAA"
-    )
-    return response
+# 执行翻译任务
+@app.post("/translate")
+async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
     try:
-        # 调用翻译模型
-        translated_text = translation_model.translate(
-            request.source_text,
-            request.source_lang,
-            request.target_lang,
-            request.model_name
-        )
+        translated_text = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
 
-        # 获取当前时间
-        current_time = datetime.now()
+        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
+        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
+        db.execute("COMMIT")
 
-        # 将翻译结果存入数据库
-        insert_cmd = """
-            INSERT INTO TRS_TRANSLATION_HISTORY 
-            (account, source_text, translated_text, source_lang, target_lang, model_used, create_time)###############################################################
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-
-        db.execute(insert_cmd, (
-            #user_email,
-            request.source_text,
-            translated_text,
-            request.source_lang,
-            request.target_lang,
-            request.model_name,
-            current_time
-        ))
-
-        # 获取插入的ID
-        translation_id = db.lastrowid
-
-        # 提交事务
-        db.connection.commit()
-
-        logger.info(f"Translation saved for user {userId}, ID: {translation_id}")
-
-        # 返回响应
-        return TranslationResponse(
-            translation_id=translation_id,
-            source_text=request.source_text,
-            translated_text=translated_text,
-            source_lang=request.source_lang,
-            target_lang=request.target_lang,
-            model_name=request.model_name,
-            translation_time=current_time
-        )
+        return translated_text
 
     except Exception as e:
         db.connection.rollback()
