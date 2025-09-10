@@ -11,6 +11,8 @@ const fontSizeRange = document.getElementById('font-size-range');
 const fontSizeValue = document.getElementById('font-size-value');
 const bgModeBtns = document.querySelectorAll('.bg-mode-btn');
 const bgModeRadios = document.querySelectorAll('.bg-mode-radio');
+const saveUsernameBtn = document.getElementById('save-username-btn');
+const usernameError = document.getElementById('username-error');
 // FastAPI base URL
 const API_URL = "https://www.r4286138.nyat.app:10434";
 
@@ -411,10 +413,42 @@ confirmBtn && confirmBtn.addEventListener('click', async()=>{
     showNotification(`登陆账号后方可设置！`, 'warning');
   }
 });
+// 保存用户名函数
+async function saveUsername() {
+  const usernameInput = document.getElementById('username-input');
+  const usernameError = document.getElementById('username-error');
+  const newUsername = usernameInput.value.trim();
+  if(!sessionStorage.getItem("currentUserId")){
+    showNotification('请先登录!', 'error');
+    return;
+  }
+  if (!newUsername) {
+    usernameError.classList.remove('hidden');
+    return;
+  }
+  usernameError.classList.add('hidden');
+  try{
+    const O_Fortuna_luna_velut_statu_variabilis=await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"),10)}?newname=${newUsername}`,{
+      method: "PUT",
+    });
+  }catch(error){
+    console.error("Failed to update username.", error);
+    showNotification('用户名修改失败，请稍后重试', 'error');
+    return;
+  }
+  // 更新页面上的用户名显示
+  const userNameElements = document.querySelectorAll('.user-name');
+  userNameElements.forEach(element => {
+    element.textContent = newUsername;
+  });
+  showNotification('用户名修改成功');
+}
 
 // 页面初始化时应用当前设置
 window.addEventListener('DOMContentLoaded', function () {
   applySettings(currentSettings);
+  // 保存用户名事件
+  saveUsernameBtn.addEventListener('click', saveUsername);
 })
 // 挂载到 window，供外部 JS 调用
 window.applyResultsTheme = applyResultsTheme;

@@ -8,6 +8,7 @@ import secrets
 import time
 from datetime import datetime
 import logging
+import requests
 from typing import List
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from db import getdb
@@ -15,7 +16,7 @@ from OCR import ocr_app
 from typing import Dict
 import asyncio
 #from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
-DeepSeek_R1_URI = "https://www.u2985420.nyat.app:26237/"
+DeepSeek_R1_URI = "https://www.u2985420.nyat.app:62835/"
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -98,9 +99,14 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
 
     elif model_name == "DeepSeek-R1":
         # result = DeepSeek_R1_translate(text, direction)
-
-        result =
-        return result
+        json_data={"text":text,"direction":source_lang+'-'+target_lang}
+        try:
+            response=requests.post(DeepSeek_R1_URI,json=json_data)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print("Failed to translate.")
+            print(e)
+            raise HTTPException(status_code=503,detail=e)
 
     elif model_name == "通义千问":
         if source_lang == "zh" and target_lang == "en":
@@ -234,6 +240,31 @@ def setting(item:USettingItem, db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
+#获取用户名
+@app.get("/user/{userId}")
+def uid(userId:int,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd="SELECT username FROM TRS_SETTING WHERE userId=%s"
+        db.execute(cmd,userId)
+        if db.rowcount>1:
+            raise HTTPException(500,"从数据库读取到多条满足条件的用户，请联系系统管理员")
+        else:
+            return db.fetchone()
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(500,detail=f"Fail to get data:{str(e)}")
+
+#修改用户名
+@app.put("/user/{userId}")
+def mdfuid(userId:int,newname:str,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd="UPDATE TRS_SETTING SET username=%s WHERE userId=%s"
+        db.execute(cmd,(newname,userId))
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(500,detail=f"Fail to write into database:{str(e)}")
+
 #修改密码
 @app.put("/password/reset")
 def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
@@ -249,11 +280,12 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
 @app.post("/translate")
 async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
     try:
-        translated_text = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
-
-        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
-        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
-        db.execute("COMMIT")
+        translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
+        translated_text=translated["DeepSeek_R1"]
+        if request.userId:
+            cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
+            db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
+            db.execute("COMMIT")
 
         return translated_text
 

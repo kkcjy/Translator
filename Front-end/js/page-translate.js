@@ -38,7 +38,7 @@ let sourceLang = "zh";
 let targetLang = "en";
 let selectedFiles = [];
 
-function init() {
+async function init() {
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
     loginOrAvatar.style.display = "null";
@@ -49,7 +49,11 @@ function init() {
       dropdown.classList.toggle('show');
     });
     // 更新用户名显示
-    const userName = sessionStorage.getItem("currentUserName") || "用户";
+    const userName = await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"),10)}`,{method: 'GET'})
+    // 用户名修改功能
+    const usernameInput = document.getElementById('username-input');
+    // 从sessionStorage加载当前用户名
+    usernameInput.value=userName;
     document.querySelectorAll('.user-name').forEach(element => {
       element.textContent = userName;
     });
@@ -57,16 +61,6 @@ function init() {
     mobileMenuButton.style.display = "null";
     mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
-  // 用户名修改功能
-  const usernameInput = document.getElementById('username-input');
-  const saveUsernameBtn = document.getElementById('save-username-btn');
-  const usernameError = document.getElementById('username-error');
-  // 从sessionStorage加载当前用户名
-  if (sessionStorage.getItem("currentUserName")) {
-    usernameInput.value = sessionStorage.getItem("currentUserName");
-  }
-  // 保存用户名事件
-  saveUsernameBtn.addEventListener('click', saveUsername);
   document.addEventListener('click', function () {
     dropdown.classList.remove('show');
   });
@@ -94,26 +88,6 @@ function init() {
   subscribeBtn.addEventListener('click', subscribeUpdates);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
   updateTranslateButtonState();
-}
-// 保存用户名函数
-function saveUsername() {
-  const usernameInput = document.getElementById('username-input');
-  const usernameError = document.getElementById('username-error');
-  const newUsername = usernameInput.value.trim();
-
-  if (!newUsername) {
-    usernameError.classList.remove('hidden');
-    return;
-  }
-  usernameError.classList.add('hidden');
-  // 保存到sessionStorage
-  sessionStorage.setItem("currentUserName", newUsername);
-  // 更新页面上的用户名显示
-  const userNameElements = document.querySelectorAll('.user-name');
-  userNameElements.forEach(element => {
-    element.textContent = newUsername;
-  });
-  showNotification('用户名修改成功');
 }
 function handleScroll() {
   if (window.scrollY > 10) {
@@ -227,7 +201,7 @@ async function performTranslation() {
     // 显示翻译结果
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
-        ${response.translated_text}
+        ${response}
       </div>
     `;
 
