@@ -15,7 +15,7 @@ from OCR import ocr_app
 from typing import Dict
 import asyncio
 from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
-DeepSeek_R1_URI = "https://www.u2985420.nyat.app:26237/"
+DeepSeek_R1_URI = "https://www.u2985420.nyat.app:62835/"
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -97,7 +97,9 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             return f"[Precision Model] 精准中文翻译: {text}"
 
     elif model_name == "DeepSeek-R1":
-        result = DeepSeek_R1_translate(text, direction)
+        # result = DeepSeek_R1_translate(text, direction)
+
+        result = 
         return result
 
     elif model_name == "通义千问":
@@ -120,7 +122,7 @@ def test_message():
 app.mount("/ocr",ocr_app)
 
 #请求Token
-@app.post("/token/")
+@app.post("/token")
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
         token=secrets.token_hex(16)
@@ -170,6 +172,7 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
                 "user": user,
                 "data": setting,
             }
+
 #查找可能已经注册的邮箱
 @app.get("/users")
 def registered(email:str,db:cursors.Cursor=Depends(getdb)):
@@ -203,6 +206,7 @@ async def send_verification_code(request: EmailItem):
         "message": "验证码已发送",
         "code":code
     }
+
 #注册
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
