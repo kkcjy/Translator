@@ -14,7 +14,7 @@ from db import getdb
 from OCR import ocr_app
 from typing import Dict
 import asyncio
-from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
+#from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -105,7 +105,7 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             return f"[Precision Model] 精准中文翻译: {text}"
 
     elif model_name == "DeepSeek-R1":
-        result = DeepSeek_R1_translate(text, direction)
+        result = 1#DeepSeek_R1_translate(text, direction)
         return result
 
     elif model_name == "通义千问":
