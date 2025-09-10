@@ -47,7 +47,7 @@ def clean_translation(text: str) -> str:
         return lines[-1]
     return text.strip()
 
-def translate_text(text: str, direction: str) -> str:
+def DeepSeek_R1_translate(text: str, direction: str) -> str:
     if direction not in ["zh-en", "en-zh"]:
         raise ValueError("direction must be 'zh-en' or 'en-zh'")
 

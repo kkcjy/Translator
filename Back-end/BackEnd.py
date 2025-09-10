@@ -14,6 +14,7 @@ from db import getdb
 from OCR import ocr_app
 from typing import Dict
 import asyncio
+from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -88,44 +89,37 @@ class UserHistoryRequest(BaseModel):
     limit:int = 10
     offset: int =0
 
-class TranslationModel:
-    def __init__(self):
-        pass
+def translate(text: str, source_lang: str, target_lang: str, model_name: str) -> str:
+    direction = source_lang + "-" + target_lang
 
-    def translate(self, text: str, source_lang: str, target_lang: str, model_name: str) -> str:
-        time.sleep(0.5)
-
-        if model_name == "高速翻译模型":
-            if source_lang == "zh" and target_lang == "en":
-                return f"[Fast Model] English translation of: {text}"
-            else:
-                return f"[Fast Model] 中文翻译: {text}"
-
-        elif model_name == "高精度翻译模型":
-            if source_lang == "zh" and target_lang == "en":
-                return f"[Precision Model] Accurate English translation: {text}"
-            else:
-                return f"[Precision Model] 精准中文翻译: {text}"
-
-        elif model_name == "DeepSeek-R1":
-            if source_lang == "zh" and target_lang == "en":
-                return f"[DeepSeek-R1] AI-powered English translation: {text}"
-            else:
-                return f"[DeepSeek-R1] AI驱动的中文翻译: {text}"
-
-        elif model_name == "通义千问":
-            if source_lang == "zh" and target_lang == "en":
-                return f"[Tongyi Qianwen] Multilingual translation: {text}"
-            else:
-                return f"[通义千问] 多语言翻译: {text}"
-
+    if model_name == "高速翻译模型":
+        if source_lang == "zh" and target_lang == "en":
+            return f"[Fast Model] English translation of: {text}"
         else:
-            if source_lang == "zh" and target_lang == "en":
-                return f"Translation: {text}"
-            else:
-                return f"翻译: {text}"
+            return f"[Fast Model] 中文翻译: {text}"
 
-translation_model = TranslationModel()
+    elif model_name == "高精度翻译模型":
+        if source_lang == "zh" and target_lang == "en":
+            return f"[Precision Model] Accurate English translation: {text}"
+        else:
+            return f"[Precision Model] 精准中文翻译: {text}"
+
+    elif model_name == "DeepSeek-R1":
+        result = DeepSeek_R1_translate(text, direction)
+        return result
+
+    elif model_name == "通义千问":
+        if source_lang == "zh" and target_lang == "en":
+            return f"[Tongyi Qianwen] Multilingual translation: {text}"
+        else:
+            return f"[通义千问] 多语言翻译: {text}"
+
+    else:
+        if source_lang == "zh" and target_lang == "en":
+            return f"Translation: {text}"
+        else:
+            return f"翻译: {text}"
+
 
 @app.get('/')
 def test_message():
@@ -266,6 +260,7 @@ async def translate_text(
         cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
         db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,"测试测试"))
         db.execute("COMMIT")
+    
     response=TranslationResponse(
         translation_id=666,translation_time=datetime.now(),source_text=request.source_text,translated_text=request.source_text,source_lang="en",target_lang="zh",model_name="AAA"
     )
