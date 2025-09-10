@@ -2,19 +2,22 @@
             page-translate.css 用于翻译交互界面                  
  ************************************************************/
 
- /* Tailwind自定义工具类 */
+/* Tailwind自定义工具类 */
 @layer utilities {
   .content-auto {
     content-visibility: auto;
   }
+
   .transition-height {
     transition-property: height;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
   }
+
   .text-shadow {
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
+
   .backdrop-blur {
     backdrop-filter: blur(8px);
   }
@@ -25,23 +28,28 @@
   opacity: 0;
   transform: translateY(20px);
 }
+
 .fade-enter-active {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 300ms, transform 300ms;
 }
+
 .fade-exit {
   opacity: 1;
 }
+
 .fade-exit-active {
   opacity: 0;
   transition: opacity 300ms;
 }
-.user-menu{
-  position:relative;
+
+.user-menu {
+  position: relative;
   display: inline-block;
 }
-.avatar{
+
+.avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -50,18 +58,20 @@
   border: 2px solid #e2e8f0;
   transition: all 0.3s;
 }
-.avatar:hover{
+
+.avatar:hover {
   border-color: #3b82f6;
   transform: scale(1.05);
 }
-.dropdown-menu{
-  position:absolute;
+
+.dropdown-menu {
+  position: absolute;
   top: 100%;
-  right:0;
+  right: 0;
   width: 220px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   margin-top: 12px;
   opacity: 0;
   visibility: hidden;
@@ -70,58 +80,68 @@
   z-index: 1001;
   overflow: hidden;
 }
-.dropdown-menu.show{
+
+.dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-.user-info{
+
+.user-info {
   padding: 16px;
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .user-info-avatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
-.user-details{
+
+.user-details {
   overflow: hidden;
 }
-.user-name{
+
+.user-name {
   font-weight: 600;
   color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.menu-item{
+
+.menu-item {
   display: flex;
   align-items: center;
-  gap:12px;
+  gap: 12px;
   padding: 12px 16px;
   color: #475569;
   text-decoration: none;
   border-left: 3px solid transparent;
   transition: all 0.2s;
 }
-.menu-item:hover{
+
+.menu-item:hover {
   background: #f1f5f9;
   color: #3b82f6;
   border-left-color: #3b82f6;
 }
-.menu-divider{
+
+.menu-divider {
   height: 1px;
   background: #f1f5f9;
   margin: 4px 0;
 }
-.logout-btn{
+
+.logout-btn {
   color: #ef4444;
 }
-.logout-btn:hover{
+
+.logout-btn:hover {
   color: #dc2626;
   background: #fef2f2;
   border-left-color: #ef4444;
@@ -137,59 +157,77 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
 /* .hover: 用于单句圈中的高亮显示 */
 .hover {
-    color: #111827;
-    position: relative;
-    cursor: pointer;
-    transition: color 0.25s ease, transform 0.25s ease;
-    display: inline-block;
+  color: #111827;
+  position: relative;
+  cursor: pointer;
+  transition: color 0.25s ease, transform 0.25s ease;
+  display: inline-block;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0%;
+    height: 2px;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    border-radius: 1px;
+    transition: width 0.3s ease;
+  }
+
+  &:hover {
+    color: #10b981;
+    transform: translateY(-2px);
 
     &::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: -2px;
-        width: 0%;
-        height: 2px;
-        background: linear-gradient(90deg, #10b981, #3b82f6);
-        border-radius: 1px;
-        transition: width 0.3s ease;
+      width: 100%;
     }
-
-    &:hover {
-        color: #10b981;
-        transform: translateY(-2px);
-
-        &::after {
-            width: 100%;
-        }
-    }
+  }
 }
 
 #file-list li span {
   display: inline-block;
-  max-width: 200px; 
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 @media(max-width: 768px) {
-  .dropdown-menu{
-    right:-20px;
-    width:calc(100vw - 40px);
+  .dropdown-menu {
+    right: -20px;
+    width: calc(100vw - 40px);
   }
+}
+
+/* 用户名输入框样式 */
+#username-input:focus {
+  border-color: #3B82F6;
+}
+
+/* 保存按钮悬停效果 */
+#save-username-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* 错误提示样式 */
+#username-error {
+  transition: opacity 0.3s ease;
 }

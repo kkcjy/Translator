@@ -28,8 +28,8 @@ const openBtn = document.getElementById('open-terms');
 const closeBtn = document.getElementById('close-terms');
 const modal = document.getElementById('terms-modal');
 const historyLink = document.getElementById('page-history');
-const dropdown= document.getElementById('user-dropdown');
-const logoutBtn=document.getElementById('logout-btn');
+const dropdown = document.getElementById('user-dropdown');
+const logoutBtn = document.getElementById('logout-btn');
 let avatarLink;
 
 let selectedModel = null;
@@ -42,31 +42,46 @@ function init() {
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
     loginOrAvatar.style.display = "null";
-    loginOrAvatar.href="javascript:void(0);";
+    loginOrAvatar.href = "javascript:void(0);";
     loginOrAvatar.innerHTML = `<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='avatar'>`;
-    document.getElementById("Avatar").addEventListener('click', (e)=>{
+    document.getElementById("Avatar").addEventListener('click', (e) => {
       e.stopPropagation();
       dropdown.classList.toggle('show');
     });
-    document.getElementsByClassName("user-info-avatar")[0].src=sessionStorage.getItem("currentUserAvatar");
+    // 更新用户名显示
+    const userName = sessionStorage.getItem("currentUserName") || "用户";
+    document.querySelectorAll('.user-name').forEach(element => {
+      element.textContent = userName;
+    });
+    document.getElementsByClassName("user-info-avatar")[0].src = sessionStorage.getItem("currentUserAvatar");
     mobileMenuButton.style.display = "null";
     mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
-  document.addEventListener('click', function(){
+  // 用户名修改功能
+  const usernameInput = document.getElementById('username-input');
+  const saveUsernameBtn = document.getElementById('save-username-btn');
+  const usernameError = document.getElementById('username-error');
+  // 从sessionStorage加载当前用户名
+  if (sessionStorage.getItem("currentUserName")) {
+    usernameInput.value = sessionStorage.getItem("currentUserName");
+  }
+  // 保存用户名事件
+  saveUsernameBtn.addEventListener('click', saveUsername);
+  document.addEventListener('click', function () {
     dropdown.classList.remove('show');
   });
-  dropdown.addEventListener('click', function(e) {
+  dropdown.addEventListener('click', function (e) {
     e.stopPropagation();
   });
-  logoutBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (confirm('确定要退出登录吗？')) {
-          alert('退出登录成功！');
-          sessionStorage.removeItem("currentUserId");
-          sessionStorage.removeItem("currentUserAvatar");
-          window.location.href="page-translate.html";
-          dropdown.classList.remove('show');
-      }
+  logoutBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (confirm('确定要退出登录吗？')) {
+      alert('退出登录成功！');
+      sessionStorage.removeItem("currentUserId");
+      sessionStorage.removeItem("currentUserAvatar");
+      window.location.href = "page-translate.html";
+      dropdown.classList.remove('show');
+    }
   });
   modelCards.forEach(card => {
     card.addEventListener('click', () => selectModel(card));
@@ -80,7 +95,26 @@ function init() {
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
   updateTranslateButtonState();
 }
+// 保存用户名函数
+function saveUsername() {
+  const usernameInput = document.getElementById('username-input');
+  const usernameError = document.getElementById('username-error');
+  const newUsername = usernameInput.value.trim();
 
+  if (!newUsername) {
+    usernameError.classList.remove('hidden');
+    return;
+  }
+  usernameError.classList.add('hidden');
+  // 保存到sessionStorage
+  sessionStorage.setItem("currentUserName", newUsername);
+  // 更新页面上的用户名显示
+  const userNameElements = document.querySelectorAll('.user-name');
+  userNameElements.forEach(element => {
+    element.textContent = newUsername;
+  });
+  showNotification('用户名修改成功');
+}
 function handleScroll() {
   if (window.scrollY > 10) {
     navbar.classList.add('py-2', 'shadow');
@@ -144,25 +178,25 @@ function disableTranslateButton() {
 }
 
 async function makeRequest(url, options = {}) {
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error("请求失败:", error);
-        throw error;
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error("请求失败:", error);
+    throw error;
+  }
 }
 
 async function performTranslation() {

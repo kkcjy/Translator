@@ -97,7 +97,9 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             return f"[Precision Model] 精准中文翻译: {text}"
 
     elif model_name == "DeepSeek-R1":
-        result = 1#DeepSeek_R1_translate(text, direction)
+        # result = DeepSeek_R1_translate(text, direction)
+
+        result =
         return result
 
     elif model_name == "通义千问":
@@ -120,7 +122,7 @@ def test_message():
 app.mount("/ocr",ocr_app)
 
 #请求Token
-@app.post("/token/")
+@app.post("/token")
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
         token=secrets.token_hex(16)
