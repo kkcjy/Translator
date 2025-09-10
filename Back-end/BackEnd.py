@@ -14,7 +14,7 @@ from db import getdb
 from OCR import ocr_app
 from typing import Dict
 import asyncio
-from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
+#from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
 DeepSeek_R1_URI = "https://www.u2985420.nyat.app:26237/"
 
 # 配置FastAPI-Mail
