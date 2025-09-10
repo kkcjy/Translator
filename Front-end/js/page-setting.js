@@ -400,6 +400,10 @@ confirmBtn && confirmBtn.addEventListener('click', async()=>{
     {
       console.error("保存设置到服务器失败:", error);
     }
+    if(document.getElementById('Avatar'))
+      document.getElementById('Avatar').src=currentSettings.avatar;
+    if(document.getElementById('MobileAvatar'))
+      document.getElementById('MobileAvatar').src=currentSettings.avatar;
     sessionStorage.setItem("currentUserAvatar",currentSettings.avatar);
     applySettings(currentSettings);
     applyResultsTheme();

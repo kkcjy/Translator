@@ -98,8 +98,7 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             return f"[Precision Model] 精准中文翻译: {text}"
 
     elif model_name == "DeepSeek-R1":
-        # result = DeepSeek_R1_translate(text, direction)
-        json_data={"text":text,"direction":source_lang+'-'+target_lang}
+        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":"DeepSeek-R1"}
         try:
             response=requests.post(DeepSeek_R1_URI,json=json_data)
             return response.json()
