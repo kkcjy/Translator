@@ -14,7 +14,8 @@ from db import getdb
 from OCR import ocr_app
 from typing import Dict
 import asyncio
-#from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
+from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
+DeepSeek_R1_URI = "https://www.u2985420.nyat.app:26237/"
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -74,15 +75,6 @@ class TranslationRequest(BaseModel):
     target_lang: str = "en"
     model_name: str
     userId:str | None
-
-class TranslationResponse(BaseModel):
-    translation_id: int
-    source_text: str
-    translated_text: str
-    source_lang: str
-    target_lang: str
-    model_name: str
-    translation_time: datetime
 
 class UserHistoryRequest(BaseModel):
     user_mail:EmailStr
@@ -251,67 +243,17 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
-@app.post("/translate",response_model=TranslationResponse)
-async def translate_text(
-        request: TranslationRequest,
-        db: cursors.Cursor = Depends(getdb)
-):
-    if request.userId:
-        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
-        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,"测试测试"))
-        db.execute("COMMIT")
-    
-    response=TranslationResponse(
-        translation_id=666,translation_time=datetime.now(),source_text=request.source_text,translated_text=request.source_text,source_lang="en",target_lang="zh",model_name="AAA"
-    )
-    return response
+# 执行翻译任务
+@app.post("/translate")
+async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
     try:
-        # 调用翻译模型
-        translated_text = translation_model.translate(
-            request.source_text,
-            request.source_lang,
-            request.target_lang,
-            request.model_name
-        )
+        translated_text = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
 
-        # 获取当前时间
-        current_time = datetime.now()
+        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
+        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
+        db.execute("COMMIT")
 
-        # 将翻译结果存入数据库
-        insert_cmd = """
-            INSERT INTO TRS_TRANSLATION_HISTORY 
-            (account, source_text, translated_text, source_lang, target_lang, model_used, create_time)###############################################################
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-
-        db.execute(insert_cmd, (
-            #user_email,
-            request.source_text,
-            translated_text,
-            request.source_lang,
-            request.target_lang,
-            request.model_name,
-            current_time
-        ))
-
-        # 获取插入的ID
-        translation_id = db.lastrowid
-
-        # 提交事务
-        db.connection.commit()
-
-        logger.info(f"Translation saved for user {userId}, ID: {translation_id}")
-
-        # 返回响应
-        return TranslationResponse(
-            translation_id=translation_id,
-            source_text=request.source_text,
-            translated_text=translated_text,
-            source_lang=request.source_lang,
-            target_lang=request.target_lang,
-            model_name=request.model_name,
-            translation_time=current_time
-        )
+        return translated_text
 
     except Exception as e:
         db.connection.rollback()

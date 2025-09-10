@@ -21,7 +21,7 @@ GPU/CPU 计算
 Python 函数输出翻译文本
 
 3. vLLM 服务启动示例
-vllm serve /home/kkcjy/Translator/model/DeepSeek-R1 --host 127.0.0.1 --port 8000 --gpu-memory-utilization 0.8 --max-model-len 1504
+vllm serve /home/kkcjy/Translator/model/DeepSeek-R1 --host 127.0.0.1 --port 8010 --gpu-memory-utilization 0.8 --max-model-len 1504
 
 4. 对外接口
 translate_text(text: str, direction: str) -> str:
@@ -33,14 +33,17 @@ translate_text(text: str, direction: str) -> str:
 """
 
 from openai import OpenAI
-from fastapi import FastAPI,Depends,HTTPException, status, Header
+from fastapi import FastAPI
 from pydantic import BaseModel
+import uvicorn
 import re
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8000/v1",        # 本地 vLLM 服务地址
+    base_url="http://127.0.0.1:8010/v1",        # 本地 vLLM 服务地址
     api_key="sk-placeholder"
 )
+
+app = FastAPI()
 
 def clean_translation(text: str) -> str:
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
@@ -72,3 +75,15 @@ def DeepSeek_R1_translate(text: str, direction: str) -> str:
     except Exception as e:
         print(f"翻译失败: {e}")
         return ""
+    
+class TranslationRequest(BaseModel):
+    text: str
+    direction: str
+
+@app.post("/")
+def translate(req: TranslationRequest):
+    result = DeepSeek_R1_translate(req.text, req.direction)
+    return {"DeepSeek_R1": result}
+
+if __name__ == "__main__":
+    uvicorn.run("DeepSeek_R1_API:app", host="0.0.0.0", port=8015, reload=True)
