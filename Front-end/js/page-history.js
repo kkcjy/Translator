@@ -68,8 +68,9 @@ function renderHistory(data) {
                     <td>${originalContent}</td>
                     <td>${translationContent}</td>
                     <td>
-                        <button class="copy-btn" data-index="${index}"><i class="fas fa-copy"></i></button>
-                        <input type="checkbox" class="checkbox" data-index="${index}" onchange="updateDeleteButtonState()">
+                        <button title="复制原文" class="copy-btn copys" data-index="${index}"><i class="fas fa-copy"></i></button>
+                        <button title="复制译文" class="copy-btn copyt" data-index="${index}"><i class="fas fa-copy"></i></button>
+                        <input type="checkbox" class="checkbox" data-index="${index}" data-id="${item.id}" onchange="updateDeleteButtonState()">
                     </td>
                 `;
 
@@ -77,10 +78,18 @@ function renderHistory(data) {
     });
     updateDeleteButtonState();
     // 绑定复制事件
-    document.querySelectorAll('.copy-btn').forEach(btn => {
+    document.querySelectorAll('td>button.copyt').forEach(btn => {
         btn.addEventListener('click', () => {
             const idx = btn.dataset.index;
             navigator.clipboard.writeText(data[idx].translation).then(() => {
+                showNotification('已复制到剪贴板');
+            });
+        });
+    });
+    document.querySelectorAll('td>button.copys').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = btn.dataset.index;
+            navigator.clipboard.writeText(data[idx].original).then(() => {
                 showNotification('已复制到剪贴板');
             });
         });
@@ -159,14 +168,27 @@ selectAllCheckbox.addEventListener('change', () => {
 });
 
 // 删除选中
-deleteBtn.addEventListener('click', () => {
+deleteBtn.addEventListener('click', async() => {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
     const toDeleteIndexes = [];
+    let toDeleteIds=[];
     checkboxes.forEach(cb => {
-        if (cb.checked) toDeleteIndexes.push(Number(cb.dataset.index));
+        if (cb.checked) {
+            toDeleteIndexes.push(Number(cb.dataset.index));
+            toDeleteIds.push(cb.dataset.id);
+        }
     });
     historyData = historyData.filter((_, idx) => !toDeleteIndexes.includes(idx));
     renderHistory(historyData);
+    await makeRequest(`${API_URL}/history/delete`,{
+        method:"POST",
+        body:JSON.stringify({
+            ids:toDeleteIds,
+        })
+    }).catch(error=>{
+        showNotification('无法连接到服务器!:'+error.message);
+        console.error('删除记录失败:',error.message);
+    });
     deleteBtn.disabled=true;
     deleteBtn.style.cursor='not-allowed';
     deleteBtn.style.backgroundColor='#ff9f9fff';
