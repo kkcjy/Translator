@@ -47,7 +47,7 @@ app.add_middleware(
 
 #用于申请Token/获取账户密码的Model/获取验证码
 class EmailItem(BaseModel):
-    mail:EmailStr
+    email:EmailStr
 
 #用于根据邮箱和Token查找保存的密码的Model
 class EmailTokenItem(BaseModel):
