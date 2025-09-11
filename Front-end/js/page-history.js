@@ -14,6 +14,52 @@ const selectAllCheckbox = document.getElementById('select-all');
 const deleteBtn = document.querySelector('.delete-btn');
 // FastAPI base URL
 const API_URL = "https://www.r4286138.nyat.app:10434";
+const ITEMS_PER_PAGE = 10;
+let currentPage = 1;
+let totalPages = 1;
+let currentData = [];
+
+const prevPageBtn = document.getElementById('prev-page');
+const nextPageBtn = document.getElementById('next-page');
+const currentPageSpan = document.getElementById('current-page');
+const pageInfoSpan = document.getElementById('page-info');
+
+// 更新分页状态
+function updatePagination() {
+    totalPages = Math.ceil(currentData.length / ITEMS_PER_PAGE);
+
+    // 更新按钮状态
+    prevPageBtn.disabled = currentPage <= 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+
+    // 更新页码信息
+    currentPageSpan.textContent = currentPage;
+    pageInfoSpan.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+
+    // 渲染当前页的数据
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, currentData.length);
+    const pageData = currentData.slice(startIndex, endIndex);
+
+    renderHistory(pageData);
+}
+
+// 上一页
+prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+});
+
+// 下一页
+nextPageBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+});
+
 
 // 通用请求函数
 async function makeRequest(url, options = {}) {
@@ -134,11 +180,12 @@ sortSelects.forEach(select => {
     });
 });
 
-function filterAndSort() {
+const originalFilterAndSort = window.filterAndSort;
+window.filterAndSort = function () {
     let filtered = [...historyData];
     const searchValue = searchInput.value.toLowerCase();
-    const typeFilter = sortSelects[0].value;
-    const sortOption = sortSelects[1].value;
+    const typeFilter = document.getElementById('type-filter').value;
+    const sortOption = document.getElementById('sort-select').value;
 
     // 搜索
     if (searchValue) {
@@ -158,9 +205,11 @@ function filterAndSort() {
         if (sortOption === 'z-a') return b.original.localeCompare(a.original);
     });
 
-    renderHistory(filtered);
-}
-
+    // 更新当前数据和页码
+    currentData = filtered;
+    currentPage = 1;
+    updatePagination();
+};
 // 全选/取消全选
 selectAllCheckbox.addEventListener('change', () => {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
@@ -227,7 +276,9 @@ document.getElementById('back-btn').addEventListener('click', () => {
     window.history.back();
 });
 
-async function getHistoryData() {
+// 修改 getHistoryData 函数，添加分页支持
+const originalGetHistoryData = window.getHistoryData;
+window.getHistoryData = async function () {
     if (sessionStorage.getItem("currentUserId") == null) {
         showNotification('请先登录!');
         setTimeout(() => {
@@ -241,7 +292,8 @@ async function getHistoryData() {
         });
         if (data.length <= 0) {
             historyData = [];
-            renderHistory(historyData);
+            currentData = [];
+            updatePagination();
             return;
         }
         let jsonStr = '[';
@@ -251,11 +303,44 @@ async function getHistoryData() {
         jsonStr = jsonStr.slice(0, -1) + ']';
         jsonStr = jsonStr.replace(/[\r|\n|\t]/g, "")
         historyData = JSON.parse(jsonStr);
-        // 初始渲染
-        renderHistory(historyData);
+        currentData = [...historyData];
+        updatePagination();
     } catch (error) {
         showNotification('无法连接到服务器!:' + error.message);
         console.error('获取历史记录失败:', error.message);
     }
-}
+};
+
+// 修改删除功能，更新分页
+const originalDeleteFunction = deleteBtn.onclick;
+deleteBtn.onclick = async function () {
+    const checkboxes = document.querySelectorAll('.history-table .checkbox');
+    const toDeleteIndexes = [];
+    let toDeleteIds = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            toDeleteIndexes.push(Number(cb.dataset.index));
+            toDeleteIds.push(cb.dataset.id);
+        }
+    });
+
+    // 从原始数据中删除
+    historyData = historyData.filter((item, idx) => !toDeleteIndexes.includes(idx));
+
+    // 更新当前数据并重新分页
+    currentData = [...historyData];
+    currentPage = 1;
+    updatePagination();
+
+    // 发送删除请求到服务器
+    await makeRequest(`${API_URL}/history/delete`, {
+        method: "POST",
+        body: JSON.stringify({
+            ids: toDeleteIds,
+        })
+    }).catch(error => {
+        showNotification('无法连接到服务器!:' + error.message);
+        console.error('删除记录失败:', error.message);
+    });
+};
 document.addEventListener('DOMContentLoaded', getHistoryData);
