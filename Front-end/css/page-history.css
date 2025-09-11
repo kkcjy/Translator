@@ -178,8 +178,12 @@ h1 i {
     background: #f8f9fa;
 }
 
+.cb{
+    width:fit-content;
+}
+
 .time-col {
-    width: 180px;
+    width: fit-content;
     color: #6c757d;
 }
 
@@ -194,7 +198,7 @@ h1 i {
 }
 
 .actions-col {
-    width: 120px;
+    width: fit-content;
 }
 
 .action-buttons {
