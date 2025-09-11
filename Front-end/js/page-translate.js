@@ -197,11 +197,15 @@ async function performTranslation() {
         userId: sessionStorage.getItem("currentUserId")
       })
     });
-
+    splited=splitText(response);
+    fontedResult="";
+    for(i=0;i<splited.length;i++){
+      fontedResult+=`<p class="hover">${splited[i]}</p>`;
+    }
     // 显示翻译结果
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
-        ${response}
+        ${fontedResult}
       </div>
     `;
 
@@ -218,6 +222,46 @@ async function performTranslation() {
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   }
+}
+
+function splitText(text){
+  // 用于存储断句结果
+  const result = [];
+  
+  // 当前句子的起始位置
+  let start = 0;
+  
+  // 遍历文本
+  for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      
+      // 检查是否是句号（英文或中文）
+      if (char === '.' || char === '。') {
+          // 检查是否是小数点（前后都是数字）
+          const isDecimal = (
+              (i > 0 && /\d/.test(text[i-1])) && 
+              (i < text.length - 1 && /\d/.test(text[i+1]))
+          );
+          
+          // 如果不是小数点，则在此处断句
+          if (!isDecimal) {
+              // 提取句子
+              const sentence = text.substring(start, i + 1);
+              result.push(sentence);
+              
+              // 更新起始位置
+              start = i + 1;
+          }
+      }
+  }
+  
+  // 添加最后一个句子（如果有）
+  if (start < text.length) {
+      const lastSentence = text.substring(start);
+      result.push(lastSentence);
+  }
+  
+  return result;
 }
 
 function copyResults() {

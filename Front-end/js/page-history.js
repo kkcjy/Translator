@@ -245,6 +245,7 @@ async function getHistoryData(){
         renderHistory(historyData);
     }catch(error){
         showNotification('无法连接到服务器!:'+error.message);
+        console.error('获取历史记录失败:',error.message);
     }
 }
 document.addEventListener('DOMContentLoaded', getHistoryData);

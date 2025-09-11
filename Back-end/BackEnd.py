@@ -18,7 +18,7 @@ from OCR import ocr_app
 from typing import Dict
 import asyncio
 #from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
-DeepSeek_R1_URI = "https://www.u2985420.nyat.app:62835/"
+Model_URI = "https://www.u2985420.nyat.app:62835/"
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -90,7 +90,7 @@ class UserHistoryRequest(BaseModel):
 
 def translate(text: str, source_lang: str, target_lang: str, model_name: str) -> str:
     direction = source_lang + "-" + target_lang
-
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
     if model_name == "高速翻译模型":
         if source_lang == "zh" and target_lang == "en":
             return f"[Fast Model] English translation of: {text}"
@@ -103,27 +103,15 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
         else:
             return f"[Precision Model] 精准中文翻译: {text}"
 
-    elif model_name == "DeepSeek-R1":
-        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":"DeepSeek-R1"}
+    else:
+        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
         try:
-            response=requests.post(DeepSeek_R1_URI,json=json_data)
+            response=requests.post(Model_URI,json=json_data)
             return response.json()
         except requests.exceptions.RequestException as e:
             print("Failed to translate.")
             print(e)
             raise HTTPException(status_code=503,detail=e)
-
-    elif model_name == "通义千问":
-        if source_lang == "zh" and target_lang == "en":
-            return f"[Tongyi Qianwen] Multilingual translation: {text}"
-        else:
-            return f"[通义千问] 多语言翻译: {text}"
-
-    else:
-        if source_lang == "zh" and target_lang == "en":
-            return f"Translation: {text}"
-        else:
-            return f"翻译: {text}"
 
 
 @app.get('/')
@@ -284,9 +272,10 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
 # 执行翻译任务
 @app.post("/translate")
 async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
     try:
         translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
-        translated_text=translated["DeepSeek_R1"]
+        translated_text=translated[name2request[request.model_name]]
         if request.userId:
             cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
             db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
@@ -324,7 +313,6 @@ def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
 @app.post("/history/delete")
 def delHistory(item:DelHistoryItem,db:cursors.Cursor=Depends(getdb)):
     cmd="DELETE FROM TRS_T_HISTORY WHERE hisId=%s"
-    print(item)
     try:
         for hid in item.ids:
             db.execute(cmd,hid)
