@@ -125,7 +125,7 @@ app.mount("/ocr",ocr_app)
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
         token=secrets.token_hex(16)
-        cmd=f"INSERT INTO TRS_AUTHTOKEN (account,token,deadline) VALUES ('{item.mail}','{token}','{time.strftime('%Y-%m-%d',time.localtime(time.time()+7*86400))}')"
+        cmd=f"INSERT INTO TRS_AUTHTOKEN (account,token,deadline) VALUES ('{item.email}','{token}','{time.strftime('%Y-%m-%d',time.localtime(time.time()+7*86400))}')"
         db.execute(cmd)
         cmd=f"DELETE FROM TRS_AUTHTOKEN WHERE deadline < '{time.strftime('%Y-%m-%d',time.localtime())}'"
         db.execute(cmd)
@@ -152,7 +152,7 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
 #根据邮箱查找用户密码和ID（登录验证）
 @app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
-    cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
+    cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.email}'"
     db.execute(cmd)
     if db.rowcount!=1:
         return None

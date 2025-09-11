@@ -70,7 +70,7 @@ async function requestToken(mail) {
     try {
         let data = await makeRequest(`${API_URL}/token`, {
             method: "POST",
-            body: JSON.stringify({ mail: mail })
+            body: JSON.stringify({ email: mail })
         });
         return data;
     } catch (error) {
@@ -97,7 +97,7 @@ loginForm.addEventListener('submit', async (e) => {
     try {
         userInfo = await makeRequest(`${API_URL}/login`, {
             method: "POST",
-            body: JSON.stringify({ mail: email })
+            body: JSON.stringify({ email: email })
         });
         if (userInfo.user[0] && typeof userInfo.user[0] == "string") {
             emailError.style.display = 'none';
