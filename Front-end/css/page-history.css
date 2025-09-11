@@ -202,6 +202,11 @@ h1 i {
     gap: 12px;
 }
 
+.copy-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .action-btn {
     background: none;
     border: none;
@@ -218,7 +223,7 @@ h1 i {
     color: #495057;
 }
 
-.copy-btn{
+.copy-btn {
     padding: 8px 12px;
     border: none;
     border-radius: 6px;
@@ -228,11 +233,13 @@ h1 i {
     align-items: center;
     background: #2575fc;
 }
-.copy-btn.copys{
-    border:#333;
+
+.copy-btn.copys {
+    border: #333;
     border-width: 3px;
 }
-.copy-btn.copyt{
+
+.copy-btn.copyt {
     border: #333;
     border-width: 3px;
 }

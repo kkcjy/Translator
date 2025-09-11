@@ -25,12 +25,12 @@ async function makeRequest(url, options = {}) {
             },
             ...options
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error("请求失败:", error);
@@ -57,28 +57,36 @@ function renderHistory(data) {
             originalContent = `<div class="icon-display" data-title="${item.original}"><i class="fas fa-image"></i> 图片</div>`;
         } else if (item.type === 'file') {
             originalContent = `<div class="icon-display" data-title="${item.original}"><i class="fas fa-file"></i> 文件</div>`;
-
         } else {
             originalContent = item.original;
-
         }
+
         translationContent = item.translation;
+
         tr.innerHTML = `
+                    <td><input type="checkbox" class="checkbox" data-index="${index}" data-id="${item.id}" onchange="updateDeleteButtonState()"></td>
                     <td>${item.time}</td>
-                    <td>${originalContent}</td>
-                    <td>${translationContent}</td>
+                    <td class="content-cell">${originalContent}</td>
+                    <td class="content-cell">${translationContent}</td>
                     <td>
-                        <button title="复制原文" class="copy-btn copys" data-index="${index}"><i class="fas fa-copy"></i></button>
-                        <button title="复制译文" class="copy-btn copyt" data-index="${index}"><i class="fas fa-copy"></i></button>
-                        <input type="checkbox" class="checkbox" data-index="${index}" data-id="${item.id}" onchange="updateDeleteButtonState()">
+                        <div class="copy-buttons">
+                            <button title="复制原文" class="copy-btn copys" data-index="${index}">
+                                <i class="fas fa-copy"></i> 复制原文
+                            </button>
+                            <button title="复制译文" class="copy-btn copyt" data-index="${index}">
+                                <i class="fas fa-copy"></i> 复制译文
+                            </button>
+                        </div>
                     </td>
                 `;
 
         historyBody.appendChild(tr);
     });
+
     updateDeleteButtonState();
+
     // 绑定复制事件
-    document.querySelectorAll('td>button.copyt').forEach(btn => {
+    document.querySelectorAll('button.copyt').forEach(btn => {
         btn.addEventListener('click', () => {
             const idx = btn.dataset.index;
             navigator.clipboard.writeText(data[idx].translation).then(() => {
@@ -86,7 +94,8 @@ function renderHistory(data) {
             });
         });
     });
-    document.querySelectorAll('td>button.copys').forEach(btn => {
+
+    document.querySelectorAll('button.copys').forEach(btn => {
         btn.addEventListener('click', () => {
             const idx = btn.dataset.index;
             navigator.clipboard.writeText(data[idx].original).then(() => {
@@ -105,7 +114,7 @@ function showNotification(msg) {
     }, 2000);
 }
 
-function updateDeleteButtonState(){
+function updateDeleteButtonState() {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
     const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
     deleteBtn.disabled = !anyChecked;
@@ -156,22 +165,22 @@ function filterAndSort() {
 selectAllCheckbox.addEventListener('change', () => {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
     checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-    if(selectAllCheckbox.checked && checkboxes.length>0){
-        deleteBtn.disabled=false;
-        deleteBtn.style.cursor='pointer';
-        deleteBtn.style.backgroundColor='#ff4757';
-    }else{
-        deleteBtn.disabled=true;
-        deleteBtn.style.cursor='not-allowed';
-        deleteBtn.style.backgroundColor='#ff9f9fff';
+    if (selectAllCheckbox.checked && checkboxes.length > 0) {
+        deleteBtn.disabled = false;
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.backgroundColor = '#ff4757';
+    } else {
+        deleteBtn.disabled = true;
+        deleteBtn.style.cursor = 'not-allowed';
+        deleteBtn.style.backgroundColor = '#ff9f9fff';
     }
 });
 
 // 删除选中
-deleteBtn.addEventListener('click', async() => {
+deleteBtn.addEventListener('click', async () => {
     const checkboxes = document.querySelectorAll('.history-table .checkbox');
     const toDeleteIndexes = [];
-    let toDeleteIds=[];
+    let toDeleteIds = [];
     checkboxes.forEach(cb => {
         if (cb.checked) {
             toDeleteIndexes.push(Number(cb.dataset.index));
@@ -180,18 +189,18 @@ deleteBtn.addEventListener('click', async() => {
     });
     historyData = historyData.filter((_, idx) => !toDeleteIndexes.includes(idx));
     renderHistory(historyData);
-    await makeRequest(`${API_URL}/history/delete`,{
-        method:"POST",
-        body:JSON.stringify({
-            ids:toDeleteIds,
+    await makeRequest(`${API_URL}/history/delete`, {
+        method: "POST",
+        body: JSON.stringify({
+            ids: toDeleteIds,
         })
-    }).catch(error=>{
-        showNotification('无法连接到服务器!:'+error.message);
-        console.error('删除记录失败:',error.message);
+    }).catch(error => {
+        showNotification('无法连接到服务器!:' + error.message);
+        console.error('删除记录失败:', error.message);
     });
-    deleteBtn.disabled=true;
-    deleteBtn.style.cursor='not-allowed';
-    deleteBtn.style.backgroundColor='#ff9f9fff';
+    deleteBtn.disabled = true;
+    deleteBtn.style.cursor = 'not-allowed';
+    deleteBtn.style.backgroundColor = '#ff9f9fff';
 });
 
 // 导出 CSV
@@ -218,34 +227,35 @@ document.getElementById('back-btn').addEventListener('click', () => {
     window.history.back();
 });
 
-async function getHistoryData(){
-    if(sessionStorage.getItem("currentUserId")==null){
+async function getHistoryData() {
+    if (sessionStorage.getItem("currentUserId") == null) {
         showNotification('请先登录!');
-        setTimeout(()=>{
-            window.location.href="page-login.html";
-        },2000);
+        setTimeout(() => {
+            window.location.href = "page-login.html";
+        }, 2000);
         return;
     }
-    try{
-        const data=await makeRequest(`${API_URL}/history/${sessionStorage.getItem("currentUserId")}`,{
-            method:"GET",
+    try {
+        const data = await makeRequest(`${API_URL}/history/${sessionStorage.getItem("currentUserId")}`, {
+            method: "GET",
         });
-        if(data.length<=0){
-            historyData=[];
+        if (data.length <= 0) {
+            historyData = [];
             renderHistory(historyData);
             return;
         }
-        let jsonStr='[';
-        data.forEach(string=>{
-            jsonStr+=string+',';
+        let jsonStr = '[';
+        data.forEach(string => {
+            jsonStr += string + ',';
         })
-        jsonStr=jsonStr.slice(0,-1)+']';
-        historyData=JSON.parse(jsonStr);
+        jsonStr = jsonStr.slice(0, -1) + ']';
+        jsonStr = jsonStr.replace(/[\r|\n|\t]/g, "")
+        historyData = JSON.parse(jsonStr);
         // 初始渲染
         renderHistory(historyData);
-    }catch(error){
-        showNotification('无法连接到服务器!:'+error.message);
-        console.error('获取历史记录失败:',error.message);
+    } catch (error) {
+        showNotification('无法连接到服务器!:' + error.message);
+        console.error('获取历史记录失败:', error.message);
     }
 }
 document.addEventListener('DOMContentLoaded', getHistoryData);
