@@ -20,7 +20,7 @@
                     <input type="text" class="search-input" placeholder="按原文搜索..." id="search-input">
                 </div>
 
-                <select class="sort-select" id="sort-select">
+                <select class="sort-select" id="type-filter">
                     <option value="all">所有记录</option>
                     <option value="text">仅文本</option>
                     <option value="picture">含图片</option>
@@ -68,6 +68,11 @@
                 <button class="delete-btn"><i class="fas fa-trash-alt"></i> 删除</button>
             </div>
 
+            <div class="pagination">
+                <button id="prev-page" disabled><i class="fas fa-chevron-left"></i></button>
+                <span id="page-info">第 <span id="current-page">1</span> 页</span>
+                <button id="next-page" disabled><i class="fas fa-chevron-right"></i></button>
+            </div>
         </div>
     </div>
     <div id="notification" class="notification">
