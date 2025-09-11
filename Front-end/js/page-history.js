@@ -70,11 +70,11 @@ function renderHistory(data) {
                     <td class="content-cell">${translationContent}</td>
                     <td>
                         <div class="copy-buttons">
-                            <button title="复制原文" class="copy-btn copys" data-index="${index}">
-                                <i class="fas fa-copy"></i> 复制原文
+                            <button title="原文" class="copy-btn copys" data-index="${index}">
+                                <i class="fas fa-copy"></i> 原文
                             </button>
-                            <button title="复制译文" class="copy-btn copyt" data-index="${index}">
-                                <i class="fas fa-copy"></i> 复制译文
+                            <button title="译文" class="copy-btn copyt" data-index="${index}">
+                                <i class="fas fa-copy"></i> 译文
                             </button>
                         </div>
                     </td>
