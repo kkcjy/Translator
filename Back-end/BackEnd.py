@@ -1,5 +1,7 @@
 import base64
 import random
+import string
+
 from fastapi import FastAPI,Depends,HTTPException, status, Header
 from pydantic import BaseModel, EmailStr
 from starlette.middleware.cors import CORSMiddleware
@@ -69,6 +71,10 @@ class USettingItem(BaseModel):
 class ResetItem(BaseModel):
     email:EmailStr
     new_password:str
+
+#用于删除历史记录的Model
+class DelHistoryItem(BaseModel):
+    ids:list
 
 class TranslationRequest(BaseModel):
     source_text: str
@@ -297,15 +303,15 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 @app.get("/history/{userId}")
 def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
     try:
-        cmd=f"SELECT date,type,input,output FROM TRS_T_HISTORY WHERE userId={userId}"
+        cmd=f"SELECT hisId,date,type,input,output FROM TRS_T_HISTORY WHERE userId={userId}"
         db.execute(cmd)
         results=db.fetchall()
         rtn=[]
         for row in results:
-            jsonstr='{"time":"'+row[0].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[2]+'","translation":"'+row[3]+'","type":"'
-            if row[1]==1:
+            jsonstr='{"id":"'+str(row[0])+'","time":"'+row[1].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[3]+'","translation":"'+row[4]+'","type":"'
+            if row[2]==1:
                 jsonstr+='picture"}'
-            elif row[1]==2:
+            elif row[2]==2:
                 jsonstr+='file"}'
             else:
                 jsonstr+='text"}'
@@ -314,6 +320,18 @@ def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to read from database:{e}")
+
+@app.post("/history/delete")
+def delHistory(item:DelHistoryItem,db:cursors.Cursor=Depends(getdb)):
+    cmd="DELETE FROM TRS_T_HISTORY WHERE hisId=%s"
+    print(item)
+    try:
+        for hid in item.ids:
+            db.execute(cmd,hid)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
 # 健康检查端点
 @app.get("/health")

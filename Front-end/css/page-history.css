@@ -218,8 +218,27 @@ h1 i {
     color: #495057;
 }
 
+.copy-btn{
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    background: #2575fc;
+}
+.copy-btn.copys{
+    border:#333;
+    border-width: 3px;
+}
+.copy-btn.copyt{
+    border: #333;
+    border-width: 3px;
+}
+
 .copy-btn:hover {
-    color: #2c7be5;
+    background: #2c7be5;
 }
 
 .sound-btn:hover {
