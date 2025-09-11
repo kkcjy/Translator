@@ -38,7 +38,7 @@ let sourceLang = "zh";
 let targetLang = "en";
 let selectedFiles = [];
 
-function init() {
+async function init() {
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
     loginOrAvatar.style.display = "null";
@@ -49,7 +49,11 @@ function init() {
       dropdown.classList.toggle('show');
     });
     // 更新用户名显示
-    const userName = sessionStorage.getItem("currentUserName") || "用户";
+    const userName = await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"),10)}`,{method: 'GET'})
+    // 用户名修改功能
+    const usernameInput = document.getElementById('username-input');
+    // 从sessionStorage加载当前用户名
+    usernameInput.value=userName;
     document.querySelectorAll('.user-name').forEach(element => {
       element.textContent = userName;
     });
@@ -57,16 +61,6 @@ function init() {
     mobileMenuButton.style.display = "null";
     mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
   }
-  // 用户名修改功能
-  const usernameInput = document.getElementById('username-input');
-  const saveUsernameBtn = document.getElementById('save-username-btn');
-  const usernameError = document.getElementById('username-error');
-  // 从sessionStorage加载当前用户名
-  if (sessionStorage.getItem("currentUserName")) {
-    usernameInput.value = sessionStorage.getItem("currentUserName");
-  }
-  // 保存用户名事件
-  saveUsernameBtn.addEventListener('click', saveUsername);
   document.addEventListener('click', function () {
     dropdown.classList.remove('show');
   });
@@ -94,26 +88,6 @@ function init() {
   subscribeBtn.addEventListener('click', subscribeUpdates);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
   updateTranslateButtonState();
-}
-// 保存用户名函数
-function saveUsername() {
-  const usernameInput = document.getElementById('username-input');
-  const usernameError = document.getElementById('username-error');
-  const newUsername = usernameInput.value.trim();
-
-  if (!newUsername) {
-    usernameError.classList.remove('hidden');
-    return;
-  }
-  usernameError.classList.add('hidden');
-  // 保存到sessionStorage
-  sessionStorage.setItem("currentUserName", newUsername);
-  // 更新页面上的用户名显示
-  const userNameElements = document.querySelectorAll('.user-name');
-  userNameElements.forEach(element => {
-    element.textContent = newUsername;
-  });
-  showNotification('用户名修改成功');
 }
 function handleScroll() {
   if (window.scrollY > 10) {
@@ -223,11 +197,15 @@ async function performTranslation() {
         userId: sessionStorage.getItem("currentUserId")
       })
     });
-
+    splited=splitText(response);
+    fontedResult="";
+    for(i=0;i<splited.length;i++){
+      fontedResult+=`<p class="hover">${splited[i]}</p>`;
+    }
     // 显示翻译结果
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
-        ${response.translated_text}
+        ${fontedResult}
       </div>
     `;
 
@@ -244,6 +222,46 @@ async function performTranslation() {
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   }
+}
+
+function splitText(text){
+  // 用于存储断句结果
+  const result = [];
+  
+  // 当前句子的起始位置
+  let start = 0;
+  
+  // 遍历文本
+  for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      
+      // 检查是否是句号（英文或中文）
+      if (char === '.' || char === '。') {
+          // 检查是否是小数点（前后都是数字）
+          const isDecimal = (
+              (i > 0 && /\d/.test(text[i-1])) && 
+              (i < text.length - 1 && /\d/.test(text[i+1]))
+          );
+          
+          // 如果不是小数点，则在此处断句
+          if (!isDecimal) {
+              // 提取句子
+              const sentence = text.substring(start, i + 1);
+              result.push(sentence);
+              
+              // 更新起始位置
+              start = i + 1;
+          }
+      }
+  }
+  
+  // 添加最后一个句子（如果有）
+  if (start < text.length) {
+      const lastSentence = text.substring(start);
+      result.push(lastSentence);
+  }
+  
+  return result;
 }
 
 function copyResults() {

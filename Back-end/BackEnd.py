@@ -1,5 +1,7 @@
 import base64
 import random
+import string
+
 from fastapi import FastAPI,Depends,HTTPException, status, Header
 from pydantic import BaseModel, EmailStr
 from starlette.middleware.cors import CORSMiddleware
@@ -8,14 +10,15 @@ import secrets
 import time
 from datetime import datetime
 import logging
+import requests
 from typing import List
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from db import getdb
 from OCR import ocr_app
 from typing import Dict
 import asyncio
-from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
-DeepSeek_R1_URI = "https://www.u2985420.nyat.app:62835/"
+#from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
+Model_URI = "https://www.u2985420.nyat.app:62835/"
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
@@ -44,7 +47,7 @@ app.add_middleware(
 
 #用于申请Token/获取账户密码的Model/获取验证码
 class EmailItem(BaseModel):
-    mail:EmailStr
+    email:EmailStr
 
 #用于根据邮箱和Token查找保存的密码的Model
 class EmailTokenItem(BaseModel):
@@ -69,6 +72,10 @@ class ResetItem(BaseModel):
     email:EmailStr
     new_password:str
 
+#用于删除历史记录的Model
+class DelHistoryItem(BaseModel):
+    ids:list
+
 class TranslationRequest(BaseModel):
     source_text: str
     source_lang: str = "zh"
@@ -83,7 +90,7 @@ class UserHistoryRequest(BaseModel):
 
 def translate(text: str, source_lang: str, target_lang: str, model_name: str) -> str:
     direction = source_lang + "-" + target_lang
-
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
     if model_name == "高速翻译模型":
         if source_lang == "zh" and target_lang == "en":
             return f"[Fast Model] English translation of: {text}"
@@ -96,23 +103,15 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
         else:
             return f"[Precision Model] 精准中文翻译: {text}"
 
-    elif model_name == "DeepSeek-R1":
-        # result = DeepSeek_R1_translate(text, direction)
-
-        result = 
-        return result
-
-    elif model_name == "通义千问":
-        if source_lang == "zh" and target_lang == "en":
-            return f"[Tongyi Qianwen] Multilingual translation: {text}"
-        else:
-            return f"[通义千问] 多语言翻译: {text}"
-
     else:
-        if source_lang == "zh" and target_lang == "en":
-            return f"Translation: {text}"
-        else:
-            return f"翻译: {text}"
+        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
+        try:
+            response=requests.post(Model_URI,json=json_data)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print("Failed to translate.")
+            print(e)
+            raise HTTPException(status_code=503,detail=e)
 
 
 @app.get('/')
@@ -126,7 +125,7 @@ app.mount("/ocr",ocr_app)
 def generateToken(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
     try:
         token=secrets.token_hex(16)
-        cmd=f"INSERT INTO TRS_AUTHTOKEN (account,token,deadline) VALUES ('{item.mail}','{token}','{time.strftime('%Y-%m-%d',time.localtime(time.time()+7*86400))}')"
+        cmd=f"INSERT INTO TRS_AUTHTOKEN (account,token,deadline) VALUES ('{item.email}','{token}','{time.strftime('%Y-%m-%d',time.localtime(time.time()+7*86400))}')"
         db.execute(cmd)
         cmd=f"DELETE FROM TRS_AUTHTOKEN WHERE deadline < '{time.strftime('%Y-%m-%d',time.localtime())}'"
         db.execute(cmd)
@@ -153,7 +152,7 @@ def getPassword(item:EmailTokenItem,db:cursors.Cursor=Depends(getdb)):
 #根据邮箱查找用户密码和ID（登录验证）
 @app.post("/login")
 def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
-    cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.mail}'"
+    cmd=f"SELECT password,userId FROM TRS_USER WHERE email = '{item.email}'"
     db.execute(cmd)
     if db.rowcount!=1:
         return None
@@ -172,7 +171,6 @@ def authAccount(item:EmailItem,db:cursors.Cursor=Depends(getdb)):
                 "user": user,
                 "data": setting,
             }
-
 #查找可能已经注册的邮箱
 @app.get("/users")
 def registered(email:str,db:cursors.Cursor=Depends(getdb)):
@@ -206,7 +204,6 @@ async def send_verification_code(request: EmailItem):
         "message": "验证码已发送",
         "code":code
     }
-
 #注册
 @app.post("/register")
 def register(item:UserItem,db:cursors.Cursor=Depends(getdb)):
@@ -236,6 +233,31 @@ def setting(item:USettingItem, db:cursors.Cursor=Depends(getdb)):
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
+#获取用户名
+@app.get("/user/{userId}")
+def uid(userId:int,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd="SELECT username FROM TRS_SETTING WHERE userId=%s"
+        db.execute(cmd,userId)
+        if db.rowcount>1:
+            raise HTTPException(500,"从数据库读取到多条满足条件的用户，请联系系统管理员")
+        else:
+            return db.fetchone()
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(500,detail=f"Fail to get data:{str(e)}")
+
+#修改用户名
+@app.put("/user/{userId}")
+def mdfuid(userId:int,newname:str,db:cursors.Cursor=Depends(getdb)):
+    try:
+        cmd="UPDATE TRS_SETTING SET username=%s WHERE userId=%s"
+        db.execute(cmd,(newname,userId))
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(500,detail=f"Fail to write into database:{str(e)}")
+
 #修改密码
 @app.put("/password/reset")
 def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
@@ -250,12 +272,14 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
 # 执行翻译任务
 @app.post("/translate")
 async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
     try:
-        translated_text = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
-
-        cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
-        db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
-        db.execute("COMMIT")
+        translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
+        translated_text=translated[name2request[request.model_name]]
+        if request.userId:
+            cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
+            db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
+            db.execute("COMMIT")
 
         return translated_text
 
@@ -268,15 +292,15 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 @app.get("/history/{userId}")
 def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
     try:
-        cmd=f"SELECT date,type,input,output FROM TRS_T_HISTORY WHERE userId={userId}"
+        cmd=f"SELECT hisId,date,type,input,output FROM TRS_T_HISTORY WHERE userId={userId}"
         db.execute(cmd)
         results=db.fetchall()
         rtn=[]
         for row in results:
-            jsonstr='{"time":"'+row[0].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[2]+'","translation":"'+row[3]+'","type":"'
-            if row[1]==1:
+            jsonstr='{"id":"'+str(row[0])+'","time":"'+row[1].strftime("%Y-%m-%d %H:%M")+'","original":"'+row[3]+'","translation":"'+row[4]+'","type":"'
+            if row[2]==1:
                 jsonstr+='picture"}'
-            elif row[1]==2:
+            elif row[2]==2:
                 jsonstr+='file"}'
             else:
                 jsonstr+='text"}'
@@ -285,6 +309,17 @@ def getHistory(userId:int,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to read from database:{e}")
+
+@app.post("/history/delete")
+def delHistory(item:DelHistoryItem,db:cursors.Cursor=Depends(getdb)):
+    cmd="DELETE FROM TRS_T_HISTORY WHERE hisId=%s"
+    try:
+        for hid in item.ids:
+            db.execute(cmd,hid)
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
 
 # 健康检查端点
 @app.get("/health")

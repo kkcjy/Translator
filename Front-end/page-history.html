@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,18 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/page-history.css">
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1><i class="fas fa-history"></i> 翻译历史记录</h1>
-            
+
             <div class="header-controls">
                 <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" placeholder="按原文搜索..." id="search-input">
                 </div>
 
-                <select class="sort-select" id="sort-select">
+                <select class="sort-select" id="type-filter">
                     <option value="all">所有记录</option>
                     <option value="text">仅文本</option>
                     <option value="picture">含图片</option>
@@ -32,17 +34,18 @@
                     <option value="z-a">原文 Z-A</option>
                 </select>
             </div>
-            
+
             <div class="header-actions">
                 <button class="btn btn-tertiary" id="back-btn"><i class="fas fa-arrow-left"></i> 返回</button>
                 <button class="btn btn-secondary" id="export-btn"><i class="fas fa-download"></i> 导出记录</button>
                 <button class="btn btn-primary" id="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新</button>
             </div>
         </header>
-        
+
         <table class="history-table">
             <thead>
                 <tr>
+                    <th class="cb"></th>
                     <th class="time-col">时间</th>
                     <th class="original-col">原文</th>
                     <th class="translation-col">译文</th>
@@ -53,26 +56,30 @@
                 <!-- 动态生成 -->
             </tbody>
         </table>
-        
+
         <div id="no-results" class="no-results" style="display: none;">
             没有找到匹配的记录
         </div>
-        
+
         <div class="footer-actions">
             <div class="select-all">
                 <input type="checkbox" id="select-all" class="checkbox">
                 <label for="select-all">全选</label>
+                <button class="delete-btn"><i class="fas fa-trash-alt"></i> 删除</button>
             </div>
-            <button class="delete-btn" disabled><i class="fas fa-trash-alt"></i> 删除</button>
+
+            <div class="pagination">
+                <button id="prev-page" disabled><i class="fas fa-chevron-left"></i></button>
+                <span id="page-info">第 <span id="current-page">1</span> 页</span>
+                <button id="next-page" disabled><i class="fas fa-chevron-right"></i></button>
+            </div>
         </div>
     </div>
-
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i>
-        <span id="notification-text">已复制到剪贴板</span>
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
     </div>
-
     <!-- 引入page-history.js -->
     <script src="js/page-history.js"></script>
 </body>
+
 </html>
