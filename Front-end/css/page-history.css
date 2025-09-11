@@ -266,6 +266,7 @@ h1 i {
 }
 
 .select-all {
+    padding-left: 30px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -434,12 +435,6 @@ h1 i {
     align-items: center;
     margin-top: 20px;
     padding: 10px 0;
-}
-
-.select-all {
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 @media (max-width: 768px) {
