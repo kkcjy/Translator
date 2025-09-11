@@ -3,6 +3,7 @@ const settingModal = document.getElementById('setting-modal');
 const openSettingBtn = document.getElementById('open-setting-btn');
 const openSettingBtnMobile = document.getElementById('open-setting-btn-mobile');
 const closeSettingBtn = document.getElementById('close-setting-btn');
+const resetBtn=document.getElementById('reset');
 const confirmBtn = document.getElementById('setting-confirm-btn');
 const cancelBtn = document.getElementById('setting-cancel-btn');
 const avatarUpload = document.getElementById('avatar-upload');
@@ -380,6 +381,21 @@ function applyResultsTheme() {
     }
   }
 }
+
+// 重置按钮：恢复默认设置
+resetBtn && resetBtn.addEventListener('click', () => {
+  // 恢复默认设置
+  tempSettings.fontSize = '16px';
+  tempSettings.bgMode='light';
+  // 更新弹窗内显示
+  fontSizeRange.value = parseInt(tempSettings.fontSize);
+  fontSizeValue.textContent = tempSettings.fontSize;
+  updateBgModeRadioUI(tempSettings.bgMode);
+  // 预览字体大小
+  document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
+    area.style.fontSize = tempSettings.fontSize;
+  });
+});
 
 // 确定按钮：应用临时设置到主界面
 confirmBtn && confirmBtn.addEventListener('click', async()=>{
