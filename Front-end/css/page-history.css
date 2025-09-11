@@ -178,8 +178,12 @@ h1 i {
     background: #f8f9fa;
 }
 
+.cb {
+    width: fit-content;
+}
+
 .time-col {
-    width: 180px;
+    width: fit-content;
     color: #6c757d;
 }
 
@@ -194,12 +198,17 @@ h1 i {
 }
 
 .actions-col {
-    width: 120px;
+    width: fit-content;
 }
 
 .action-buttons {
     display: flex;
     gap: 12px;
+}
+
+.copy-buttons {
+    display: flex;
+    gap: 10px;
 }
 
 .action-btn {
@@ -218,8 +227,29 @@ h1 i {
     color: #495057;
 }
 
+.copy-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    background: #2575fc;
+}
+
+.copy-btn.copys {
+    border: #333;
+    border-width: 3px;
+}
+
+.copy-btn.copyt {
+    border: #333;
+    border-width: 3px;
+}
+
 .copy-btn:hover {
-    color: #2c7be5;
+    background: #2c7be5;
 }
 
 .sound-btn:hover {
@@ -236,6 +266,7 @@ h1 i {
 }
 
 .select-all {
+    padding-left: 30px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -349,5 +380,71 @@ h1 i {
 
     .action-buttons {
         gap: 8px;
+    }
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination button {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background-color: #e9ecef;
+}
+
+.pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination span {
+    padding: 0 8px;
+    color: #495057;
+}
+
+.page-number {
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.page-number.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.footer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+@media (max-width: 768px) {
+    .footer-actions {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .pagination {
+        align-self: center;
     }
 }
