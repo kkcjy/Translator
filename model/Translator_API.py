@@ -1,3 +1,7 @@
+"""
+https://modelscope.cn/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+https://modelscope.cn/models/Qwen/Qwen3-0.6B
+"""
 from openai import OpenAI
 from fastapi import FastAPI
 from pydantic import BaseModel
