@@ -231,3 +231,87 @@
 #username-error {
   transition: opacity 0.3s ease;
 }
+
+/* 句子工具栏样式 */
+.sentence-toolbar {
+  position: absolute;
+  display: none;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.sentence-toolbar.visible {
+  display: flex;
+}
+
+.sentence-toolbar.dark-mode {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.toolbar-btn {
+  padding: 4px 8px;
+  margin: 0 2px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.toolbar-btn:hover {
+  background: #e5e7eb;
+}
+
+.sentence-toolbar.dark-mode .toolbar-btn {
+  background: #374151;
+  color: white;
+}
+
+.sentence-toolbar.dark-mode .toolbar-btn:hover {
+  background: #4b5563;
+}
+
+/* 选中句子的样式 */
+.sentence.selected {
+  background-color: #dbeafe !important;
+  /* 蓝色背景表示选中 */
+}
+
+/* 暗色模式下的选中样式 */
+.dark .sentence.selected {
+  background-color: #1e40af !important;
+}
+
+/* 在page-translate.css中添加 */
+#source-sentence-container {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.sentence-toolbar.visible {
+  display: flex;
+}
+
+.sentence.selected {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* 暗色模式支持 */
+.dark-mode #source-sentence-container {
+  background-color: #1e293b;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+.dark-mode .sentence:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .sentence.selected {
+  background-color: rgba(59, 130, 246, 0.4);
+}
