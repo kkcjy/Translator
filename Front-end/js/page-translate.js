@@ -115,12 +115,14 @@ function toggleSentenceSelectMode() {
     sentenceSelectBtn.innerHTML = '<i class="fa fa-times mr-2"></i> 退出选中';
     sentenceSelectBtn.classList.remove('bg-gray-200', 'text-dark');
     sentenceSelectBtn.classList.add('bg-primary', 'text-white');
+    updateTranslateButtonState();
   } else {
     // 退出单句选中模式
     exitSentenceSelectMode();
     sentenceSelectBtn.innerHTML = '<i class="fa fa-mouse-pointer mr-2"></i> 单句选中';
     sentenceSelectBtn.classList.remove('bg-primary', 'text-white');
     sentenceSelectBtn.classList.add('bg-gray-200', 'text-dark');
+    updateTranslateButtonState();
   }
 }
 
@@ -224,7 +226,6 @@ async function translateSelectedSentence() {
 
 function speakSelectedSentence() {
   if (!currentSelectedSentence) return;
-
   const sentence = currentSelectedSentence.textContent;
   speakText(sentence, isChineseToEnglish ? 'zh-CN' : 'en-US');
   showNotification(`正在朗读选中的句子`);
@@ -238,6 +239,7 @@ function speakText(text, lang) {
   } else {
     showNotification('您的浏览器不支持语音合成功能', 'warning');
   }
+
 }
 function handleScroll() {
   if (window.scrollY > 10) {
@@ -287,7 +289,6 @@ function updateTranslateButtonState() {
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本或文件';
     disableTranslateButton();
   }
-
   // 单句选中模式下禁用翻译按钮
   if (isSentenceSelectMode) {
     translateBtn.disabled = true;
@@ -339,26 +340,26 @@ async function performTranslation() {
     // 如果有文件，优先使用文件
     if (selectedFiles.length > 0) {
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
-      if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
-        const formData=new FormData();
-        formData.append("file",selectedFiles[0]);
-        formData.append("source_lang",isChineseToEnglish?"zh":"en");
-        formData.append("target_lang",isChineseToEnglish?"en":"zh");
-        formData.append("model_name",selectedModel);
-        formData.append("userId",sessionStorage.getItem("currentUserId"));
-        res=await fetch(`${API_URL}/translate/pic`,{
+      if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
+        const formData = new FormData();
+        formData.append("file", selectedFiles[0]);
+        formData.append("source_lang", isChineseToEnglish ? "zh" : "en");
+        formData.append("target_lang", isChineseToEnglish ? "en" : "zh");
+        formData.append("model_name", selectedModel);
+        formData.append("userId", sessionStorage.getItem("currentUserId"));
+        res = await fetch(`${API_URL}/translate/pic`, {
           method: 'POST',
           body: formData
         });
-        jsonData=await res.json();
-        Literals=jsonData.ocr_result;
-        sourceTextContent="";
-        Literals.forEach(Sentence=>{
-          if(Sentence.category!="Picture" && Sentence.category!="picture"){
-            sourceTextContent+=`${Sentence.text} `;
+        jsonData = await res.json();
+        Literals = jsonData.ocr_result;
+        sourceTextContent = "";
+        Literals.forEach(Sentence => {
+          if (Sentence.category != "Picture" && Sentence.category != "picture") {
+            sourceTextContent += `${Sentence.text} `;
           }
         });
-      }else{
+      } else {
         showNotification('文件翻译功能暂未实现', 'warning');
         return;
       }
@@ -451,7 +452,7 @@ function splitText(text) {
     const char = text[i];
 
     // 检查是否是句号（英文或中文）或逗号
-    if (char === '.' || char === '。' || char === ',' || char === '，') {
+    if (char === '.' || char === '。' || char) {
       // 检查是否是小数点（前后都是数字）
       const isDecimal = (
         (i > 0 && /\d/.test(text[i - 1])) &&
