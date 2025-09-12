@@ -89,41 +89,40 @@ def print_output(pipe, model_name):
             break
         print(f"[{model_name}] {line.decode().strip()}")
 
-def load_model(model: str):
+def load_model_blocking(model: str, host="127.0.0.1", port=None, timeout=600):
     if model == "DeepSeek-R1":
+        port = port or 8010
         cmd = [
             "vllm", "serve", model_path[model],
-            "--host", "127.0.0.1",
-            "--port", "8010",
+            "--host", host,
+            "--port", str(port),
             "--gpu-memory-utilization", "0.8",
             "--max-model-len", "1504"
         ]
     elif model == "Qwen3":
+        port = port or 8020
         cmd = [
             "vllm", "serve", model_path[model],
-            "--host", "127.0.0.1",
-            "--port", "8020",
+            "--host", host,
+            "--port", str(port),
             "--gpu-memory-utilization", "0.8",
             "--max-model-len", "2048"
         ]
     else:
         raise ValueError(f"未知模型: {model}")
-    
+
     print(f"🔧 启动命令: {' '.join(cmd)}")
     print("-" * 60)
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    stdout_thread = threading.Thread(target=print_output, args=(proc.stdout, model))
-    stderr_thread = threading.Thread(target=print_output, args=(proc.stderr, model))
-    
-    stdout_thread.daemon = True
-    stderr_thread.daemon = True
-    
-    stdout_thread.start()
-    stderr_thread.start()
-    
-    return proc
+
+    threading.Thread(target=print_output, args=(proc.stdout, model), daemon=True).start()
+    threading.Thread(target=print_output, args=(proc.stderr, model), daemon=True).start()
+
+    wait_for_port(host, port, timeout=timeout)
+
+    print(f"✅ {model} 模型服务已完全就绪")
+    return proc, port
 
 def wait_for_port(host: str, port: int, timeout: int = 300):
     start_time = time.time()
@@ -145,39 +144,26 @@ def wait_for_port(host: str, port: int, timeout: int = 300):
     raise TimeoutError(f"❌ 等待端口 {host}:{port} 超时")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        model_name = sys.argv[1]
-    else:
-        model_name = "DeepSeek-R1"
+    if len(sys.argv) <= 1:
+        print("❌ 输入格式不正确，请使用: python3 Translator_API.py <DeepSeek-R1 / Qwen3>")
+        sys.exit(1)
 
-    if model_name == "DeepSeek-R1":
-        port = 8010
-        test_text = "模型启动成功"
-        test_dir = "zh-en"
-    elif model_name == "Qwen3":
-        port = 8020
-        test_text = "模型启动成功"
-        test_dir = "zh-en"
-    else:
+    model_name = sys.argv[1]
+    if model_name not in ["DeepSeek-R1", "Qwen3"]:
         print(f"❌ 不支持的模型: {model_name}")
         sys.exit(1)
 
-    print(f"🚀 启动模型 {model_name} ...")
-    print(f"🔌 服务端口: {port}")
+    print(f"🚀 阻塞启动模型 {model_name} ...")
+    proc, port = load_model_blocking(model_name)
 
-    proc = load_model(model_name)
+    test_text = "模型启动"
+    test_dir = "zh-en"
+    print("🧪 测试翻译接口...")
+    result = model_translate(model_name, test_text, test_dir)
+    print(f"📊 [测试结果] {model_name}: {test_text} -> {result}")
 
-    try:
-        wait_for_port("127.0.0.1", port)
-        print(f"✅ {model_name} 模型服务启动成功")
-        
-        print("🧪 测试翻译接口...")
-        result = model_translate(model_name, test_text, test_dir)
-        print(f"📊 [测试结果] {model_name}: {test_text} -> {result}")
-        
-        uvicorn.run("__main__:app", host="0.0.0.0", port=8866, reload=False)
-        
-    finally:
-        if proc:
-            proc.terminate()
-            print(f"🛑 已终止 {model_name} 进程")
+    uvicorn.run("__main__:app", host="0.0.0.0", port=8866, reload=False)
+
+    if proc:
+        proc.terminate()
+        print(f"🛑 已终止 {model_name} 进程")

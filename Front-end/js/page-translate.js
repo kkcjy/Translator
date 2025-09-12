@@ -30,14 +30,19 @@ const modal = document.getElementById('terms-modal');
 const historyLink = document.getElementById('page-history');
 const dropdown = document.getElementById('user-dropdown');
 const logoutBtn = document.getElementById('logout-btn');
+const sentenceToolbar = document.getElementById('sentence-toolbar');
+const translateSentenceBtn = document.getElementById('translate-sentence-btn');
+const speakSentenceBtn = document.getElementById('speak-sentence-btn');
 let avatarLink;
-
 let selectedModel = null;
 let isChineseToEnglish = true;
 let sourceLang = "zh";
 let targetLang = "en";
 let selectedFiles = [];
-
+let sentenceSelectBtn = document.getElementById('sentence-select-btn');
+let isSentenceSelectMode = false;
+let sourceSentenceContainer;
+let currentSelectedSentence = null;
 async function init() {
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
@@ -49,11 +54,11 @@ async function init() {
       dropdown.classList.toggle('show');
     });
     // 更新用户名显示
-    const userName = await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"),10)}`,{method: 'GET'})
+    const userName = await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"), 10)}`, { method: 'GET' })
     // 用户名修改功能
     const usernameInput = document.getElementById('username-input');
     // 从sessionStorage加载当前用户名
-    usernameInput.value=userName;
+    usernameInput.value = userName;
     document.querySelectorAll('.user-name').forEach(element => {
       element.textContent = userName;
     });
@@ -87,7 +92,154 @@ async function init() {
   swapLanguagesBtn.addEventListener('click', swapLanguages);
   subscribeBtn.addEventListener('click', subscribeUpdates);
   mobileMenuButton.addEventListener('click', toggleMobileMenu);
+  // 新增事件监听
+  document.addEventListener('click', handleDocumentClick);
+  translateSentenceBtn.addEventListener('click', translateSelectedSentence);
+  speakSentenceBtn.addEventListener('click', speakSelectedSentence);
+  sentenceSelectBtn.addEventListener('click', toggleSentenceSelectMode);
   updateTranslateButtonState();
+}
+function handleDocumentClick(e) {
+  // 点击非句子区域时隐藏工具栏
+  if (!e.target.closest('.sentence') && !e.target.closest('#sentence-toolbar')) {
+    hideSentenceToolbar();
+  }
+}
+// 添加切换单句选中模式的函数
+function toggleSentenceSelectMode() {
+  isSentenceSelectMode = !isSentenceSelectMode;
+
+  if (isSentenceSelectMode) {
+    // 进入单句选中模式
+    enterSentenceSelectMode();
+    sentenceSelectBtn.innerHTML = '<i class="fa fa-times mr-2"></i> 退出选中';
+    sentenceSelectBtn.classList.remove('bg-gray-200', 'text-dark');
+    sentenceSelectBtn.classList.add('bg-primary', 'text-white');
+    updateTranslateButtonState();
+  } else {
+    // 退出单句选中模式
+    exitSentenceSelectMode();
+    sentenceSelectBtn.innerHTML = '<i class="fa fa-mouse-pointer mr-2"></i> 单句选中';
+    sentenceSelectBtn.classList.remove('bg-primary', 'text-white');
+    sentenceSelectBtn.classList.add('bg-gray-200', 'text-dark');
+    updateTranslateButtonState();
+  }
+}
+
+function enterSentenceSelectMode() {
+  // 隐藏原文本框
+  sourceText.style.display = 'none';
+  charCountContainer.style.display = 'none';
+  // 创建句子容器
+  sourceSentenceContainer = document.createElement('div');
+  sourceSentenceContainer.className = 'p-3 bg-gray-50 rounded-lg min-h-[100px] border border-gray-200';
+  sourceSentenceContainer.id = 'source-sentence-container';
+  // 分割文本为句子
+  const sourceTextContent = sourceText.value.trim();
+  const splited = splitText(sourceTextContent);
+  let fontedResult = "";
+  for (let i = 0; i < splited.length; i++) {
+    fontedResult += `<span class="hover">${splited[i]}</span>`;
+  }
+  sourceSentenceContainer.innerHTML = fontedResult;
+  // 插入到原文本框位置
+  sourceText.parentNode.insertBefore(sourceSentenceContainer, sourceText.nextSibling);
+  // 添加句子点击事件
+  setTimeout(() => {
+    document.querySelectorAll('#source-sentence-container .hover').forEach(sentence => {
+      sentence.addEventListener('click', handleSentenceClick);
+    });
+  }, 0);
+}
+
+function exitSentenceSelectMode() {
+  // 移除句子容器
+  if (sourceSentenceContainer && sourceSentenceContainer.parentNode) {
+    sourceSentenceContainer.parentNode.removeChild(sourceSentenceContainer);
+  }
+
+  // 显示原文本框
+  sourceText.style.display = 'block';
+  charCountContainer.style.display = 'block';
+
+  // 隐藏句子工具栏
+  hideSentenceToolbar();
+}
+
+function hideSentenceToolbar() {
+  sentenceToolbar.classList.remove('visible');
+  if (currentSelectedSentence) {
+    currentSelectedSentence.classList.remove('selected');
+    currentSelectedSentence = null;
+  }
+}
+async function translateSelectedSentence() {
+  translateBtn.disabled = true;
+  translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
+  try {
+    // 如果有文件，优先使用文件
+    let sourceTextContent = currentSelectedSentence.textContent;
+    const translatedText = await makeRequest(`${API_URL}/translate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        source_text: sourceTextContent,
+        source_lang: isChineseToEnglish ? "zh" : "en",
+        target_lang: isChineseToEnglish ? "en" : "zh",
+        model_name: selectedModel,
+        userId: sessionStorage.getItem("currentUserId")
+      })
+    });
+    // 显示翻译结果
+    const splited = splitText(translatedText);
+    let fontedResult = "";
+    for (let i = 0; i < splited.length; i++) {
+      // 为每个句子创建单独的span元素
+      fontedResult += `<span class="hover">${splited[i]}</span>`;
+    }
+
+    resultsContent.innerHTML = `
+      <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
+        ${fontedResult}
+      </div>
+    `;
+    // 添加句子选择事件
+    setTimeout(() => {
+      resultsContent.querySelectorAll('.hover').forEach(sentence => {
+        sentence.addEventListener('click', handleSentenceClick);
+      });
+    }, 0);
+    showNotification('翻译完成');
+
+    // 应用主题设置
+    if (typeof window.applyResultsTheme === 'function') {
+      window.applyResultsTheme();
+    }
+  } catch (error) {
+    console.error('翻译错误:', error);
+    showNotification('翻译失败，请重试', 'error');
+  }
+  finally {
+    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
+    enableTranslateButton();
+  }
+}
+
+function speakSelectedSentence() {
+  if (!currentSelectedSentence) return;
+  const sentence = currentSelectedSentence.textContent;
+  speakText(sentence, isChineseToEnglish ? 'zh-CN' : 'en-US');
+  showNotification(`正在朗读选中的句子`);
+}
+
+function speakText(text, lang) {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    showNotification('您的浏览器不支持语音合成功能', 'warning');
+  }
+
 }
 function handleScroll() {
   if (window.scrollY > 10) {
@@ -137,6 +289,12 @@ function updateTranslateButtonState() {
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本或文件';
     disableTranslateButton();
   }
+  // 单句选中模式下禁用翻译按钮
+  if (isSentenceSelectMode) {
+    translateBtn.disabled = true;
+    translateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    translateBtn.classList.remove('hover:shadow-md');
+  }
 }
 
 function enableTranslateButton() {
@@ -177,17 +335,38 @@ async function performTranslation() {
   if (!selectedModel || (!sourceText.value.trim() && selectedFiles.length === 0)) return;
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
+  let sourceTextContent = sourceText.value.trim();
   try {
     // 如果有文件，优先使用文件
-    let sourceTextContent = sourceText.value.trim();
     if (selectedFiles.length > 0) {
-      // 这里应该添加文件上传和处理逻辑
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
-      showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
-      return;
+      if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
+        const formData=new FormData();
+        formData.append("file",selectedFiles[0]);
+        res=await fetch(`${API_URL}/translate/pic`,{
+          method: 'POST',
+          body: formData
+        });
+        jsonData = await res.json();
+        Literals = jsonData.ocr_result;
+        sourceTextContent = "";
+        Literals.forEach(Sentence => {
+          if (Sentence.category != "Picture" && Sentence.category != "picture") {
+            sourceTextContent += `${Sentence.text} `;
+          }
+        });
+      } else if(selectedFiles[0].name.endsWith('.docx') || selectedFiles[0].name.endsWith('.pdf')) {
+        const formData=new FormData();
+        formData.append("file",selectedFiles[0]);
+        res=await fetch(`${API_URL}/translate/file`,{
+          method: 'POST',
+          body: formData
+        });
+        jsonData=await res.json();
+        sourceTextContent=jsonData.text;
+      }
     }
-
-    const response = await makeRequest(`${API_URL}/translate`, {
+    response = await makeRequest(`${API_URL}/translate`, {
       method: 'POST',
       body: JSON.stringify({
         source_text: sourceTextContent,
@@ -197,18 +376,25 @@ async function performTranslation() {
         userId: sessionStorage.getItem("currentUserId")
       })
     });
-    splited=splitText(response);
-    fontedResult="";
-    for(i=0;i<splited.length;i++){
-      fontedResult+=`<p class="hover">${splited[i]}</p>`;
-    }
     // 显示翻译结果
+    const splited = splitText(response);
+    let fontedResult = "";
+    for (let i = 0; i < splited.length; i++) {
+      // 为每个句子创建单独的span元素
+      fontedResult += `<span class="hover">${splited[i]}</span>`;
+    }
+
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
         ${fontedResult}
       </div>
     `;
-
+    // 添加句子选择事件
+    setTimeout(() => {
+      resultsContent.querySelectorAll('.hover').forEach(sentence => {
+        sentence.addEventListener('click', handleSentenceClick);
+      });
+    }, 0);
     showNotification('翻译完成');
 
     // 应用主题设置
@@ -218,49 +404,80 @@ async function performTranslation() {
   } catch (error) {
     console.error('翻译错误:', error);
     showNotification('翻译失败，请重试', 'error');
-  } finally {
+  }
+  finally {
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   }
 }
+function handleSentenceClick(e) {
+  // 移除之前的选择
+  document.querySelectorAll('.sentence.selected').forEach(s => {
+    s.classList.remove('selected');
+  });
 
-function splitText(text){
+  // 设置当前选择
+  const sentence = e.target;
+  sentence.classList.add('selected');
+  currentSelectedSentence = sentence;
+
+  // 判断是源文本句子还是结果文本句子
+  const isSourceSentence = sentence.closest('#source-sentence-container');
+
+  // 显示工具栏
+  const rect = sentence.getBoundingClientRect();
+  sentenceToolbar.style.top = `${rect.bottom + window.scrollY + 5}px`;
+  sentenceToolbar.style.left = `${rect.left + window.scrollX}px`;
+  sentenceToolbar.classList.add('visible');
+
+  // 更新工具栏按钮功能
+  if (isSourceSentence) {
+    translateSentenceBtn.onclick = translateSelectedSentence;
+    speakSentenceBtn.onclick = speakSelectedSentence;
+  } else {
+    translateSentenceBtn.onclick = translateSelectedSentence;
+    speakSentenceBtn.onclick = speakSelectedSentence;
+  }
+
+  // 阻止事件冒泡
+  e.stopPropagation();
+}
+function splitText(text) {
   // 用于存储断句结果
   const result = [];
-  
+
   // 当前句子的起始位置
   let start = 0;
-  
+
   // 遍历文本
   for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      
-      // 检查是否是句号（英文或中文）
-      if (char === '.' || char === '。') {
-          // 检查是否是小数点（前后都是数字）
-          const isDecimal = (
-              (i > 0 && /\d/.test(text[i-1])) && 
-              (i < text.length - 1 && /\d/.test(text[i+1]))
-          );
-          
-          // 如果不是小数点，则在此处断句
-          if (!isDecimal) {
-              // 提取句子
-              const sentence = text.substring(start, i + 1);
-              result.push(sentence);
-              
-              // 更新起始位置
-              start = i + 1;
-          }
+    const char = text[i];
+
+    // 检查是否是句号（英文或中文）或逗号
+    if (char === '.' || char === '。' || char === '!' || char === '！') {
+      // 检查是否是小数点（前后都是数字）
+      const isDecimal = (
+        (i > 0 && /\d/.test(text[i - 1])) &&
+        (i < text.length - 1 && /\d/.test(text[i + 1]))
+      );
+
+      // 如果不是小数点，则在此处断句
+      if (!isDecimal) {
+        // 提取句子
+        const sentence = text.substring(start, i + 1);
+        result.push(sentence);
+        // 更新起始位置
+        start = i + 1;
       }
+    }
   }
-  
+
   // 添加最后一个句子（如果有）
   if (start < text.length) {
-      const lastSentence = text.substring(start);
-      result.push(lastSentence);
+    const lastSentence = text.substring(start);
+    result.push(lastSentence);
   }
-  
+
   return result;
 }
 
@@ -288,8 +505,13 @@ function swapLanguages() {
   langRightText.textContent = tempText;
   const direction = sourceLang === "zh" ? '中文→英文' : '英文→中文';
   showNotification(`已切换为${isChineseToEnglish ? '中文→英文' : '英文→中文'}`);
-}
 
+  // 如果在单句选中模式，更新源文本句子的显示
+  if (isSentenceSelectMode) {
+    exitSentenceSelectMode();
+    enterSentenceSelectMode();
+  }
+}
 // 邮箱验证函数
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -433,6 +655,11 @@ window.applyResultsTheme = function () {
       card.classList.add('bg-gray-900', 'text-white');
     }
   });
+  if (mode === 'light') {
+    sentenceToolbar.classList.remove('dark-mode');
+  } else {
+    sentenceToolbar.classList.add('dark-mode');
+  }
 };
 
 // 打开弹窗

@@ -29,7 +29,7 @@ document.getElementById("submit-feedback").onclick = () => {
   // 保存示例（可选）
   let feedbackList = JSON.parse(localStorage.getItem("feedbackList")) || [];
   feedbackList.push(feedback);
-  localStorage.setItem("feedbackList", JSON.stringify(feedbackList));
+  //localStorage.setItem("feedbackList", JSON.stringify(feedbackList));
 
   alert("感谢您的反馈！");
   feedbackModal.classList.replace("flex","hidden");
