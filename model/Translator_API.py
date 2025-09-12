@@ -153,11 +153,11 @@ if __name__ == "__main__":
 
     if model_name == "DeepSeek-R1":
         port = 8010
-        test_text = "模型启动成功"
+        test_text = "模型启动"
         test_dir = "zh-en"
     elif model_name == "Qwen3":
         port = 8020
-        test_text = "模型启动成功"
+        test_text = "模型启动"
         test_dir = "zh-en"
     else:
         print(f"❌ 不支持的模型: {model_name}")
