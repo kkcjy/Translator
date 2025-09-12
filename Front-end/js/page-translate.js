@@ -452,7 +452,7 @@ function splitText(text) {
     const char = text[i];
 
     // 检查是否是句号（英文或中文）或逗号
-    if (char === '.' || char === '。' || char) {
+    if (char === '.' || char === '。' || char === '!' || char === '！') {
       // 检查是否是小数点（前后都是数字）
       const isDecimal = (
         (i > 0 && /\d/.test(text[i - 1])) &&
