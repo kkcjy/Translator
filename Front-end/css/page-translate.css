@@ -286,3 +286,32 @@
 .dark .sentence.selected {
   background-color: #1e40af !important;
 }
+
+/* 在page-translate.css中添加 */
+#source-sentence-container {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.sentence-toolbar.visible {
+  display: flex;
+}
+
+.sentence.selected {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* 暗色模式支持 */
+.dark-mode #source-sentence-container {
+  background-color: #1e293b;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+.dark-mode .sentence:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .sentence.selected {
+  background-color: rgba(59, 130, 246, 0.4);
+}
