@@ -148,7 +148,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         model_name = sys.argv[1]
     else:
-        model_name = "DeepSeek-R1"
+        print("❌ 输入格式不正确，请使用: python3 Translator_API.py <DeepSeek-R1 / Qwen3>")
+        sys.exit(1)
 
     if model_name == "DeepSeek-R1":
         port = 8010

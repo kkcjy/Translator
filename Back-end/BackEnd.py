@@ -15,6 +15,7 @@ from typing import List
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from db import getdb
 from OCR import ocr_app
+from file import read_document_file
 from typing import Dict
 import asyncio
 #from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
