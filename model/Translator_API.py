@@ -1,3 +1,7 @@
+"""
+https://modelscope.cn/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+https://modelscope.cn/models/Qwen/Qwen3-0.6B
+"""
 from openai import OpenAI
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -144,15 +148,16 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         model_name = sys.argv[1]
     else:
-        model_name = "DeepSeek-R1"
+        print("❌ 输入格式不正确，请使用: python3 Translator_API.py <DeepSeek-R1 / Qwen3>")
+        sys.exit(1)
 
     if model_name == "DeepSeek-R1":
         port = 8010
-        test_text = "模型启动成功"
+        test_text = "模型启动"
         test_dir = "zh-en"
     elif model_name == "Qwen3":
         port = 8020
-        test_text = "模型启动成功"
+        test_text = "模型启动"
         test_dir = "zh-en"
     else:
         print(f"❌ 不支持的模型: {model_name}")

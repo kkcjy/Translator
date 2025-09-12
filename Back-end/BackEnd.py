@@ -18,6 +18,7 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from db import getdb
+from file import read_document_file
 #from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
 Model_URI = "https://www.u2985420.nyat.app:62835/"
 MODEL_PATH = "../weights/DotsOCR"  # 替换为你的OCR模型实际路径
