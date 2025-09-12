@@ -315,3 +315,45 @@
 .dark-mode .sentence.selected {
   background-color: rgba(59, 130, 246, 0.4);
 }
+
+/* 文件上传区域样式 */
+.file-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.file-upload-btn {
+  display: inline-block;
+  cursor: pointer;
+  background: #EBF5FF;
+  color: #3B82F6;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+
+.file-upload-btn:hover {
+  background: #DBEAFE;
+}
+
+.sentence-select-btn {
+  background: #F1F5F9;
+  color: #1E293B;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.sentence-select-btn:hover {
+  background: #E2E8F0;
+}
+
+.sentence-select-btn i {
+  margin-right: 8px;
+}

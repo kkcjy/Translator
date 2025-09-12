@@ -221,18 +221,14 @@
               </div>
             </div>
             <div class="w-full p-4 rounded space-y-2 relative">
-              <div class="w-full max-w-md">
-                <ul id="file-list" class="mt-2 text-sm text-gray-700 space-y-1 max-h-40 overflow-auto max-w-xs"> </ul>
-                <label for="file-upload"
-                  class="inline-block cursor-pointer bg-blue-50 text-blue-700 font-semibold py-2 px-4 rounded-full hover:bg-blue-100">
-                  选择文件
+              <ul id="file-list" class="mt-2 text-sm text-gray-700 space-y-1 max-h-40 overflow-auto max-w-xs mb-3"></ul>
+              <div class="file-upload-area">
+                <label for="file-upload" class="file-upload-btn">
+                  <i class="fa fa-file-upload mr-2"></i>选择文件
                 </label>
                 <input id="file-upload" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.png" class="hidden" />
-              </div>
-              <div class="w-full max-w-md">
-                <button id="sentence-select-btn"
-                  class="bg-gray-200 hover:bg-gray-300 text-dark px-4 py-2 rounded-lg transition-all flex items-center">
-                  <i class="fa fa-mouse-pointer mr-2"></i> 单句选中
+                <button id="sentence-select-btn" class="sentence-select-btn">
+                  <i class="fa fa-mouse-pointer"></i> 单句选中
                 </button>
               </div>
               <button id="translate-btn"
