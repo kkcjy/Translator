@@ -181,8 +181,10 @@ async function performTranslation() {
     // 如果有文件，优先使用文件
     let sourceTextContent = sourceText.value.trim();
     if (selectedFiles.length > 0) {
-      // 这里应该添加文件上传和处理逻辑
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
+      if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
+        
+      }
       showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
       return;
     }
