@@ -227,331 +227,342 @@ async function performTranslation() {
   if (!selectedModel || (!sourceText.value.trim() && selectedFiles.length === 0)) return;
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
-  try {
-    let response;
-    // 如果有文件，优先使用文件
-    let sourceTextContent = sourceText.value.trim();
-    if (selectedFiles.length > 0) {
-      sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
-      if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
-        const formData = new FormData();
-        formData.append("file", selectedFiles[0]);
-        formData.append("source_lang", isChineseToEnglish ? "zh" : "en");
-        formData.append("target_lang", isChineseToEnglish ? "en" : "zh");
-        formData.append("model_name", selectedModel);
-        formData.append("userId", sessionStorage.getItem("currentUserId"));
-        response = await fetch(`${API_URL}/translate/image`, {
-          method: 'POST',
-          body: formData
-        })
-      } else {
-        showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
-        return;
-      }
-    }
+  // try {
+  // 如果有文件，优先使用文件
+  let sourceTextContent = sourceText.value.trim();
+  if (selectedFiles.length > 0) {
+    sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
+    if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
 
-    response = await makeRequest(`${API_URL}/translate`, {
-      method: 'POST',
-      body: JSON.stringify({
-        source_text: sourceTextContent,
-        source_lang: isChineseToEnglish ? "zh" : "en",
-        target_lang: isChineseToEnglish ? "en" : "zh",
-        model_name: selectedModel,
-        userId: sessionStorage.getItem("currentUserId")
-      })
-    });
-    splited = splitText(response);
-    fontedResult = "";
-    for (i = 0; i < splited.length; i++) {
-      fontedResult += `<p class="hover">${splited[i]}</p>`;
     }
-    // 显示翻译结果
-    resultsContent.innerHTML = `
+    showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
+    return;
+  }
+
+  // const response = await makeRequest(`${API_URL}/translate`, {
+  //   method: 'POST',
+  //   body: JSON.stringify({
+  //     source_text: sourceTextContent,
+  //     source_lang: isChineseToEnglish ? "zh" : "en",
+  //     target_lang: isChineseToEnglish ? "en" : "zh",
+  //     model_name: selectedModel,
+  //     userId: sessionStorage.getItem("currentUserId")
+  //   })
+  // });
+  // splited=splitText(response);
+  // fontedResult="";
+  // for(i=0;i<splited.length;i++){
+  //   fontedResult+=`<p class="hover">${splited[i]}</p>`;
+  // }
+  // 显示翻译结果
+  // resultsContent.innerHTML = `
+  //     <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
+  //     这是测试文本。这是测试文本。这是测试文本。
+  //     </div>
+  //   `;
+  // 显示翻译结果
+  const translatedText = "这是测试文本。这是测试文本。这是测试文本。";
+  const splited = splitText(translatedText);
+  let fontedResult = "";
+  for (let i = 0; i < splited.length; i++) {
+    // 为每个句子创建单独的span元素
+    fontedResult += `<span class="sentence hover:bg-gray-100 p-1 rounded cursor-pointer">${splited[i]}</span>`;
+  }
+
+  resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
         ${fontedResult}
       </div>
     `;
+  // 添加句子选择事件
+  setTimeout(() => {
+    document.querySelectorAll('.sentence').forEach(sentence => {
+      sentence.addEventListener('click', handleSentenceClick);
+    });
+  }, 0);
+  showNotification('翻译完成');
 
-    showNotification('翻译完成');
-
-    // 应用主题设置
-    if (typeof window.applyResultsTheme === 'function') {
-      window.applyResultsTheme();
-    }
-    // } catch (error) {
-    //   console.error('翻译错误:', error);
-    //   showNotification('翻译失败，请重试', 'error');
-    // } 
-    // finally {
-    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
-    enableTranslateButton();
-    //}
+  // 应用主题设置
+  if (typeof window.applyResultsTheme === 'function') {
+    window.applyResultsTheme();
   }
+  // } catch (error) {
+  //   console.error('翻译错误:', error);
+  //   showNotification('翻译失败，请重试', 'error');
+  // } 
+  // finally {
+  translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
+  enableTranslateButton();
+  //}
+}
 function handleSentenceClick(e) {
-    // 移除之前的选择
-    document.querySelectorAll('.sentence.selected').forEach(s => {
-      s.classList.remove('selected');
-    });
+  // 移除之前的选择
+  document.querySelectorAll('.sentence.selected').forEach(s => {
+    s.classList.remove('selected');
+  });
 
-    // 设置当前选择
-    const sentence = e.target;
-    sentence.classList.add('selected');
-    currentSelectedSentence = sentence;
+  // 设置当前选择
+  const sentence = e.target;
+  sentence.classList.add('selected');
+  currentSelectedSentence = sentence;
 
-    // 显示工具栏
-    const rect = sentence.getBoundingClientRect();
-    sentenceToolbar.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    sentenceToolbar.style.left = `${rect.left + window.scrollX}px`;
-    sentenceToolbar.classList.add('visible');
+  // 显示工具栏
+  const rect = sentence.getBoundingClientRect();
+  sentenceToolbar.style.top = `${rect.bottom + window.scrollY + 5}px`;
+  sentenceToolbar.style.left = `${rect.left + window.scrollX}px`;
+  sentenceToolbar.classList.add('visible');
 
-    // 阻止事件冒泡，防止触发document点击事件
-    e.stopPropagation();
-  }
+  // 阻止事件冒泡，防止触发document点击事件
+  e.stopPropagation();
+}
 
-  function splitText(text) {
-    // 用于存储断句结果
-    const result = [];
+function splitText(text) {
+  // 用于存储断句结果
+  const result = [];
 
-    // 当前句子的起始位置
-    let start = 0;
-    // 遍历文本
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      // 检查是否是句号（英文或中文）
-      if (char === '.' || char === '。') {
-        // 检查是否是小数点（前后都是数字）
-        const isDecimal = (
-          (i > 0 && /\d/.test(text[i - 1])) &&
-          (i < text.length - 1 && /\d/.test(text[i + 1]))
-        );
-        // 如果不是小数点，则在此处断句
-        if (!isDecimal) {
-          // 提取句子
-          const sentence = text.substring(start, i + 1);
-          result.push(sentence);
-          // 更新起始位置
-          start = i + 1;
-        }
+  // 当前句子的起始位置
+  let start = 0;
+
+  // 遍历文本
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    // 检查是否是句号（英文或中文）或逗号
+    if (char === '.' || char === '。' || char === ',' || char === '，') {
+      // 检查是否是小数点（前后都是数字）
+      const isDecimal = (
+        (i > 0 && /\d/.test(text[i - 1])) &&
+        (i < text.length - 1 && /\d/.test(text[i + 1]))
+      );
+
+      // 如果不是小数点，则在此处断句
+      if (!isDecimal) {
+        // 提取句子
+        const sentence = text.substring(start, i + 1);
+        result.push(sentence);
+        // 更新起始位置
+        start = i + 1;
       }
     }
+  }
 
-    // 添加最后一个句子（如果有）
-    if (start < text.length) {
-      const lastSentence = text.substring(start);
-      result.push(lastSentence);
+  // 添加最后一个句子（如果有）
+  if (start < text.length) {
+    const lastSentence = text.substring(start);
+    result.push(lastSentence);
+  }
+
+  return result;
+}
+
+function copyResults() {
+  const resultText = resultsContent.textContent.trim();
+  if (!resultText || resultText === '翻译结果将显示在这里') {
+    showNotification('没有可复制的内容', 'warning');
+    return;
+  }
+  navigator.clipboard.writeText(resultText).then(() => {
+    showNotification('结果已复制到剪贴板');
+  }).catch(err => {
+    showNotification('复制失败，请手动复制', 'error');
+    console.error('复制失败:', err);
+  });
+}
+
+function swapLanguages() {
+  [sourceLang, targetLang] = [targetLang, sourceLang];
+  isChineseToEnglish = !isChineseToEnglish;
+  const langLeftText = document.getElementById('lang-left').querySelector('span');
+  const langRightText = document.getElementById('lang-right').querySelector('span');
+  const tempText = langLeftText.textContent;
+  langLeftText.textContent = langRightText.textContent;
+  langRightText.textContent = tempText;
+  const direction = sourceLang === "zh" ? '中文→英文' : '英文→中文';
+  showNotification(`已切换为${isChineseToEnglish ? '中文→英文' : '英文→中文'}`);
+}
+
+// 邮箱验证函数
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+function subscribeUpdates() {
+  const email = subscribeText.value.trim();
+  if (!validateEmail(email)) {
+    showNotification(`请输入有效的邮箱地址`, 'error')
+  }
+  else {
+    showNotification(`订阅成功！`);
+  }
+}
+
+function renderFileList() {
+  fileList.innerHTML = '';
+  if (selectedFiles.length === 0) {
+    // 没有文件时显示文本框
+    sourceText.style.display = 'block';
+    charCountContainer.style.display = 'block';
+    return;
+  }
+
+  // 有文件时隐藏文本框并显示文件信息
+  sourceText.style.display = 'none';
+  charCountContainer.style.display = 'none';
+  selectedFiles.forEach((file, index) => {
+    const li = document.createElement('li');
+    li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded mb-2";
+
+    const fileInfo = document.createElement('div');
+    fileInfo.className = "flex items-center";
+
+    const fileIcon = document.createElement('i');
+    fileIcon.className = "fa fa-file-text-o mr-2 text-primary";
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = file.name;
+    nameSpan.className = "max-w-[200px] truncate";
+
+    fileInfo.appendChild(fileIcon);
+    fileInfo.appendChild(nameSpan);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '删除';
+    removeBtn.className = "text-red-500 text-xs ml-2 hover:underline";
+    removeBtn.onclick = () => {
+      selectedFiles.splice(index, 1);
+      renderFileList();
+      updateTranslateButtonState();
     }
 
-    return result;
+    li.appendChild(fileInfo);
+    li.appendChild(removeBtn);
+    fileList.appendChild(li);
+  });
+}
+
+function toggleMobileMenu() {
+  if (mobileMenu.classList.contains('opacity-0')) {
+    mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
+    mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+    mobileMenuButton.innerHTML = '<i class="fa fa-times"></i>';
+  } else {
+    mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+    mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+    mobileMenuButton.innerHTML = '<i class="fa fa-bars"></i>';
   }
+}
 
-  function copyResults() {
-    const resultText = resultsContent.textContent.trim();
-    if (!resultText || resultText === '翻译结果将显示在这里') {
-      showNotification('没有可复制的内容', 'warning');
-      return;
-    }
-    navigator.clipboard.writeText(resultText).then(() => {
-      showNotification('结果已复制到剪贴板');
-    }).catch(err => {
-      showNotification('复制失败，请手动复制', 'error');
-      console.error('复制失败:', err);
-    });
+function showNotification(message, type = 'success') {
+  notificationText.textContent = message;
+  notification.className = 'fixed bottom-4 right-4 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center';
+  if (type === 'success') {
+    notification.classList.add('bg-dark');
+    notification.innerHTML = `<i class="fa fa-check-circle text-secondary mr-2"></i><span>${message}</span>`;
+  } else if (type === 'warning') {
+    notification.classList.add('bg-amber-600');
+    notification.innerHTML = `<i class="fa fa-exclamation-triangle mr-2"></i><span>${message}</span>`;
+  } else if (type === 'error') {
+    notification.classList.add('bg-red-600');
+    notification.innerHTML = `<i class="fa fa-times-circle mr-2"></i><span>${message}</span>`;
   }
+  setTimeout(() => {
+    notification.classList.remove('translate-y-20', 'opacity-0');
+  }, 10);
+  setTimeout(() => {
+    notification.classList.add('translate-y-20', 'opacity-0');
+  }, 3000);
+}
 
-  function swapLanguages() {
-    [sourceLang, targetLang] = [targetLang, sourceLang];
-    isChineseToEnglish = !isChineseToEnglish;
-    const langLeftText = document.getElementById('lang-left').querySelector('span');
-    const langRightText = document.getElementById('lang-right').querySelector('span');
-    const tempText = langLeftText.textContent;
-    langLeftText.textContent = langRightText.textContent;
-    langRightText.textContent = tempText;
-    const direction = sourceLang === "zh" ? '中文→英文' : '英文→中文';
-    showNotification(`已切换为${isChineseToEnglish ? '中文→英文' : '英文→中文'}`);
-  }
-
-  // 邮箱验证函数
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  }
-
-  function subscribeUpdates() {
-    const email = subscribeText.value.trim();
-    if (!validateEmail(email)) {
-      showNotification(`请输入有效的邮箱地址`, 'error')
-    }
-    else {
-      showNotification(`订阅成功！`);
-    }
-  }
-
-  function renderFileList() {
-    fileList.innerHTML = '';
-    if (selectedFiles.length === 0) {
-      // 没有文件时显示文本框
-      sourceText.style.display = 'block';
-      charCountContainer.style.display = 'block';
-      return;
-    }
-
-    // 有文件时隐藏文本框并显示文件信息
-    sourceText.style.display = 'none';
-    charCountContainer.style.display = 'none';
-    selectedFiles.forEach((file, index) => {
-      const li = document.createElement('li');
-      li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded mb-2";
-
-      const fileInfo = document.createElement('div');
-      fileInfo.className = "flex items-center";
-
-      const fileIcon = document.createElement('i');
-      fileIcon.className = "fa fa-file-text-o mr-2 text-primary";
-
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = file.name;
-      nameSpan.className = "max-w-[200px] truncate";
-
-      fileInfo.appendChild(fileIcon);
-      fileInfo.appendChild(nameSpan);
-
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = '删除';
-      removeBtn.className = "text-red-500 text-xs ml-2 hover:underline";
-      removeBtn.onclick = () => {
-        selectedFiles.splice(index, 1);
-        renderFileList();
-        updateTranslateButtonState();
-      }
-
-      li.appendChild(fileInfo);
-      li.appendChild(removeBtn);
-      fileList.appendChild(li);
-    });
-  }
-
-  function toggleMobileMenu() {
-    if (mobileMenu.classList.contains('opacity-0')) {
-      mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
-      mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
-      mobileMenuButton.innerHTML = '<i class="fa fa-times"></i>';
-    } else {
-      mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
-      mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
-      mobileMenuButton.innerHTML = '<i class="fa fa-bars"></i>';
-    }
-  }
-
-  function showNotification(message, type = 'success') {
-    notificationText.textContent = message;
-    notification.className = 'fixed bottom-4 right-4 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center';
-    if (type === 'success') {
-      notification.classList.add('bg-dark');
-      notification.innerHTML = `<i class="fa fa-check-circle text-secondary mr-2"></i><span>${message}</span>`;
-    } else if (type === 'warning') {
-      notification.classList.add('bg-amber-600');
-      notification.innerHTML = `<i class="fa fa-exclamation-triangle mr-2"></i><span>${message}</span>`;
-    } else if (type === 'error') {
-      notification.classList.add('bg-red-600');
-      notification.innerHTML = `<i class="fa fa-times-circle mr-2"></i><span>${message}</span>`;
-    }
-    setTimeout(() => {
-      notification.classList.remove('translate-y-20', 'opacity-0');
-    }, 10);
-    setTimeout(() => {
-      notification.classList.add('translate-y-20', 'opacity-0');
-    }, 3000);
-  }
-
-  // 翻译结果和特色卡片主题应用
-  window.applyResultsTheme = function () {
-    // 翻译结果文本块
-    const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
-    const resultBlocks = document.querySelectorAll('#results-content .p-3');
-    resultBlocks.forEach(function (block) {
-      if (mode === 'light') {
-        block.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
-        block.classList.add('bg-gray-50', 'text-dark');
-        block.style.backgroundColor = '';
-        block.style.color = '';
-        block.style.borderColor = '';
-      } else {
-        block.classList.remove('bg-gray-50', 'text-dark');
-        block.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
-        block.style.backgroundColor = '#1e293b';
-        block.style.color = '#e5e7eb';
-        block.style.borderColor = '#334155';
-      }
-    });
-
-    // 翻译结果文本框
-    const resultTextareas = document.querySelectorAll('#results-content textarea');
-    resultTextareas.forEach(function (textarea) {
-      if (mode === 'light') {
-        textarea.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
-        textarea.classList.add('bg-white', 'text-dark', 'border-gray-200');
-        textarea.style.backgroundColor = '';
-        textarea.style.color = '';
-        textarea.style.borderColor = '';
-      } else {
-        textarea.classList.remove('bg-white', 'text-dark', 'border-gray-200');
-        textarea.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
-        textarea.style.backgroundColor = '#1e293b';
-        textarea.style.color = '#e5e7eb';
-        textarea.style.borderColor = '#334155';
-      }
-    });
-
-    // 特色卡片
-    const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
-    featureCards.forEach(card => {
-      if (mode === 'light') {
-        card.classList.remove('bg-gray-900', 'text-white');
-        card.classList.add('bg-white', 'text-dark');
-      } else {
-        card.classList.remove('bg-white', 'text-dark');
-        card.classList.add('bg-gray-900', 'text-white');
-      }
-    });
+// 翻译结果和特色卡片主题应用
+window.applyResultsTheme = function () {
+  // 翻译结果文本块
+  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
+  const resultBlocks = document.querySelectorAll('#results-content .p-3');
+  resultBlocks.forEach(function (block) {
     if (mode === 'light') {
-      sentenceToolbar.classList.remove('dark-mode');
+      block.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
+      block.classList.add('bg-gray-50', 'text-dark');
+      block.style.backgroundColor = '';
+      block.style.color = '';
+      block.style.borderColor = '';
     } else {
-      sentenceToolbar.classList.add('dark-mode');
+      block.classList.remove('bg-gray-50', 'text-dark');
+      block.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+      block.style.backgroundColor = '#1e293b';
+      block.style.color = '#e5e7eb';
+      block.style.borderColor = '#334155';
     }
-  };
-
-  // 打开弹窗
-  openBtn.addEventListener('click', e => {
-    e.preventDefault();
-    modal.style.display = 'flex';
   });
 
-  // 关闭弹窗
-  closeBtn.addEventListener('click', () => {
+  // 翻译结果文本框
+  const resultTextareas = document.querySelectorAll('#results-content textarea');
+  resultTextareas.forEach(function (textarea) {
+    if (mode === 'light') {
+      textarea.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
+      textarea.classList.add('bg-white', 'text-dark', 'border-gray-200');
+      textarea.style.backgroundColor = '';
+      textarea.style.color = '';
+      textarea.style.borderColor = '';
+    } else {
+      textarea.classList.remove('bg-white', 'text-dark', 'border-gray-200');
+      textarea.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+      textarea.style.backgroundColor = '#1e293b';
+      textarea.style.color = '#e5e7eb';
+      textarea.style.borderColor = '#334155';
+    }
+  });
+
+  // 特色卡片
+  const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
+  featureCards.forEach(card => {
+    if (mode === 'light') {
+      card.classList.remove('bg-gray-900', 'text-white');
+      card.classList.add('bg-white', 'text-dark');
+    } else {
+      card.classList.remove('bg-white', 'text-dark');
+      card.classList.add('bg-gray-900', 'text-white');
+    }
+  });
+  if (mode === 'light') {
+    sentenceToolbar.classList.remove('dark-mode');
+  } else {
+    sentenceToolbar.classList.add('dark-mode');
+  }
+};
+
+// 打开弹窗
+openBtn.addEventListener('click', e => {
+  e.preventDefault();
+  modal.style.display = 'flex';
+});
+
+// 关闭弹窗
+closeBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+
+// 点击遮罩关闭
+modal.addEventListener('click', e => {
+  if (e.target === modal) {
     modal.style.display = 'none';
-  });
+  }
+});
 
-  // 点击遮罩关闭
-  modal.addEventListener('click', e => {
-    if (e.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
+fileInput.addEventListener('change', () => {
+  // 每次只允许一个文件，替换原有文件
+  selectedFiles = Array.from(fileInput.files).slice(0, 1);
+  renderFileList();
+  fileInput.value = '';
+  updateTranslateButtonState();
+});
 
-  fileInput.addEventListener('change', () => {
-    // 每次只允许一个文件，替换原有文件
-    selectedFiles = Array.from(fileInput.files).slice(0, 1);
-    renderFileList();
-    fileInput.value = '';
-    updateTranslateButtonState();
-  });
+historyLink.addEventListener('click', function (event) {
+  console.log(sessionStorage.getItem("currentUserId"));
+  if (sessionStorage.getItem("currentUserId") == null) {
+    event.preventDefault();
+    showNotification(`登陆账号后方可查询`, `warning`);
+  }
+});
 
-  historyLink.addEventListener('click', function (event) {
-    console.log(sessionStorage.getItem("currentUserId"));
-    if (sessionStorage.getItem("currentUserId") == null) {
-      event.preventDefault();
-      showNotification(`登陆账号后方可查询`, `warning`);
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', init);
