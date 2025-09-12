@@ -16,7 +16,6 @@ def read_document_file(file_obj, filename: str) -> str:
                     if page_text:
                         text += page_text + "\n"
         except Exception:
-            # 备用方案：PyPDF2
             reader = PdfReader(file_obj)
             for page in reader.pages:
                 page_text = page.extract_text()
