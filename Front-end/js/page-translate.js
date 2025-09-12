@@ -342,10 +342,6 @@ async function performTranslation() {
       if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
         const formData=new FormData();
         formData.append("file",selectedFiles[0]);
-        formData.append("source_lang",isChineseToEnglish?"zh":"en");
-        formData.append("target_lang",isChineseToEnglish?"en":"zh");
-        formData.append("model_name",selectedModel);
-        formData.append("userId",sessionStorage.getItem("currentUserId"));
         res=await fetch(`${API_URL}/translate/pic`,{
           method: 'POST',
           body: formData
@@ -358,9 +354,15 @@ async function performTranslation() {
             sourceTextContent+=`${Sentence.text} `;
           }
         });
-      }else{
-        showNotification('文件翻译功能暂未实现', 'warning');
-        return;
+      } else if(selectedFiles[0].name.endsWith('.docx') || selectedFiles[0].name.endsWith('.pdf')) {
+        const formData=new FormData();
+        formData.append("file",selectedFiles[0]);
+        res=await fetch(`${API_URL}/translate/file`,{
+          method: 'POST',
+          body: formData
+        });
+        jsonData=await res.json();
+        sourceTextContent=jsonData.text;
       }
     }
     response = await makeRequest(`${API_URL}/translate`, {

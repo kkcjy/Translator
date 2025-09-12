@@ -363,7 +363,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 
 #图片翻译
 @app.post("/translate/pic")
-async def translate_pic(file:UploadFile=File(...),source_lang:str=Form("zh"),target_lang:str=Form("en"),model_name:str=Form(""),userId:int | None=None,db:cursors.Cursor=Depends(getdb)):
+async def read_pic(file:UploadFile=File(...)):
     name2request = {"DeepSeek-R1": "DeepSeek-R1", "通义千问": "Qwen3"}
     try:
         # 验证文件类型（仅允许图片）
@@ -393,10 +393,32 @@ async def translate_pic(file:UploadFile=File(...),source_lang:str=Form("zh"),tar
             "ocr_result": ocr_result
         }
     except Exception as e:
-        db.execute("ROLLBACK")
         raise HTTPException(status_code=500, detail=f"OCR处理失败: {str(e)}")
     finally:
         await file.close()  # 确保文件句柄关闭
+
+# 文件翻译
+@app.post("/translate/file")
+async def read_file(file:UploadFile=File(...)):
+    try:
+        if not (file.filename.lower().endswith(".pdf") or file.filename.lower().endswith(".docx")):
+            raise HTTPException(status_code=400, detail="仅支持 PDF 或 DOCX 文件")
+
+        contents = await file.read()
+        file_obj = io.BytesIO(contents)
+
+        text = read_document_file(file_obj, file.filename)
+
+        # 返回文件名与文件内容
+        return {
+            "filename": file.filename,
+            "text": text
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"文件处理失败: {str(e)}")
+    finally:
+        await file.close()
 
 #获取用户翻译历史记录
 @app.get("/history/{userId}")

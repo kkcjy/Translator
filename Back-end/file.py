@@ -26,7 +26,5 @@ def read_document_file(file_obj, filename: str) -> str:
         doc = Document(file_obj)
         for para in doc.paragraphs:
             text += para.text + "\n"
-    else:
-        raise ValueError(f"不支持的文件类型: {ext}")
 
     return text.strip()
