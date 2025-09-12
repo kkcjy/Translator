@@ -144,7 +144,7 @@ function enterSentenceSelectMode() {
   sourceText.parentNode.insertBefore(sourceSentenceContainer, sourceText.nextSibling);
   // 添加句子点击事件
   setTimeout(() => {
-    document.querySelectorAll('#source-sentence-container .sentence').forEach(sentence => {
+    document.querySelectorAll('#source-sentence-container .hover').forEach(sentence => {
       sentence.addEventListener('click', handleSentenceClick);
     });
   }, 0);
@@ -188,7 +188,6 @@ async function translateSelectedSentence() {
       })
     });
     // 显示翻译结果
-    // const translatedText = "这是测试文本。这是测试文本。这是测试文本。";
     const splited = splitText(translatedText);
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
