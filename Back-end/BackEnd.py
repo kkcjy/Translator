@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import random
+from contextlib import asynccontextmanager
 
 import torch
 from PIL import Image
@@ -40,7 +41,8 @@ conf = ConnectionConfig(
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def lifespan(app:FastAPI):
+@asynccontextmanager
+async def lifespan(app:FastAPI):
     """服务启动时加载OCR模型（避免每次请求重复加载）"""
     global ocr_model, ocr_processor
     try:
@@ -59,8 +61,9 @@ def lifespan(app:FastAPI):
     except Exception as e:
         print(f"OCR模型加载失败: {str(e)}")
         raise  # 模型加载失败时终止服务启动
+    yield
 
-app=FastAPI()#lifespan=lifespan
+app=FastAPI(lifespan=lifespan)#lifespan=lifespan
 
 #跨域请求开放，需根据前端地址更改。
 app.add_middleware(
@@ -360,7 +363,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 
 #图片翻译
 @app.post("/translate/pic")
-async def translate_pic(file:UploadFile=File(...),source_lang:str=Form("zh"),target_lang:str=Form("en"),model_name:str=Form(""),userId:int | None=Form(...),db:cursors.Cursor=Depends(getdb)):
+async def translate_pic(file:UploadFile=File(...),source_lang:str=Form("zh"),target_lang:str=Form("en"),model_name:str=Form(""),userId:int | None=None,db:cursors.Cursor=Depends(getdb)):
     name2request = {"DeepSeek-R1": "DeepSeek-R1", "通义千问": "Qwen3"}
     try:
         # 验证文件类型（仅允许图片）
@@ -374,17 +377,16 @@ async def translate_pic(file:UploadFile=File(...),source_lang:str=Form("zh"),tar
         # 调用OCR处理
         ocr_result = process_ocr(image)
 
-        # 可选：将结果存储到数据库（需先创建表TRS_OCR_RESULTS）
-        current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        cmd = """
-            INSERT INTO TRS_OCR_RESULTS 
-            (filename, content_type, ocr_result, create_time) 
-            VALUES (%s, %s, %s, %s)
-        """
-        # 将JSON结果转为字符串存储
-        db.execute(cmd, (file.filename, file.content_type, json.dumps(ocr_result), current_time))
-        db.execute("COMMIT")
-
+        # # 可选：将结果存储到数据库（需先创建表TRS_OCR_RESULTS）
+        # current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        # cmd = """
+        #     INSERT INTO TRS_OCR_RESULTS
+        #     (filename, content_type, ocr_result, create_time)
+        #     VALUES (%s, %s, %s, %s)
+        # """
+        # # 将JSON结果转为字符串存储
+        # db.execute(cmd, (file.filename, file.content_type, json.dumps(ocr_result), current_time))
+        # db.execute("COMMIT")
         # 返回OCR结果
         return {
             "filename": file.filename,

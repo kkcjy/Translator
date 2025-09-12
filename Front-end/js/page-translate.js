@@ -177,10 +177,10 @@ async function performTranslation() {
   if (!selectedModel || (!sourceText.value.trim() && selectedFiles.length === 0)) return;
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
+  let sourceTextContent = sourceText.value.trim();
   try {
     let response;
     // 如果有文件，优先使用文件
-    let sourceTextContent = sourceText.value.trim();
     if (selectedFiles.length > 0) {
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
       if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
@@ -190,16 +190,23 @@ async function performTranslation() {
         formData.append("target_lang",isChineseToEnglish?"en":"zh");
         formData.append("model_name",selectedModel);
         formData.append("userId",sessionStorage.getItem("currentUserId"));
-        response=await fetch(`${API_URL}/translate/image`,{
+        res=await fetch(`${API_URL}/translate/pic`,{
           method: 'POST',
           body: formData
-        })
+        });
+        jsonData=await res.json();
+        Literals=jsonData.ocr_result;
+        sourceTextContent="";
+        Literals.forEach(Sentence=>{
+          if(Sentence.category!="Picture" && Sentence.category!="picture"){
+            sourceTextContent+=`${Sentence.text} `;
+          }
+        });
       }else{
-        showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
+        showNotification('文件翻译功能暂未实现', 'warning');
         return;
       }
     }
-
     response = await makeRequest(`${API_URL}/translate`, {
       method: 'POST',
       body: JSON.stringify({
