@@ -178,18 +178,29 @@ async function performTranslation() {
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
   try {
+    let response;
     // 如果有文件，优先使用文件
     let sourceTextContent = sourceText.value.trim();
     if (selectedFiles.length > 0) {
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
       if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
-        
+        const formData=new FormData();
+        formData.append("file",selectedFiles[0]);
+        formData.append("source_lang",isChineseToEnglish?"zh":"en");
+        formData.append("target_lang",isChineseToEnglish?"en":"zh");
+        formData.append("model_name",selectedModel);
+        formData.append("userId",sessionStorage.getItem("currentUserId"));
+        response=await fetch(`${API_URL}/translate/image`,{
+          method: 'POST',
+          body: formData
+        })
+      }else{
+        showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
+        return;
       }
-      showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
-      return;
     }
 
-    const response = await makeRequest(`${API_URL}/translate`, {
+    response = await makeRequest(`${API_URL}/translate`, {
       method: 'POST',
       body: JSON.stringify({
         source_text: sourceTextContent,

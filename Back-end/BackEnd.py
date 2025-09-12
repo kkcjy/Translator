@@ -1,10 +1,11 @@
 import base64
+import io
 import json
 import random
 
 import torch
 from PIL import Image
-from fastapi import FastAPI, Depends, HTTPException, status, Header, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel, EmailStr
 from qwen_vl_utils import process_vision_info
 from starlette.middleware.cors import CORSMiddleware
@@ -21,7 +22,7 @@ from db import getdb
 from file import read_document_file
 #from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
 Model_URI = "https://www.u2985420.nyat.app:62835/"
-MODEL_PATH = "../weights/DotsOCR"  # 替换为你的OCR模型实际路径
+MODEL_PATH = "../model/DotsOCR"  # 替换为你的OCR模型实际路径
 ocr_model = None
 ocr_processor = None
 
@@ -106,14 +107,6 @@ class TranslationRequest(BaseModel):
     source_lang: str = "zh"
     target_lang: str = "en"
     model_name: str
-    userId:str | None
-
-#用于图片翻译的Model
-class PicRequest(BaseModel):
-    file:UploadFile=File(...)
-    source_lang:str="zh"
-    target_lang:str="en"
-    model_name:str
     userId:str | None
 
 class UserHistoryRequest(BaseModel):
@@ -367,9 +360,41 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 
 #图片翻译
 @app.post("/translate/pic")
-async def translate_pic(request:PicRequest,db:cursors.Cursor=Depends(getdb)):
+async def translate_pic(file:UploadFile=File(...),source_lang:str=Form("zh"),target_lang:str=Form("en"),model_name:str=Form(""),userId:int | None=Form(...),db:cursors.Cursor=Depends(getdb)):
     name2request = {"DeepSeek-R1": "DeepSeek-R1", "通义千问": "Qwen3"}
+    try:
+        # 验证文件类型（仅允许图片）
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="仅支持图片文件（png/jpg等）")
 
+        # 读取图片内容并转换为PIL Image
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+
+        # 调用OCR处理
+        ocr_result = process_ocr(image)
+
+        # 可选：将结果存储到数据库（需先创建表TRS_OCR_RESULTS）
+        current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        cmd = """
+            INSERT INTO TRS_OCR_RESULTS 
+            (filename, content_type, ocr_result, create_time) 
+            VALUES (%s, %s, %s, %s)
+        """
+        # 将JSON结果转为字符串存储
+        db.execute(cmd, (file.filename, file.content_type, json.dumps(ocr_result), current_time))
+        db.execute("COMMIT")
+
+        # 返回OCR结果
+        return {
+            "filename": file.filename,
+            "ocr_result": ocr_result
+        }
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(status_code=500, detail=f"OCR处理失败: {str(e)}")
+    finally:
+        await file.close()  # 确保文件句柄关闭
 
 #获取用户翻译历史记录
 @app.get("/history/{userId}")
