@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文枢 | Wen Shu</title>
+    <!-- 引入css配置 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        /* 自定义样式 */
+        .sentence {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 2px 4px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .sentence:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .sentence.selected {
+            background-color: rgba(255, 193, 7, 0.3);
+            box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.5);
+        }
+
+        .sentence-toolbar {
+            position: fixed;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 8px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+
+        .sentence-toolbar.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toolbar-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+        }
+
+        .toolbar-btn:hover {
+            background: #e2e8f0;
+        }
+
+        /* 深色模式支持 */
+        .dark-mode .sentence:hover {
+            background-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .dark-mode .sentence.selected {
+            background-color: rgba(255, 193, 7, 0.2);
+            box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.3);
+        }
+
+        .dark-mode .sentence-toolbar {
+            background: #374151;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-mode .toolbar-btn {
+            background: #4b5563;
+            color: white;
+        }
+
+        .dark-mode .toolbar-btn:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="font-inter bg-gradient-to-br from-light to-blue-50 min-h-screen text-dark">
+    <!-- 顶部导航栏 -->
+    <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur z-50 shadow-sm transition-all duration-300"
+        id="navbar">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <img src="img/logo.jpg" alt="logo" style="width: 40px; height: 40px;" />
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">文枢
+                </h1>
+            </div>
+
+            <div class="hidden md:flex items-center space-x-6">
+                <div class="user-menu"><a href="page-login.html" id="login-or-avatar"
+                        class="text-dark/80 hover:text-primary transition-colors">注册/登录</a>
+                    <div class="dropdown-menu" id="user-dropdown">
+                        <div class="user-info">
+                            <img src="img/default_ava.jpg" class="user-info-avatar">
+                            <div class="user-details">
+                                <div class="user-name">user</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
+                        <a href="#" class="menu-item logout-btn" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>退出登录</span>
+                        </a>
+                    </div>
+                </div>
+                <a href="page-history.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
+                    id="page-history">历史记录</a>
+                <a href="https://github.com/kkcjy/Translator"
+                    class="text-dark/80 hover:text-primary transition-colors">关于我们</a>
+                <a href="#" class="text-dark/80 hover:text-primary transition-colors" id="open-setting-btn">设置</a>
+            </div>
+
+            <button class="md:hidden text-dark text-xl" id="mobile-menu-button">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- 移动端菜单 -->
+        <div class="md:hidden bg-white shadow-md absolute w-full left-0 top-full transform -translate-y-full opacity-0 pointer-events-none transition-all duration-300"
+            id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="page-login.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
+                    id="to-page-login">注册/登录</a>
+                <a href="page-history.html" class="text-dark/80 hover:text-primary py-2 transition-colors">历史记录</a>
+                <a href="https://github.com/kkcjy/Translator"
+                    class="text-dark/80 hover:text-primary py-2 transition-colors">关于我们</a>
+                <a href="page-setting.html" class="text-dark/80 hover:text-primary py-2 transition-colors"
+                    id="open-setting-btn-mobile">设置</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 欢迎区域 -->
+        <section class="text-center mb-12">
+            <h2 class="text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-4 text-shadow">
+                跨语言沟通，<span class="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">无缝连接世界</span>
+            </h2>
+            <p class="text-lg text-dark/70 max-w-2xl mx-auto" id="welcome-desc">
+                选择专业翻译模型，获取精准、快速的翻译结果，支持中英互译
+            </p>
+        </section>
+
+        <!-- 模型选择区域 -->
+        <section class="max-w-4xl mx-auto mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fa fa-check-square-o text-primary mr-2"></i>选择翻译模型
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="model-selection">
+                    <!-- 模型卡片 1：高速翻译模型 -->
+                    <div
+                        class="model-card border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">高速翻译模型</h4>
+                                <p class="text-gray-600">快速响应，适合日常对话翻译</p>
+                            </div>
+                            <div class="bg-blue-50 w-10 h-10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-bolt text-primary text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm">
+                            <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full mr-2">速度优先</span>
+                        </div>
+                    </div>
+
+                    <!-- 模型卡片 2：高精度翻译模型 -->
+                    <div
+                        class="model-card border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">高精度翻译模型
+                                </h4>
+                                <p class="text-gray-600">专业级翻译，适合文档、学术内容</p>
+                            </div>
+                            <div class="bg-purple-50 w-10 h-10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-book text-accent text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm">
+                            <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full mr-2">精度优先</span>
+                        </div>
+                    </div>
+
+                    <!-- 模型卡片 3：DeepSeek-R1 -->
+                    <div
+                        class="model-card border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">DeepSeek-R1
+                                </h4>
+                                <p class="text-gray-600">AI大模型，上下文理解能力强</p>
+                            </div>
+                            <div class="bg-indigo-50 w-10 h-10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-archive text-accent text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm">
+                            <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full mr-2">AI模型</span>
+                        </div>
+                    </div>
+
+                    <!-- 模型卡片 4：通义千问 -->
+                    <div
+                        class="model-card border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold text-lg group-hover:text-primary transition-colors">通义千问</h4>
+                                <p class="text-gray-600">支持批量翻译，文化适配性好</p>
+                            </div>
+                            <div class="bg-green-50 w-10 h-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-file-alt text-accent text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm">
+                            <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full mr-2">大体量</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 选中的模型显示 -->
+                <div class="hidden bg-primary/10 border border-primary/30 rounded-lg p-4 mb-6 transition-all"
+                    id="selected-model-display">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-primary mr-2"></i>
+                            <span class="font-medium">已选择：</span>
+                            <span class="ml-2 font-semibold" id="selected-model-name">高速翻译模型</span>
+                        </div>
+                        <button class="text-primary hover:text-primary/80 text-sm flex items-center transition-colors"
+                            id="change-model-btn">
+                            <i class="fa fa-refresh mr-1"></i> 更换模型
+                        </button>
+                    </div>
+                </div>
+        </section>
+
+        <!-- 翻译输入区域 -->
+        <section class="max-w-4xl mx-auto">
+            <div class="input-container mb-6" id="translation-input-container">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <!-- 语言选择栏 -->
+                    <div class="flex border-b items-center">
+                        <div class="flex-1 p-3 flex items-center justify-between border-r" id="lang-left">
+                            <span class="font-medium">中文</span>
+                        </div>
+                        <button class="p-3 hover:bg-gray-100 transition-colors" id="swap-languages">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <div class="flex-1 p-3 flex items-center justify-between" id="lang-right">
+                            <span class="font-medium">英文</span>
+                        </div>
+                    </div>
+
+                    <!-- 输入区域 -->
+                    <div class="p-4">
+                        <div class="relative w-full">
+                            <textarea id="source-text" placeholder="请输入要翻译的文本..."
+                                class="w-full h-32 p-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"></textarea>
+                            <div id="char-count-container"
+                                class="absolute bottom-2 right-2 text-sm text-gray-500 bg-white/80 px-2 rounded">
+                                <span id="char-count">0</span> 字符
+                            </div>
+                        </div>
+                        <div class="w-full p-4 rounded space-y-2 relative">
+                            <div class="w-full max-w-md">
+                                <ul id="file-list"
+                                    class="mt-2 text-sm text-gray-700 space-y-1 max-h-40 overflow-auto max-w-xs"> </ul>
+                                <label for="file-upload"
+                                    class="inline-block cursor-pointer bg-blue-50 text-blue-700 font-semibold py-2 px-4 rounded-full hover:bg-blue-100">
+                                    选择文件
+                                </label>
+                                <input id="file-upload" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.png"
+                                    class="hidden" />
+
+                            </div>
+                            <button id="translate-btn"
+                                class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-all flex items-center opacity-50 cursor-not-allowed"
+                                disabled>
+                                <i class="fa fa-language mr-2"></i> 开始翻译
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 翻译结果区域 -->
+            <div class="results-container opacity-0 h-0 overflow-hidden transition-all duration-500"
+                id="translation-results-container">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="font-semibold flex items-center">
+                            <i class="fa fa-flag-checkered text-accent mr-2"></i>翻译结果
+                        </h3>
+                        <button class="text-gray-500 hover:text-primary transition-colors" id="copy-results">
+                            <i class="fa fa-copy"></i> 复制结果
+                        </button>
+                    </div>
+
+                    <div class="p-4" id="results-content">
+                        <!-- 结果将在这里显示 -->
+                        <div class="text-center text-gray-500 py-10">
+                            <i class="fa fa-file-text-o text-4xl mb-3 opacity-30"></i>
+                            <p>翻译结果将显示在这里</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 历史记录区域已删除 -->
+            </div>
+        </section>
+
+        <!-- 功能特点 -->
+        <section class="max-w-5xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa fa-bolt text-primary text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">快速响应</h3>
+                <p class="text-gray-600">毫秒级响应速度，即时获取翻译结果，不等待</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all">
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa fa-check-circle text-accent text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">精准翻译</h3>
+                <p class="text-gray-600">AI智能识别语境，确保翻译结果准确传达原意</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa fa-globe text-secondary text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">多语支持</h3>
+                <p class="text-gray-600">支持全球多种语言互译，满足不同场景需求</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white/70 py-10">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <h3 class="text-white font-bold">文枢</h3>
+                    </div>
+                    <p class="text-sm">让语言不再是障碍，连接全球沟通</p>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-semibold mb-4">功能</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><span class="transition-colors cursor-default">文本翻译</span></li>
+                        <li><span class="transition-colors cursor-default">文档翻译</span></li>
+                        <li><span class="transition-colors cursor-default">图片翻译</span></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-semibold mb-4">支持</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/kkcjy/Translator"
+                                class="hover:text-primary transition-colors">联系我们</a></li>
+                        <li><a href="#" id="open-terms" class="hover:text-primary transition-colors">使用条款</a></li>
+
+                        <div id="terms-modal"
+                            style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+                            <div
+                                style="background:white; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:20px; border-radius:8px; position:relative; color:#000;">
+                                <!-- 关闭按钮 -->
+                                <button id="close-terms"
+                                    style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+
+                                <h2 style="margin-bottom:10px;">使用条款</h2>
+
+                                <p style="margin-bottom:10px;">
+                                    欢迎使用本翻译服务。在使用本服务前，请仔细阅读以下使用条款。访问或使用本服务，即表示您已阅读、理解并同意遵守本条款及相关政策。
+                                </p>
+
+                                <h3>1. 用户资格</h3>
+                                <ul>
+                                    <li>您必须年满18岁或具备完全民事行为能力才能使用本服务。</li>
+                                    <li>未达到法定年龄的用户请勿使用本服务。</li>
+                                </ul>
+
+                                <h3>2. 账户与安全</h3>
+                                <ul>
+                                    <li>用户在注册账户时需提供真实、准确的信息。</li>
+                                    <li>用户有责任妥善保管账户及密码，对账户下的所有行为负责。</li>
+                                    <li>因账户信息泄露或滥用造成的损失由用户自行承担。</li>
+                                </ul>
+
+                                <h3>3. 使用规则</h3>
+                                <ul>
+                                    <li>禁止上传、提交或传播违法、侵权、色情、恶意破坏系统的内容。</li>
+                                    <li>用户上传的内容仍归用户所有，但您同意授予本服务使用该内容的权利（如翻译、展示）。</li>
+                                    <li>翻译结果仅供参考，本服务不保证其绝对准确性或适用性。</li>
+                                </ul>
+
+                                <h3>4. 免责声明</h3>
+                                <ul>
+                                    <li>本服务按"现状"提供，可能存在技术故障、中断或翻译错误。</li>
+                                    <li>对于因使用本服务产生的任何直接或间接损失，本服务不承担责任。</li>
+                                    <li>用户应自行判断翻译结果的使用风险。</li>
+                                </ul>
+
+                                <h3>5. 条款修改</h3>
+                                <p>本公司保留随时修改使用条款的权利。修改后继续使用本服务即表示您接受更新后的条款。</p>
+
+                                <h3>6. 终止服务</h3>
+                                <ul>
+                                    <li>如用户违反本条款，本公司有权暂停或终止用户访问权限。</li>
+                                    <li>用户亦可随时停止使用本服务。</li>
+                                </ul>
+
+                                <h3>7. 法律适用与争议解决</h3>
+                                <p>本条款适用中华人民共和国法律。因本条款或使用本服务产生的争议，应先友好协商解决；协商不成时，可向本公司所在地法院提起诉讼。</p>
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-semibold mb-4">关注我们</h4>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="https://github.com/kkcjy/Translator"
+                            class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    <p class="text-sm">订阅获取最新功能更新</p>
+                    <div class="mt-2 flex">
+                        <input type="email" placeholder="您的邮箱"
+                            class="px-3 py-2 text-sm bg-white/10 rounded-l-lg focus:outline-none focus:bg-white/20 w-full"
+                            id="subscribe-input">
+                        <button class="bg-primary hover:bg-primary/90 px-3 py-2 rounded-r-lg transition-colors"
+                            id="subscribe-btn">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 mt-8 pt-6 text-center text-sm">
+                <p>© 2025 文枢 版权所有</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 通知提示 -->
+    <div id="notification"
+        class="fixed bottom-4 right-4 bg-dark text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center">
+        <i class="fa fa-check-circle text-secondary mr-2"></i>
+        <span id="notification-text">操作成功</span>
+    </div>
+
+    <!-- 句子工具栏 -->
+    <div id="sentence-toolbar" class="sentence-toolbar">
+        <button id="translate-sentence-btn" class="toolbar-btn">
+            <i class="fa fa-language"></i> 单句翻译
+        </button>
+        <button id="speak-sentence-btn" class="toolbar-btn">
+            <i class="fa fa-volume-up"></i> 语音朗读
+        </button>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div id="setting-modal"
+        class="fixed inset-0 bg-transparent flex items-center justify-center z-[999] opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-[90vw] max-w-md p-6 relative" id="setting-modal-box">
+            <button id="close-setting-btn" class="absolute top-3 right-3 text-gray-400 hover:text-primary text-xl">
+                <i class="fa fa-times"></i>
+            </button>
+            <h2 class="text-gray-500">设置</h2>
+            <!-- 头像上传 -->
+            <div class="mb-6">
+                <label class="text-gray-500">头像上传</label>
+                <div class="flex items-center space-x-4">
+                    <img id="avatar-preview" src="img/default_ava.jpg" alt="头像"
+                        class="w-14 h-14 rounded-full border object-cover">
+                    <label for="avatar-upload"
+                        class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        上传图片
+                    </label>
+                    <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+                </div>
+            </div>
+            <!-- 用户名修改 -->
+            <div class="mb-6">
+                <label class="text-gray-500">用户名</label>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="username-input"
+                        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="输入新用户名">
+                    <button id="save-username-btn"
+                        class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                        保存
+                    </button>
+                </div>
+                <p id="username-error" class="text-red-500 text-sm mt-1 hidden">用户名不能为空</p>
+            </div>
+            <!-- 字体大小（滑动条替换按钮） -->
+            <div class="mb-6">
+                <label class="text-gray-500">字体大小</label>
+                <div class="flex items-center space-x-4">
+                    <input type="range" id="font-size-range" min="14" max="20" step="1" value="16" class="w-full">
+                    <span id="font-size-value" class="text-gray-500">16px</span>
+                </div>
+            </div>
+            <!-- 背景色 -->
+            <div class="mb-2">
+                <label class="text-gray-500">背景色</label>
+                <div class="flex items-center space-x-4">
+                    <!-- radio button 样式：外圈+选中时圆心，深浅色按钮样式一致 -->
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="bg-mode" class="sr-only bg-mode-radio" value="light"
+                            data-mode="light">
+                        <span
+                            class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white">
+                            <span class="radio-dot w-3 h-3 rounded-full bg-black opacity-0"></span>
+                        </span>
+                        <span class="text-gray-600">浅色</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="bg-mode" class="sr-only bg-mode-radio" value="dark" data-mode="dark">
+                        <span
+                            class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white">
+                            <span class="radio-dot w-3 h-3 rounded-full bg-black opacity-0"></span>
+                        </span>
+                        <span class="text-gray-500">深色</span>
+                    </label>
+                </div>
+            </div>
+            <!-- 操作按钮 -->
+            <div class="flex justify-end space-x-4 mt-6">
+                <button id="reset" class="px-4 py-2 rounded bg-black text-white hover:bg-gray-500">重置</button>
+                <button id="setting-cancel-btn"
+                    class="px-4 py-2 rounded bg-gray-200 text-dark hover:bg-gray-300">取消</button>
+                <button id="setting-confirm-btn"
+                    class="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面交互逻辑
+        const modelCards = document.querySelectorAll('.model-card');
+        const modelSelection = document.getElementById('model-selection');
+        const selectedModelDisplay = document.getElementById('selected-model-display');
+        const selectedModelName = document.getElementById('selected-model-name');
+        const changeModelBtn = document.getElementById('change-model-btn');
+        const translationInputContainer = document.getElementById('translation-input-container');
+        const translationResultsContainer = document.getElementById('translation-results-container');
+        const translateBtn = document.getElementById('translate-btn');
+        const sourceText = document.getElementById('source-text');
+        const charCount = document.getElementById('char-count');
+        const charCountContainer = document.getElementById('char-count-container');
+        const fileInput = document.getElementById('file-upload');
+        const fileList = document.getElementById('file-list');
+        const resultsContent = document.getElementById('results-content');
+        const translationHistory = document.getElementById('translation-history');
+        const copyResultsBtn = document.getElementById('copy-results');
+        const swapLanguagesBtn = document.getElementById('swap-languages');
+        const subscribeText = document.getElementById('subscribe-input');
+        const subscribeBtn = document.getElementById('subscribe-btn');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navbar = document.getElementById('navbar');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        const loginOrAvatar = document.getElementById('login-or-avatar');
+        const openBtn = document.getElementById('open-terms');
+        const closeBtn = document.getElementById('close-terms');
+        const modal = document.getElementById('terms-modal');
+        const historyLink = document.getElementById('page-history');
+        const dropdown = document.getElementById('user-dropdown');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // 新增元素
+        const sentenceToolbar = document.getElementById('sentence-toolbar');
+        const translateSentenceBtn = document.getElementById('translate-sentence-btn');
+        const speakSentenceBtn = document.getElementById('speak-sentence-btn');
+
+        let selectedModel = null;
+        let isChineseToEnglish = true;
+        let sourceLang = "zh";
+        let targetLang = "en";
+        let selectedFiles = [];
+        let currentSelectedSentence = null;
+        let API_URL = "http://localhost:8000"; // 根据实际情况修改API地址
+
+        async function init() {
+            window.addEventListener('scroll', handleScroll);
+            if (sessionStorage.getItem("currentUserId") !== null) {
+                loginOrAvatar.style.display = "null";
+                loginOrAvatar.href = "javascript:void(0);";
+                loginOrAvatar.innerHTML = `<img id="Avatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='avatar'>`;
+                document.getElementById("Avatar").addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                });
+                // 更新用户名显示
+                const userName = await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"), 10)}`, { method: 'GET' })
+                // 用户名修改功能
+                const usernameInput = document.getElementById('username-input');
+                // 从sessionStorage加载当前用户名
+                usernameInput.value = userName;
+                document.querySelectorAll('.user-name').forEach(element => {
+                    element.textContent = userName;
+                });
+                document.getElementsByClassName("user-info-avatar")[0].src = sessionStorage.getItem("currentUserAvatar");
+                mobileMenuButton.style.display = "null";
+                mobileMenuButton.innerHTML = `<img id="MobileAvatar" src='${sessionStorage.getItem("currentUserAvatar")}' alt='img/default_ava.jpg' class='w-8 h-8 rounded-full'>`;
+            }
+            document.addEventListener('click', function () {
+                dropdown.classList.remove('show');
+            });
+            dropdown.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (confirm('确定要退出登录吗？')) {
+                    alert('退出登录成功！');
+                    sessionStorage.removeItem("currentUserId");
+                    sessionStorage.removeItem("currentUserAvatar");
+                    window.location.href = "page-translate.html";
+                    dropdown.classList.remove('show');
+                }
+            });
+            modelCards.forEach(card => {
+                card.addEventListener('click', () => selectModel(card));
+            });
+            changeModelBtn.addEventListener('click', showModelSelection);
+            sourceText.addEventListener('input', updateTextInput);
+            translateBtn.addEventListener('click', performTranslation);
+            copyResultsBtn.addEventListener('click', copyResults);
+            swapLanguagesBtn.addEventListener('click', swapLanguages);
+            subscribeBtn.addEventListener('click', subscribeUpdates);
+            mobileMenuButton.addEventListener('click', toggleMobileMenu);
+
+            // 新增事件监听
+            document.addEventListener('click', handleDocumentClick);
+            translateSentenceBtn.addEventListener('click', translateSelectedSentence);
+            speakSentenceBtn.addEventListener('click', speakSelectedSentence);
+
+            updateTranslateButtonState();
+        }
+
+        function handleDocumentClick(e) {
+            // 点击非句子区域时隐藏工具栏
+            if (!e.target.closest('.sentence') && !e.target.closest('#sentence-toolbar')) {
+                hideSentenceToolbar();
+            }
+        }
+
+        function hideSentenceToolbar() {
+            sentenceToolbar.classList.remove('visible');
+            if (currentSelectedSentence) {
+                currentSelectedSentence.classList.remove('selected');
+                currentSelectedSentence = null;
+            }
+        }
+
+        function translateSelectedSentence() {
+            if (!currentSelectedSentence) return;
+
+            const sentence = currentSelectedSentence.textContent;
+            showNotification(`正在翻译: "${sentence}"`);
+
+            // 这里可以调用API进行单句翻译
+            // 实际实现中应该调用翻译API
+            setTimeout(() => {
+                showNotification(`"${sentence}" 的翻译结果: 这是示例翻译结果`);
+            }, 1000);
+        }
+
+        function speakSelectedSentence() {
+            if (!currentSelectedSentence) return;
+
+            const sentence = currentSelectedSentence.textContent;
+            speakText(sentence, isChineseToEnglish ? 'zh-CN' : 'en-US');
+            showNotification(`正在朗读选中的句子`);
+        }
+
+        function speakText(text, lang) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showNotification('您的浏览器不支持语音合成功能', 'warning');
+            }
+        }
+
+        function handleScroll() {
+            if (window.scrollY > 10) {
+                navbar.classList.add('py-2', 'shadow');
+                navbar.classList.remove('py-3');
+            } else {
+                navbar.classList.add('py-3');
+                navbar.classList.remove('py-2', 'shadow');
+            }
+        }
+
+        function selectModel(card) {
+            const modelName = card.querySelector('h4').textContent;
+            selectedModel = modelName;
+            selectedModelName.textContent = modelName;
+            modelSelection.classList.add('hidden');
+            selectedModelDisplay.classList.remove('hidden');
+            translationInputContainer.style.marginTop = '0';
+            setTimeout(() => {
+                translationResultsContainer.style.opacity = '1';
+                translationResultsContainer.style.height = 'auto';
+            }, 300);
+            updateTranslateButtonState();
+            showNotification(`已选择 ${modelName}`);
+        }
+
+        function showModelSelection() {
+            modelSelection.classList.remove('hidden');
+            selectedModelDisplay.classList.add('hidden');
+            translationResultsContainer.style.opacity = '0';
+            translationResultsContainer.style.height = '0';
+            translationInputContainer.style.marginTop = '80px';
+            selectedModel = null;
+            updateTranslateButtonState();
+        }
+
+        function updateTextInput() {
+            charCount.textContent = sourceText.value.length;
+            updateTranslateButtonState();
+        }
+
+        function updateTranslateButtonState() {
+            if (selectedModel && (sourceText.value.trim().length > 0 || selectedFiles.length)) {
+                translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
+                enableTranslateButton();
+            } else {
+                translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 请先选择模型并输入文本或文件';
+                disableTranslateButton();
+            }
+        }
+
+        function enableTranslateButton() {
+            translateBtn.disabled = false;
+            translateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            translateBtn.classList.add('hover:shadow-md');
+        }
+
+        function disableTranslateButton() {
+            translateBtn.disabled = true;
+            translateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            translateBtn.classList.remove('hover:shadow-md');
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error("请求失败:", error);
+                throw error;
+            }
+        }
+
+        async function performTranslation() {
+            if (!selectedModel || (!sourceText.value.trim() && selectedFiles.length === 0)) return;
+            translateBtn.disabled = true;
+            translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
+
+            // 模拟翻译结果
+            let sourceTextContent = sourceText.value.trim();
+            if (selectedFiles.length > 0) {
+                sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
+                if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
+
+                }
+                showNotification('文件翻译功能暂未实现，请使用文本翻译', 'warning');
+                return;
+            }
+
+            // 显示翻译结果
+            const translatedText = "这是测试文本。这是测试文本。这是测试文本。";
+            const splited = splitText(translatedText);
+
+            let fontedResult = "";
+            for (let i = 0; i < splited.length; i++) {
+                fontedResult += `<p class="sentence hover:bg-gray-100 p-1 rounded">${splited[i]}</p>`;
+            }
+
+            resultsContent.innerHTML = `
+        <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
+          ${fontedResult}
+        </div>
+      `;
+
+            // 添加句子选择事件
+            document.querySelectorAll('.sentence').forEach(sentence => {
+                sentence.addEventListener('click', handleSentenceClick);
+            });
+
+            showNotification('翻译完成');
+
+            // 应用主题设置
+            if (typeof window.applyResultsTheme === 'function') {
+                window.applyResultsTheme();
+            }
+
+            translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
+            enableTranslateButton();
+        }
+
+        function handleSentenceClick(e) {
+            // 移除之前的选择
+            document.querySelectorAll('.sentence.selected').forEach(s => {
+                s.classList.remove('selected');
+            });
+
+            // 设置当前选择
+            const sentence = e.target;
+            sentence.classList.add('selected');
+            currentSelectedSentence = sentence;
+
+            // 显示工具栏
+            const rect = sentence.getBoundingClientRect();
+            sentenceToolbar.style.top = `${rect.bottom + window.scrollY + 5}px`;
+            sentenceToolbar.style.left = `${rect.left + window.scrollX}px`;
+            sentenceToolbar.classList.add('visible');
+
+            // 阻止事件冒泡，防止触发document点击事件
+            e.stopPropagation();
+        }
+
+        function splitText(text) {
+            // 用于存储断句结果
+            const result = [];
+
+            // 当前句子的起始位置
+            let start = 0;
+
+            // 遍历文本
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+
+                // 检查是否是句号（英文或中文）
+                if (char === '.' || char === '。') {
+                    // 检查是否是小数点（前后都是数字）
+                    const isDecimal = (
+                        (i > 0 && /\d/.test(text[i - 1])) &&
+                        (i < text.length - 1 && /\d/.test(text[i + 1]))
+                    );
+
+                    // 如果不是小数点，则在此处断句
+                    if (!isDecimal) {
+                        // 提取句子
+                        const sentence = text.substring(start, i + 1);
+                        result.push(sentence);
+
+                        // 更新起始位置
+                        start = i + 1;
+                    }
+                }
+            }
+
+            // 添加最后一个句子（如果有）
+            if (start < text.length) {
+                const lastSentence = text.substring(start);
+                result.push(lastSentence);
+            }
+
+            return result;
+        }
+
+        function copyResults() {
+            const resultText = resultsContent.textContent.trim();
+            if (!resultText || resultText === '翻译结果将显示在这里') {
+                showNotification('没有可复制的内容', 'warning');
+                return;
+            }
+            navigator.clipboard.writeText(resultText).then(() => {
+                showNotification('结果已复制到剪贴板');
+            }).catch(err => {
+                showNotification('复制失败，请手动复制', 'error');
+                console.error('复制失败:', err);
+            });
+        }
+
+        function swapLanguages() {
+            [sourceLang, targetLang] = [targetLang, sourceLang];
+            isChineseToEnglish = !isChineseToEnglish;
+            const langLeftText = document.getElementById('lang-left').querySelector('span');
+            const langRightText = document.getElementById('lang-right').querySelector('span');
+            const tempText = langLeftText.textContent;
+            langLeftText.textContent = langRightText.textContent;
+            langRightText.textContent = tempText;
+            const direction = sourceLang === "zh" ? '中文→英文' : '英文→中文';
+            showNotification(`已切换为${isChineseToEnglish ? '中文→英文' : '英文→中文'}`);
+        }
+
+        // 邮箱验证函数
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function subscribeUpdates() {
+            const email = subscribeText.value.trim();
+            if (!validateEmail(email)) {
+                showNotification(`请输入有效的邮箱地址`, 'error')
+            }
+            else {
+                showNotification(`订阅成功！`);
+            }
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            if (selectedFiles.length === 0) {
+                // 没有文件时显示文本框
+                sourceText.style.display = 'block';
+                charCountContainer.style.display = 'block';
+                return;
+            }
+
+            // 有文件时隐藏文本框并显示文件信息
+            sourceText.style.display = 'none';
+            charCountContainer.style.display = 'none';
+            selectedFiles.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-gray-100 px-2 py-1 rounded mb-2";
+
+                const fileInfo = document.createElement('div');
+                fileInfo.className = "flex items-center";
+
+                const fileIcon = document.createElement('i');
+                fileIcon.className = "fa fa-file-text-o mr-2 text-primary";
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = file.name;
+                nameSpan.className = "max-w-[200px] truncate";
+
+                fileInfo.appendChild(fileIcon);
+                fileInfo.appendChild(nameSpan);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '删除';
+                removeBtn.className = "text-red-500 text-xs ml-2 hover:underline";
+                removeBtn.onclick = () => {
+                    selectedFiles.splice(index, 1);
+                    renderFileList();
+                    updateTranslateButtonState();
+                }
+
+                li.appendChild(fileInfo);
+                li.appendChild(removeBtn);
+                fileList.appendChild(li);
+            });
+        }
+
+        function toggleMobileMenu() {
+            if (mobileMenu.classList.contains('opacity-0')) {
+                mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
+                mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                mobileMenuButton.innerHTML = '<i class="fa fa-times"></i>';
+            } else {
+                mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+                mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                mobileMenuButton.innerHTML = '<i class="fa fa-bars"></i>';
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            notificationText.textContent = message;
+            notification.className = 'fixed bottom-4 right-4 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center';
+            if (type === 'success') {
+                notification.classList.add('bg-dark');
+                notification.innerHTML = `<i class="fa fa-check-circle text-secondary mr-2"></i><span>${message}</span>`;
+            } else if (type === 'warning') {
+                notification.classList.add('bg-amber-600');
+                notification.innerHTML = `<i class="fa fa-exclamation-triangle mr-2"></i><span>${message}</span>`;
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-600');
+                notification.innerHTML = `<i class="fa fa-times-circle mr-2"></i><span>${message}</span>`;
+            }
+            setTimeout(() => {
+                notification.classList.remove('translate-y-20', 'opacity-0');
+            }, 10);
+            setTimeout(() => {
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 翻译结果和特色卡片主题应用
+        window.applyResultsTheme = function () {
+            // 翻译结果文本块
+            const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
+            const resultBlocks = document.querySelectorAll('#results-content .p-3');
+            resultBlocks.forEach(function (block) {
+                if (mode === 'light') {
+                    block.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
+                    block.classList.add('bg-gray-50', 'text-dark');
+                    block.style.backgroundColor = '';
+                    block.style.color = '';
+                    block.style.borderColor = '';
+                } else {
+                    block.classList.remove('bg-gray-50', 'text-dark');
+                    block.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+                    block.style.backgroundColor = '#1e293b';
+                    block.style.color = '#e5e7eb';
+                    block.style.borderColor = '#334155';
+                }
+            });
+
+            // 翻译结果文本框
+            const resultTextareas = document.querySelectorAll('#results-content textarea');
+            resultTextareas.forEach(function (textarea) {
+                if (mode === 'light') {
+                    textarea.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
+                    textarea.classList.add('bg-white', 'text-dark', 'border-gray-200');
+                    textarea.style.backgroundColor = '';
+                    textarea.style.color = '';
+                    textarea.style.borderColor = '';
+                } else {
+                    textarea.classList.remove('bg-white', 'text-dark', 'border-gray-200');
+                    textarea.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+                    textarea.style.backgroundColor = '#1e293b';
+                    textarea.style.color = '#e5e7eb';
+                    textarea.style.borderColor = '#334155';
+                }
+            });
+
+            // 特色卡片
+            const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
+            featureCards.forEach(card => {
+                if (mode === 'light') {
+                    card.classList.remove('bg-gray-900', 'text-white');
+                    card.classList.add('bg-white', 'text-dark');
+                } else {
+                    card.classList.remove('bg-white', 'text-dark');
+                    card.classList.add('bg-gray-900', 'text-white');
+                }
+            });
+
+            // 句子工具栏
+            if (mode === 'light') {
+                sentenceToolbar.classList.remove('dark-mode');
+            } else {
+                sentenceToolbar.classList.add('dark-mode');
+            }
+        };
+
+        // 打开弹窗
+        openBtn.addEventListener('click', e => {
+            e.preventDefault();
+            modal.style.display = 'flex';
+        });
+
+        // 关闭弹窗
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // 点击遮罩关闭
+        modal.addEventListener('click', e => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            // 每次只允许一个文件，替换原有文件
+            selectedFiles = Array.from(fileInput.files).slice(0, 1);
+            renderFileList();
+            fileInput.value = '';
+            updateTranslateButtonState();
+        });
+
+        historyLink.addEventListener('click', function (event) {
+            console.log(sessionStorage.getItem("currentUserId"));
+            if (sessionStorage.getItem("currentUserId") == null) {
+                event.preventDefault();
+                showNotification(`登陆账号后方可查询`, `warning`);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
