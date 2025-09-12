@@ -137,7 +137,7 @@ function enterSentenceSelectMode() {
   const splited = splitText(sourceTextContent);
   let fontedResult = "";
   for (let i = 0; i < splited.length; i++) {
-    fontedResult += `<span class="sentence hover:bg-gray-100 p-1 rounded cursor-pointer">${splited[i]}</span>`;
+    fontedResult += `<span class="hover">${splited[i]}</span>`;
   }
   sourceSentenceContainer.innerHTML = fontedResult;
   // 插入到原文本框位置
@@ -193,7 +193,7 @@ async function translateSelectedSentence() {
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
       // 为每个句子创建单独的span元素
-      fontedResult += `<span class="sentence hover:bg-gray-100 p-1 rounded cursor-pointer">${splited[i]}</span>`;
+      fontedResult += `<span class="hover">${splited[i]}</span>`;
     }
 
     resultsContent.innerHTML = `
@@ -203,7 +203,7 @@ async function translateSelectedSentence() {
     `;
     // 添加句子选择事件
     setTimeout(() => {
-      document.querySelectorAll('.sentence').forEach(sentence => {
+      resultsContent.querySelectorAll('.hover').forEach(sentence => {
         sentence.addEventListener('click', handleSentenceClick);
       });
     }, 0);
@@ -375,12 +375,11 @@ async function performTranslation() {
       })
     });
     // 显示翻译结果
-    // const translatedText = "这是测试文本。这是测试文本。这是测试文本。";
-    const splited = splitText(translatedText);
+    const splited = splitText(response);
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
       // 为每个句子创建单独的span元素
-      fontedResult += `<span class="sentence hover:bg-gray-100 p-1 rounded cursor-pointer">${splited[i]}</span>`;
+      fontedResult += `<span class="hover">${splited[i]}</span>`;
     }
 
     resultsContent.innerHTML = `
@@ -390,7 +389,7 @@ async function performTranslation() {
     `;
     // 添加句子选择事件
     setTimeout(() => {
-      document.querySelectorAll('.sentence').forEach(sentence => {
+      resultsContent.querySelectorAll('.hover').forEach(sentence => {
         sentence.addEventListener('click', handleSentenceClick);
       });
     }, 0);
