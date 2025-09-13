@@ -466,7 +466,13 @@ def delHistory(item:DelHistoryItem,db:cursors.Cursor=Depends(getdb)):
 #用户反馈存储
 @app.put("/feedback")
 def feedback(item:FeedbackItem,db:cursors.Cursor=Depends(getdb)):
-    return
+    try:
+        cmd="INSERT INTO TRS_T_FEEDBACK (userId,hisId,model,judge,comment) VALUES (%s,%s,%s,%d,%s)"
+        db.execute(cmd,(item.userId,item.hisId,item.model,item.judge,item.comment))
+        db.execute("COMMIT")
+    except Exception as e:
+        db.execute("ROLLBACK")
+        raise HTTPException(500,f"Fail to write into database:{str(e)}")
 
 # 健康检查端点
 @app.get("/health")
