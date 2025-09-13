@@ -249,9 +249,13 @@
             <h3 class="font-semibold flex items-center">
               <i class="fa fa-flag-checkered text-accent mr-2"></i>翻译结果
             </h3>
-            <button class="text-gray-500 hover:text-primary transition-colors" id="copy-results">
-              <i class="fa fa-copy"></i> 复制结果
-            </button>
+            <div class="flex justify-between items-center">
+              <button title="Like!" class="px-4 text-dark hover:text-primary transition-colors cursor-not-allowed" disabled id="appreciate-btn"><i class="far fa-smile fa-lg"></i></button>
+              <button title="Dislike!" class="px-4 text-dark hover:text-primary transition-colors cursor-not-allowed" disabled id="disatisfy-btn"><i class="far fa-frown fa-lg"></i></button>
+              <button class="text-gray-500 hover:text-primary transition-colors" id="copy-results">
+                <i class="fa fa-copy"></i> 复制结果
+              </button>
+            </div>
           </div>
 
           <div class="p-4" id="results-content">
@@ -492,9 +496,21 @@
       </div>
     </div>
   </div>
-  <!-- 引入page-translate.js -->
+  <!-- 反馈弹窗 -->
+  <div id="feedback-modal" class="feedback-modal">
+    <div class="bg-white rounded-xl shadow-2xl w-[90vw] max-w-md p-6 relative" id="feedback-modal-box">
+      <button id="close-feedback" class="absolute top-3 right-3 text-gray-400 hover:text-primary text-xl">
+        <i class="fa fa-times"></i>
+      </button>
+      <div class="mb-6">
+        <textarea id="comment-input" class="mt-5 w-full h-32 p-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" placeholder="告诉我们为什么您对此翻译结果满意"></textarea>
+        <button id="submit-comment" class="mt-2 mb-0 px-4 py-2 rounded bg-primary text-white hover:bg-primary/90">提交</button>
+      </div>
+    </div>
+  </div>
   <script src="js/page-setting.js"></script>
   <script src="js/page-translate.js"></script>
+  <script src="js/page-feedback.js"></script>
 </body>
 
 </html>

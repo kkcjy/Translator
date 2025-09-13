@@ -117,6 +117,14 @@ class UserHistoryRequest(BaseModel):
     limit:int = 10
     offset: int =0
 
+#用于用户反馈的Model
+class FeedbackItem(BaseModel):
+    userId:str
+    hisId:str
+    model:str
+    judge:bool
+    comment:str
+
 def translate(text: str, source_lang: str, target_lang: str, model_name: str) -> str:
     direction = source_lang + "-" + target_lang
     name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
@@ -349,12 +357,14 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
     try:
         translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
         translated_text=translated[name2request[request.model_name]]
+        hisId=None
         if request.userId:
             cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
             db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
             db.execute("COMMIT")
+            hisId=db.lastrowid
 
-        return translated_text
+        return {"translated_text":translated_text,"hisId":hisId}
 
     except Exception as e:
         db.connection.rollback()
@@ -452,6 +462,11 @@ def delHistory(item:DelHistoryItem,db:cursors.Cursor=Depends(getdb)):
     except Exception as e:
         db.execute("ROLLBACK")
         raise HTTPException(status_code=500,detail=f"Fail to write into database:{str(e)}")
+
+#用户反馈存储
+@app.put("/feedback")
+def feedback(item:FeedbackItem,db:cursors.Cursor=Depends(getdb)):
+    return
 
 # 健康检查端点
 @app.get("/health")

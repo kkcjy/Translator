@@ -276,29 +276,32 @@
   background: #4b5563;
 }
 
-/* 选中句子的样式 */
-.sentence.selected {
-  background-color: #dbeafe !important;
-  /* 蓝色背景表示选中 */
+.feedback-modal{
+  opacity: 0;
+  position: absolute;
+  visibility: hidden;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: opacity 0.6s,visibility 0.6s;
 }
 
-/* 暗色模式下的选中样式 */
-.dark .sentence.selected {
-  background-color: #1e40af !important;
+.feedback-modal.visible{
+  visibility: visible;
+  opacity: 1;
 }
 
-/* 在page-translate.css中添加 */
+.feedback-modal.dark-mode{
+  background: #1e293b;
+  border-color: #334155;
+}
+
 #source-sentence-container {
   white-space: pre-wrap;
   line-height: 1.6;
-}
-
-.sentence-toolbar.visible {
-  display: flex;
-}
-
-.sentence.selected {
-  background-color: rgba(59, 130, 246, 0.2);
 }
 
 /* 暗色模式支持 */
@@ -306,14 +309,6 @@
   background-color: #1e293b;
   color: #e5e7eb;
   border-color: #334155;
-}
-
-.dark-mode .sentence:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-mode .sentence.selected {
-  background-color: rgba(59, 130, 246, 0.4);
 }
 
 /* 文件上传区域样式 */

@@ -44,6 +44,8 @@ let isSentenceSelectMode = false;
 let sourceSentenceContainer;
 let currentSelectedSentence = null;
 async function init() {
+  sessionStorage.removeItem("currentHisId");
+  sessionStorage.removeItem("selectedModel");
   window.addEventListener('scroll', handleScroll);
   if (sessionStorage.getItem("currentUserId") !== null) {
     loginOrAvatar.style.display = "null";
@@ -75,7 +77,7 @@ async function init() {
   logoutBtn.addEventListener('click', function (e) {
     e.preventDefault();
     if (confirm('确定要退出登录吗？')) {
-      alert('退出登录成功！');
+      showNotification('退出登录成功！');
       sessionStorage.removeItem("currentUserId");
       sessionStorage.removeItem("currentUserAvatar");
       window.location.href = "page-translate.html";
@@ -98,11 +100,15 @@ async function init() {
   speakSentenceBtn.addEventListener('click', speakSelectedSentence);
   sentenceSelectBtn.addEventListener('click', toggleSentenceSelectMode);
   updateTranslateButtonState();
+  updateFeedbackState();
 }
 function handleDocumentClick(e) {
   // 点击非句子区域时隐藏工具栏
-  if (!e.target.closest('.sentence') && !e.target.closest('#sentence-toolbar')) {
+  if (!e.target.closest('.hover') && !e.target.closest('#sentence-toolbar')) {
     hideSentenceToolbar();
+  }
+  if(!e.target.closest(".feedback-modal") && !e.target.closest("#appreciate-btn") && !e.target.closest("#disatisfy-btn")){
+    document.getElementById("feedback-modal").classList.remove("visible");
   }
 }
 // 添加切换单句选中模式的函数
@@ -177,9 +183,8 @@ async function translateSelectedSentence() {
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
   try {
-    // 如果有文件，优先使用文件
     let sourceTextContent = currentSelectedSentence.textContent;
-    const translatedText = await makeRequest(`${API_URL}/translate`, {
+    const translated = await makeRequest(`${API_URL}/translate`, {
       method: 'POST',
       body: JSON.stringify({
         source_text: sourceTextContent,
@@ -190,7 +195,8 @@ async function translateSelectedSentence() {
       })
     });
     // 显示翻译结果
-    const splited = splitText(translatedText);
+    const splited = splitText(translated.text);
+    sessionStorage.setItem("currentHisId",translated.hisId);
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
       // 为每个句子创建单独的span元素
@@ -219,6 +225,7 @@ async function translateSelectedSentence() {
     showNotification('翻译失败，请重试', 'error');
   }
   finally {
+    updateFeedbackState();
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   }
@@ -253,6 +260,7 @@ function handleScroll() {
 
 function selectModel(card) {
   const modelName = card.querySelector('h4').textContent;
+  sessionStorage.setItem("selectedModel",modelName);
   selectedModel = modelName;
   selectedModelName.textContent = modelName;
   modelSelection.classList.add('hidden');
@@ -273,6 +281,7 @@ function showModelSelection() {
   translationResultsContainer.style.height = '0';
   translationInputContainer.style.marginTop = '80px';
   selectedModel = null;
+  sessionStorage.removeItem("selectedModel");
   updateTranslateButtonState();
 }
 
@@ -280,7 +289,22 @@ function updateTextInput() {
   charCount.textContent = sourceText.value.length;
   updateTranslateButtonState();
 }
-
+function updateFeedbackState(){
+  const aBtn=document.getElementById("appreciate-btn");
+  const dBtn=document.getElementById("disatisfy-btn");
+  const resultText = resultsContent.textContent.trim();
+  if (!resultText || resultText === '翻译结果将显示在这里' || !sessionStorage.getItem("currentUserId")) {
+    aBtn.disabled=true;
+    aBtn.classList.add("opacity-50","cursor-not-allowed");
+    dBtn.disabled=true;
+    dBtn.classList.add("opacity-50","cursor-not-allowed");
+  }else{
+    aBtn.disabled=false;
+    aBtn.classList.remove("opacity-50","cursor-not-allowed");
+    dBtn.disabled=false;
+    dBtn.classList.remove("opacity-50","cursor-not-allowed");
+  }
+}
 function updateTranslateButtonState() {
   if (selectedModel && (sourceText.value.trim().length > 0 || selectedFiles.length)) {
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
@@ -377,7 +401,8 @@ async function performTranslation() {
       })
     });
     // 显示翻译结果
-    const splited = splitText(response);
+    const splited = splitText(response.text);
+    sessionStorage.setItem("currentHisId",response.hisId);
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
       // 为每个句子创建单独的span元素
@@ -406,6 +431,7 @@ async function performTranslation() {
     showNotification('翻译失败，请重试', 'error');
   }
   finally {
+    updateFeedbackState();
     translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
     enableTranslateButton();
   }
@@ -413,12 +439,12 @@ async function performTranslation() {
 function handleSentenceClick(e) {
   // 移除之前的选择
   document.querySelectorAll('.sentence.selected').forEach(s => {
-    s.classList.remove('selected');
+    s.classList.remove('after');
   });
 
   // 设置当前选择
   const sentence = e.target;
-  sentence.classList.add('selected');
+  sentence.classList.add('after');
   currentSelectedSentence = sentence;
 
   // 判断是源文本句子还是结果文本句子
