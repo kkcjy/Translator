@@ -250,8 +250,10 @@
               <i class="fa fa-flag-checkered text-accent mr-2"></i>翻译结果
             </h3>
             <div class="flex justify-between items-center">
-              <button title="Like!" class="px-4 text-dark hover:text-primary transition-colors cursor-not-allowed" disabled id="appreciate-btn"><i class="far fa-smile fa-lg"></i></button>
-              <button title="Dislike!" class="px-4 text-dark hover:text-primary transition-colors cursor-not-allowed" disabled id="disatisfy-btn"><i class="far fa-frown fa-lg"></i></button>
+              <button title="Like!" class="px-4 text-dark hover:text-primary transition-colors cursor-not-allowed"
+                disabled id="appreciate-btn"><i class="far fa-smile fa-lg"></i></button>
+              <button title="Dislike!" class="px-4 text-dark hover:text-primary transition-colors cursor-not-allowed"
+                disabled id="disatisfy-btn"><i class="far fa-frown fa-lg"></i></button>
               <button class="text-gray-500 hover:text-primary transition-colors" id="copy-results">
                 <i class="fa fa-copy"></i> 复制结果
               </button>
@@ -416,10 +418,10 @@
   </div>
   <!-- 句子工具栏 -->
   <div id="sentence-toolbar" class="sentence-toolbar">
-    <button id="translate-sentence-btn" class="toolbar-btn">
+    <button id="translate-sentence-btn" class="toolbar-btn translate-btn">
       <i class="fa fa-language"></i> 单句翻译
     </button>
-    <button id="speak-sentence-btn" class="toolbar-btn">
+    <button id="speak-sentence-btn" class="toolbar-btn speak-btn">
       <i class="fa fa-volume-up"></i> 语音朗读
     </button>
   </div>
@@ -503,8 +505,11 @@
         <i class="fa fa-times"></i>
       </button>
       <div class="mb-6">
-        <textarea id="comment-input" class="mt-5 w-full h-32 p-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" placeholder="告诉我们为什么您对此翻译结果满意"></textarea>
-        <button id="submit-comment" class="mt-2 mb-0 px-4 py-2 rounded bg-primary text-white hover:bg-primary/90">提交</button>
+        <textarea id="comment-input"
+          class="mt-5 w-full h-32 p-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+          placeholder="告诉我们为什么您对此翻译结果满意"></textarea>
+        <button id="submit-comment"
+          class="mt-2 mb-0 px-4 py-2 rounded bg-primary text-white hover:bg-primary/90">提交</button>
       </div>
     </div>
   </div>
