@@ -107,7 +107,7 @@ function handleDocumentClick(e) {
   if (!e.target.closest('.hover') && !e.target.closest('#sentence-toolbar')) {
     hideSentenceToolbar();
   }
-  if(!e.target.closest(".feedback-modal") && !e.target.closest("#appreciate-btn") && !e.target.closest("#disatisfy-btn")){
+  if (!e.target.closest(".feedback-modal") && !e.target.closest("#appreciate-btn") && !e.target.closest("#disatisfy-btn")) {
     document.getElementById("feedback-modal").classList.remove("visible");
   }
 }
@@ -180,6 +180,10 @@ function hideSentenceToolbar() {
   }
 }
 async function translateSelectedSentence() {
+  if (!selectModel) {
+    showNotification('请先选择模型', 'warning');
+    return;
+  }
   translateBtn.disabled = true;
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
   try {
@@ -196,7 +200,7 @@ async function translateSelectedSentence() {
     });
     // 显示翻译结果
     const splited = splitText(translated.text);
-    sessionStorage.setItem("currentHisId",translated.hisId);
+    sessionStorage.setItem("currentHisId", translated.hisId);
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
       // 为每个句子创建单独的span元素
@@ -260,7 +264,7 @@ function handleScroll() {
 
 function selectModel(card) {
   const modelName = card.querySelector('h4').textContent;
-  sessionStorage.setItem("selectedModel",modelName);
+  sessionStorage.setItem("selectedModel", modelName);
   selectedModel = modelName;
   selectedModelName.textContent = modelName;
   modelSelection.classList.add('hidden');
@@ -289,20 +293,20 @@ function updateTextInput() {
   charCount.textContent = sourceText.value.length;
   updateTranslateButtonState();
 }
-function updateFeedbackState(){
-  const aBtn=document.getElementById("appreciate-btn");
-  const dBtn=document.getElementById("disatisfy-btn");
+function updateFeedbackState() {
+  const aBtn = document.getElementById("appreciate-btn");
+  const dBtn = document.getElementById("disatisfy-btn");
   const resultText = resultsContent.textContent.trim();
   if (!resultText || resultText === '翻译结果将显示在这里' || !sessionStorage.getItem("currentUserId")) {
-    aBtn.disabled=true;
-    aBtn.classList.add("opacity-50","cursor-not-allowed");
-    dBtn.disabled=true;
-    dBtn.classList.add("opacity-50","cursor-not-allowed");
-  }else{
-    aBtn.disabled=false;
-    aBtn.classList.remove("opacity-50","cursor-not-allowed");
-    dBtn.disabled=false;
-    dBtn.classList.remove("opacity-50","cursor-not-allowed");
+    aBtn.disabled = true;
+    aBtn.classList.add("opacity-50", "cursor-not-allowed");
+    dBtn.disabled = true;
+    dBtn.classList.add("opacity-50", "cursor-not-allowed");
+  } else {
+    aBtn.disabled = false;
+    aBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    dBtn.disabled = false;
+    dBtn.classList.remove("opacity-50", "cursor-not-allowed");
   }
 }
 function updateTranslateButtonState() {
@@ -342,10 +346,10 @@ async function performTranslation() {
     // 如果有文件，优先使用文件
     if (selectedFiles.length > 0) {
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
-      if(selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')){
-        const formData=new FormData();
-        formData.append("file",selectedFiles[0]);
-        res=await fetch(`${API_URL}/translate/pic`,{
+      if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
+        const formData = new FormData();
+        formData.append("file", selectedFiles[0]);
+        res = await fetch(`${API_URL}/translate/pic`, {
           method: 'POST',
           body: formData
         });
@@ -357,15 +361,15 @@ async function performTranslation() {
             sourceTextContent += `${Sentence.text} `;
           }
         });
-      } else if(selectedFiles[0].name.endsWith('.docx') || selectedFiles[0].name.endsWith('.pdf')) {
-        const formData=new FormData();
-        formData.append("file",selectedFiles[0]);
-        res=await fetch(`${API_URL}/translate/file`,{
+      } else if (selectedFiles[0].name.endsWith('.docx') || selectedFiles[0].name.endsWith('.pdf')) {
+        const formData = new FormData();
+        formData.append("file", selectedFiles[0]);
+        res = await fetch(`${API_URL}/translate/file`, {
           method: 'POST',
           body: formData
         });
-        jsonData=await res.json();
-        sourceTextContent=jsonData.text;
+        jsonData = await res.json();
+        sourceTextContent = jsonData.text;
       }
     }
     response = await makeRequest(`${API_URL}/translate`, {
@@ -380,7 +384,7 @@ async function performTranslation() {
     });
     // 显示翻译结果
     const splited = splitText(response.text);
-    sessionStorage.setItem("currentHisId",response.hisId);
+    sessionStorage.setItem("currentHisId", response.hisId);
     let fontedResult = "";
     for (let i = 0; i < splited.length; i++) {
       // 为每个句子创建单独的span元素
@@ -416,32 +420,38 @@ async function performTranslation() {
 }
 function handleSentenceClick(e) {
   // 移除之前的选择
-  document.querySelectorAll('.sentence.selected').forEach(s => {
-    s.classList.remove('after');
+  document.querySelectorAll('.hover.selected').forEach(s => {
+    s.classList.remove('selected');
   });
 
   // 设置当前选择
   const sentence = e.target;
-  sentence.classList.add('after');
+  sentence.classList.add('selected');
   currentSelectedSentence = sentence;
 
-  // 判断是源文本句子还是结果文本句子
-  const isSourceSentence = sentence.closest('#source-sentence-container');
+  // 判断句子是否在翻译结果区域
+  const isInResults = sentence.closest('#results-content');
+
+  // 获取工具栏按钮
+  const translateBtn = document.getElementById('translate-sentence-btn');
+  const speakBtn = document.getElementById('speak-sentence-btn');
+
+  // 根据所在区域显示或隐藏按钮
+  if (isInResults) {
+    // 在翻译结果区域，隐藏翻译按钮
+    translateBtn.classList.add('hidden');
+    speakBtn.classList.remove('hidden');
+  } else {
+    // 在源文本区域，显示两个按钮
+    translateBtn.classList.remove('hidden');
+    speakBtn.classList.remove('hidden');
+  }
 
   // 显示工具栏
   const rect = sentence.getBoundingClientRect();
   sentenceToolbar.style.top = `${rect.bottom + window.scrollY + 5}px`;
   sentenceToolbar.style.left = `${rect.left + window.scrollX}px`;
   sentenceToolbar.classList.add('visible');
-
-  // 更新工具栏按钮功能
-  if (isSourceSentence) {
-    translateSentenceBtn.onclick = translateSelectedSentence;
-    speakSentenceBtn.onclick = speakSelectedSentence;
-  } else {
-    translateSentenceBtn.onclick = translateSelectedSentence;
-    speakSentenceBtn.onclick = speakSelectedSentence;
-  }
 
   // 阻止事件冒泡
   e.stopPropagation();
