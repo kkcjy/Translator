@@ -363,7 +363,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
             db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
             hisId=db.lastrowid
             db.connection.commit()
-        print(translated_text,'\n',hisId)
+        print(translated_text)
         return {"text":translated_text,"hisId":hisId}
 
     except Exception as e:
@@ -387,16 +387,6 @@ async def read_pic(file:UploadFile=File(...)):
         # 调用OCR处理
         ocr_result = process_ocr(image)
 
-        # # 可选：将结果存储到数据库（需先创建表TRS_OCR_RESULTS）
-        # current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        # cmd = """
-        #     INSERT INTO TRS_OCR_RESULTS
-        #     (filename, content_type, ocr_result, create_time)
-        #     VALUES (%s, %s, %s, %s)
-        # """
-        # # 将JSON结果转为字符串存储
-        # db.execute(cmd, (file.filename, file.content_type, json.dumps(ocr_result), current_time))
-        # db.execute("COMMIT")
         # 返回OCR结果
         return {
             "filename": file.filename,
