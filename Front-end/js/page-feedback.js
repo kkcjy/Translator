@@ -34,7 +34,7 @@ async function submit_appreciate(){
         hisId:sessionStorage.getItem("currentHisId"),
         model:sessionStorage.getItem("selectedModel"),
         judge:true,
-        comment:comments.textContent
+        comment:comments.value.trim()
       })
     });
   }catch(error){

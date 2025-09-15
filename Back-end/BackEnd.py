@@ -361,10 +361,10 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
         if request.userId:
             cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
             db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
-            db.execute("COMMIT")
             hisId=db.lastrowid
-
-        return {"translated_text":translated_text,"hisId":hisId}
+            db.connection.commit()
+        print(translated_text,'\n',hisId)
+        return {"text":translated_text,"hisId":hisId}
 
     except Exception as e:
         db.connection.rollback()
@@ -467,7 +467,7 @@ def delHistory(item:DelHistoryItem,db:cursors.Cursor=Depends(getdb)):
 @app.put("/feedback")
 def feedback(item:FeedbackItem,db:cursors.Cursor=Depends(getdb)):
     try:
-        cmd="INSERT INTO TRS_T_FEEDBACK (userId,hisId,model,judge,comment) VALUES (%s,%s,%s,%d,%s)"
+        cmd="INSERT INTO TRS_T_FEEDBACK (userId,hisId,model,judge,comment) VALUES (%s,%s,%s,%s,%s)"
         db.execute(cmd,(item.userId,item.hisId,item.model,item.judge,item.comment))
         db.execute("COMMIT")
     except Exception as e:
