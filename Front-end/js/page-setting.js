@@ -3,6 +3,7 @@ const settingModal = document.getElementById('setting-modal');
 const openSettingBtn = document.getElementById('open-setting-btn');
 const openSettingBtnMobile = document.getElementById('open-setting-btn-mobile');
 const closeSettingBtn = document.getElementById('close-setting-btn');
+const resetBtn=document.getElementById('reset');
 const confirmBtn = document.getElementById('setting-confirm-btn');
 const cancelBtn = document.getElementById('setting-cancel-btn');
 const avatarUpload = document.getElementById('avatar-upload');
@@ -11,6 +12,8 @@ const fontSizeRange = document.getElementById('font-size-range');
 const fontSizeValue = document.getElementById('font-size-value');
 const bgModeBtns = document.querySelectorAll('.bg-mode-btn');
 const bgModeRadios = document.querySelectorAll('.bg-mode-radio');
+const saveUsernameBtn = document.getElementById('save-username-btn');
+const usernameError = document.getElementById('username-error');
 // FastAPI base URL
 const API_URL = "https://www.r4286138.nyat.app:10434";
 
@@ -189,8 +192,10 @@ function applySettings(settings) {
   // 功能特点卡片
   // 修改选择器，确保所有卡片都能切换
   const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
-  document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
-  if(document.getElementById("MobileAvatar"))document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
+  if(document.getElementById('Avatar'))
+    document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
+  if(document.getElementById('MobileAvatar'))
+    document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
   if (settings.bgMode === 'light') {
     document.body.classList.remove('dark');
     document.body.classList.add('bg-gradient-to-br', 'from-light', 'to-blue-50', 'text-dark');
@@ -383,6 +388,21 @@ function applyResultsTheme() {
   }
 }
 
+// 重置按钮：恢复默认设置
+resetBtn && resetBtn.addEventListener('click', () => {
+  // 恢复默认设置
+  tempSettings.fontSize = '16px';
+  tempSettings.bgMode='light';
+  // 更新弹窗内显示
+  fontSizeRange.value = parseInt(tempSettings.fontSize);
+  fontSizeValue.textContent = tempSettings.fontSize;
+  updateBgModeRadioUI(tempSettings.bgMode);
+  // 预览字体大小
+  document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
+    area.style.fontSize = tempSettings.fontSize;
+  });
+});
+
 // 确定按钮：应用临时设置到主界面
 confirmBtn && confirmBtn.addEventListener('click', async () => {
   currentSettings = { ...tempSettings };
@@ -400,6 +420,10 @@ confirmBtn && confirmBtn.addEventListener('click', async () => {
     } catch (error) {
       console.error("保存设置到服务器失败:", error);
     }
+    if(document.getElementById('Avatar'))
+      document.getElementById('Avatar').src=currentSettings.avatar;
+    if(document.getElementById('MobileAvatar'))
+      document.getElementById('MobileAvatar').src=currentSettings.avatar;
     sessionStorage.setItem("currentUserAvatar", currentSettings.avatar);
     applySettings(currentSettings);
     applyResultsTheme();
@@ -413,10 +437,42 @@ confirmBtn && confirmBtn.addEventListener('click', async () => {
     showNotification(`登陆账号后方可设置！`, 'warning');
   }
 });
+// 保存用户名函数
+async function saveUsername() {
+  const usernameInput = document.getElementById('username-input');
+  const usernameError = document.getElementById('username-error');
+  const newUsername = usernameInput.value.trim();
+  if(!sessionStorage.getItem("currentUserId")){
+    showNotification('请先登录!', 'error');
+    return;
+  }
+  if (!newUsername) {
+    usernameError.classList.remove('hidden');
+    return;
+  }
+  usernameError.classList.add('hidden');
+  try{
+    const O_Fortuna_luna_velut_statu_variabilis=await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"),10)}?newname=${newUsername}`,{
+      method: "PUT",
+    });
+  }catch(error){
+    console.error("Failed to update username.", error);
+    showNotification('用户名修改失败，请稍后重试', 'error');
+    return;
+  }
+  // 更新页面上的用户名显示
+  const userNameElements = document.querySelectorAll('.user-name');
+  userNameElements.forEach(element => {
+    element.textContent = newUsername;
+  });
+  showNotification('用户名修改成功');
+}
 
 // 页面初始化时应用当前设置
 window.addEventListener('DOMContentLoaded', function () {
   applySettings(currentSettings);
+  // 保存用户名事件
+  saveUsernameBtn.addEventListener('click', saveUsername);
 })
 // 挂载到 window，供外部 JS 调用
 window.applyResultsTheme = applyResultsTheme;
