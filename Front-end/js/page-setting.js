@@ -107,8 +107,11 @@ fontSizeRange && fontSizeRange.addEventListener('input', function () {
   fontSizeValue.textContent = val + 'px';
   tempSettings.fontSize = val + 'px';
   // 只预览所有输入和结果区域内的 textarea 字体大小
-  document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
+  document.querySelectorAll('.input-container textarea').forEach(area => {
     area.style.fontSize = val + 'px';
+  });
+  document.getElementById("results-content").querySelectorAll("div").forEach(text=>{
+    text.style.fontSize=val+"px";
   });
 });
 
@@ -125,8 +128,11 @@ function applySettings(settings) {
   saveSettings(settings);
   window.applyResultsTheme();
   // 只设置所有输入和结果区域内的 textarea 字体大小
-  document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
+  document.querySelectorAll('.input-container textarea').forEach(area => {
     area.style.fontSize = settings.fontSize;
+  });
+  document.getElementById("results-content").querySelectorAll("div").forEach(text=>{
+    text.style.fontSize=settings.fontSize;
   });
 
   // 不再设置 document.body.style.fontSize，避免影响页面其他字体
@@ -184,7 +190,7 @@ function applySettings(settings) {
   // 修改选择器，确保所有卡片都能切换
   const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
   document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
-  document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
+  if(document.getElementById("MobileAvatar"))document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
   if (settings.bgMode === 'light') {
     document.body.classList.remove('dark');
     document.body.classList.add('bg-gradient-to-br', 'from-light', 'to-blue-50', 'text-dark');
