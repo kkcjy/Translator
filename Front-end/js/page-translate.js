@@ -230,8 +230,6 @@ async function translateSelectedSentence() {
   }
   finally {
     updateFeedbackState();
-    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
-    enableTranslateButton();
   }
 }
 
@@ -624,6 +622,15 @@ window.applyResultsTheme = function () {
   // 翻译结果文本块
   const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
   const resultBlocks = document.querySelectorAll('#results-content .p-3');
+  // 设置弹窗主题
+  const settingModal = document.getElementById('setting-modal-box');
+  if (settingModal) {
+    if (mode === 'light') {
+      settingModal.classList.remove('dark');
+    } else {
+      settingModal.classList.add('dark');
+    }
+  }
   resultBlocks.forEach(function (block) {
     if (mode === 'light') {
       block.classList.remove('bg-gray-900', 'text-white', 'border-gray-700');
