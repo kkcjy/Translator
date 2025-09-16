@@ -629,16 +629,16 @@ window.applyResultsTheme = function () {
   if (settingModal) {
     if (mode === 'light') {
       settingModal.classList.remove('dark');
-      A.classList.remove("text-dark");
-      A.classList.add("text-white");
-      D.classList.remove("text-dark");
-      D.classList.add("text-white");
-    } else {
-      settingModal.classList.add('dark');
       A.classList.remove("text-white");
       A.classList.add("text-dark");
       D.classList.remove("text-white");
       D.classList.add("text-dark");
+    } else {
+      settingModal.classList.add('dark');
+      A.classList.remove("text-dark");
+      A.classList.add("text-white");
+      D.classList.remove("text-dark");
+      D.classList.add("text-white");
     }
   }
   resultBlocks.forEach(function (block) {
