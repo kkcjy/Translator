@@ -33,6 +33,7 @@ const logoutBtn = document.getElementById('logout-btn');
 const sentenceToolbar = document.getElementById('sentence-toolbar');
 const translateSentenceBtn = document.getElementById('translate-sentence-btn');
 const speakSentenceBtn = document.getElementById('speak-sentence-btn');
+const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
 let avatarLink;
 let selectedModel = null;
 let isChineseToEnglish = true;
@@ -136,11 +137,14 @@ function enterSentenceSelectMode() {
   // 隐藏原文本框
   sourceText.style.display = 'none';
   charCountContainer.style.display = 'none';
-  // 创建句子容器
   sourceSentenceContainer = document.createElement('div');
-  sourceSentenceContainer.className = 'p-3 bg-gray-50 rounded-lg min-h-[100px] border border-gray-200';
-  sourceSentenceContainer.id = 'source-sentence-container';
-  // 分割文本为句子
+  // 创建句子容器
+  if (mode === 'light') {
+    sourceSentenceContainer.className = 'p-3 bg-gray-50 rounded-lg min-h-[100px] border border-gray-200';
+  } else {
+    sourceSentenceContainer.className = 'p-3 rounded-lg min-h-[100px] bg-gray-900 text-white border-gray-700';
+    sourceSentenceContainer.style = "background-color: rgb(30, 41, 59); color: rgb(229, 231, 235); border-color: rgb(51, 65, 85);"
+  }
   const sourceTextContent = sourceText.value.trim();
   const splited = splitText(sourceTextContent);
   let fontedResult = "";
@@ -620,7 +624,6 @@ function showNotification(message, type = 'success') {
 // 翻译结果和特色卡片主题应用
 window.applyResultsTheme = function () {
   // 翻译结果文本块
-  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
   const resultBlocks = document.querySelectorAll('#results-content .p-3');
   // 设置弹窗主题
   const settingModal = document.getElementById('setting-modal-box');
