@@ -174,7 +174,6 @@
 
 /* .hover: 用于单句圈中的高亮显示 */
 .hover {
-  color: #111827;
   position: relative;
   cursor: pointer;
   transition: color 0.25s ease, transform 0.25s ease;
@@ -364,4 +363,39 @@
 
 .toolbar-btn.hidden {
   display: none;
+}
+
+/* 深色模式下的设置弹窗样式 */
+.dark #setting-modal-box {
+  background-color: #1e293b;
+  color: white;
+}
+
+.dark #setting-modal-box input,
+.dark #setting-modal-box select,
+.dark #setting-modal-box textarea {
+  background-color: #374151;
+  color: white;
+  border-color: #4b5563;
+}
+
+.dark #setting-modal-box .font-medium {
+  color: #e5e7eb;
+}
+
+.dark #setting-modal-box .text-dark {
+  color: #e5e7eb;
+}
+
+.dark #setting-modal-box .border-gray-300 {
+  border-color: #4b5563;
+}
+
+.dark #setting-modal-box .bg-gray-200 {
+  background-color: #374151;
+  color: white;
+}
+
+.dark #setting-modal-box .bg-gray-200:hover {
+  background-color: #4b5563;
 }
