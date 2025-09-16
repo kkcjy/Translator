@@ -33,7 +33,6 @@ const logoutBtn = document.getElementById('logout-btn');
 const sentenceToolbar = document.getElementById('sentence-toolbar');
 const translateSentenceBtn = document.getElementById('translate-sentence-btn');
 const speakSentenceBtn = document.getElementById('speak-sentence-btn');
-const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
 let avatarLink;
 let selectedModel = null;
 let isChineseToEnglish = true;
@@ -134,6 +133,7 @@ function toggleSentenceSelectMode() {
 }
 
 function enterSentenceSelectMode() {
+  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
   // 隐藏原文本框
   sourceText.style.display = 'none';
   charCountContainer.style.display = 'none';
@@ -625,10 +625,11 @@ function showNotification(message, type = 'success') {
 window.applyResultsTheme = function () {
   // 翻译结果文本块
   const resultBlocks = document.querySelectorAll('#results-content .p-3');
+  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
   // 设置弹窗主题
   const settingModal = document.getElementById('setting-modal-box');
-  A=document.getElementById("appreciate-btn");
-  D=document.getElementById("disatisfy-btn");
+  A = document.getElementById("appreciate-btn");
+  D = document.getElementById("disatisfy-btn");
   if (settingModal) {
     if (mode === 'light') {
       settingModal.classList.remove('dark');
