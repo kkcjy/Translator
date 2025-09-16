@@ -342,5 +342,6 @@ deleteBtn.onclick = async function () {
         showNotification('无法连接到服务器!:' + error.message);
         console.error('删除记录失败:', error.message);
     });
+    selectAllCheckbox.checked = false;
 };
 document.addEventListener('DOMContentLoaded', getHistoryData);

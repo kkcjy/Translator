@@ -235,6 +235,7 @@ async function translateSelectedSentence() {
     showNotification('翻译失败，请重试', 'error');
   }
   finally {
+    updateTranslateButtonState();
     updateFeedbackState();
   }
 }
