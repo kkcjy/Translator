@@ -63,7 +63,7 @@ async def lifespan(app:FastAPI):
         raise  # 模型加载失败时终止服务启动
     yield
 
-app=FastAPI(lifespan=lifespan)#lifespan=lifespan
+app=FastAPI(lifespan=lifespan)
 
 #跨域请求开放，需根据前端地址更改。
 app.add_middleware(
