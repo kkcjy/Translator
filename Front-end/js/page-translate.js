@@ -624,17 +624,21 @@ window.applyResultsTheme = function () {
   const resultBlocks = document.querySelectorAll('#results-content .p-3');
   // 设置弹窗主题
   const settingModal = document.getElementById('setting-modal-box');
+  A=document.getElementById("appreciate-btn");
+  D=document.getElementById("disatisfy-btn");
   if (settingModal) {
     if (mode === 'light') {
       settingModal.classList.remove('dark');
-      A=document.getElementById("appreciate-btn");
-      D=document.getElementById("disatisfy-btn");
       A.classList.remove("text-dark");
       A.classList.add("text-white");
       D.classList.remove("text-dark");
       D.classList.add("text-white");
     } else {
       settingModal.classList.add('dark');
+      A.classList.remove("text-white");
+      A.classList.add("text-dark");
+      D.classList.remove("text-white");
+      D.classList.add("text-dark");
     }
   }
   resultBlocks.forEach(function (block) {
