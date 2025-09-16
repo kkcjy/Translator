@@ -235,7 +235,8 @@ async function translateSelectedSentence() {
     showNotification('翻译失败，请重试', 'error');
   }
   finally {
-    updateTranslateButtonState();
+    translateBtn.innerHTML = '<i class="fa fa-language mr-2"></i> 开始翻译';
+    enableTranslateButton();
     updateFeedbackState();
   }
 }
