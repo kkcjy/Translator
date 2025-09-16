@@ -1,389 +1,380 @@
-# 中英文翻译系统
-## 1. 引言
-### 1.1 编写目的
-编写本设计的目的是为了准确阐述基于Transformer的中英文翻译系统的具体实现思路和方法，即系统的详细架构和实现逻辑，主要包括程序系统的结构以及各层次中每个程序的设计考虑。预期读者为项目全体成员，包括运行维护和测试人员。
-### 1.2 项目背景
-- 系统名称：中英文翻译系统
-- 任务提出者：东南大学23级专业技能实训
-- 开发者：中英文翻译系统项目组
-- 用户和运行该程序系统的计算中心：略。
-### 1.3 定义
-#### 1.3.1 技术类
-1. 吞吐量
- “吞吐量”指系统在单位时间内可处理的输入数量。在 GPU 环境下，系统应能支持至少 50 句/秒的并发翻译吞吐量（批量处理）。
-2. 延迟
-“延迟”指从用户输入到系统输出结果所需的时间。在指定硬件环境下（CPU: Intel i7, GPU: NVIDIA GTX 1080Ti），对于长度小于 50 个字符的句子，单次翻译平均响应时间应低于 500 毫秒。
-3. BLEU Score
-“BLEU Score”是一种自动评估机器翻译文本与人工参考译文相似度的指标。在 XXX 数据集上，本系统的 BLEU Score 可达到 XXX，超过当前主流开源基线模型。
-#### 1.3.2 业务类
-1. 翻译系统
-本项目所指的“翻译系统”是一个集成中英双向神经机器翻译模型，并提供图像识别处理、用户交互等功能的 Web 服务，支持中英文双向翻译、批量翻译，以及 API 接口调用。
-2. 源语言
- “源语言”指用户输入待翻译文本的原始语言。例如：在中文→英文翻译中，源语言为中文。
-3. 目标语言
- “目标语言”指用户希望将源文本翻译成的语言。例如：在中文→英文翻译中，目标语言为英文。
-4. 输入
-本项目所指的“输入”是指用户提交的原始内容，可包括文本、图片、JSON 数据及多格式文档。单次输入不得超过 XXX 字符。
-5. 输出
-“输出”是指系统处理输入后返回的翻译内容。系统支持保留输入格式，用户可对结果进行个性化修改。
-6. 实时翻译
-“实时翻译”指在实时对话或文本输入过程中，系统能够即时完成语言转换的功能。
-7. 批量处理
-“批量处理”指系统支持用户一次性上传包含大量文本的文件进行翻译，支持多种格式，单个文件大小不得超过 XXX。翻译结果将保持原文件的排版格式。
-### 1.4 参考资料
-- 《中英文翻译系统需求说明》
-- 《中英文翻译系统概要设计》
-- 《Python语言编码规范》
-
-## 2. 项目概述
-随着跨境交流和全球化进程的加快，企业和个人对高效、准确的翻译工具需求日益增长。无论是在国际商务谈判中，还是在科研资料查询、出国旅行、外语学习等场景下，都需要便捷的中英文翻译支持。为了满足用户在多样化场景下的即时翻译需求，我们自主研发了中英文翻译软件。软件通过统一的语言处理平台，不仅实现了文本、图片和文档翻译，以及翻译历史的高效管理，还提供了模型选用、词汇解读和语音朗读等扩展功能，从而为用户打造一体化的智能翻译解决方案。该软件不仅支持常见的中英文互译，还能为用户提供快速、稳定且高质量的翻译体验，大幅提升跨语言沟通的效率。
-结合项目整体目标，系统的功能设计主要分为登陆注册和翻译服务两大部分。登陆注册包含三个主要业务审核：用户注册、用户登录以及找回密码。翻译服务包含八个主要业务审核：文本翻译、识图翻译、文件翻译、单句圈中、历史记录、设置、模型选用以及反馈。
-![图片无法显示](img/pic1.png)
-
-## 3. 总体设计(TODO)
-
-## 4. 界面设计
-### 4.1 用户注册界面设计
-![图片无法显示](img/pic2.png)
-
-### 4.2 用户登录界面设计
-![图片无法显示](img/pic3.png)
-
-### 4.3 找回密码界面设计
-![图片无法显示](img/pic4.png)
-
-### 4.4 设置界面设计
-![图片无法显示](img/pic5.png)
-
-### 4.5 翻译界面设计
-![图片无法显示](img/pic6.png)
-
-### 4.6 历史记录界面设计
-![图片无法显示](img/pic7.png)
-
-## 5. 单元模块设计
-### 5.1 数据访问
-#### 5.1.1 UserDao
-![UserDao类图](img/pic8.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • userId：用户唯一标识符<br/>• email：邮箱账号<br/>• password：密码   |
-| 2. createUserDao(email, password) | 功能：创建用户并返回用户唯一标识符（用于注册）<br/>参数：email（邮箱账号）、password（密码） |
-| 3. retrieveUserDao(email) | 功能：查询用户唯一标识符和密码（用于登录）<br/>参数：email（邮箱账号） |
-| 4. updateUserDao(userId, password) | 功能：更新用户密码<br/>参数：userId（用户唯一标识符）、password（新密码） |
-| 5. deleteUserDao(userId) | 功能：删除用户<br/>参数：userId（用户唯一标识符） |
-
-#### 5.1.2 SettingDao
-![SettingDao类图](img/pic9.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • userId：用户唯一标识符<br/>• username：用户名<br/>• avatar：头像<br/>• size：字号<br/>• color：颜色 |
-| 2. createSettingDao(userId, username, avatar, size, color) | 功能：创建用户设置信息<br/>参数：userId（用户唯一标识符）、username（用户名）、avatar（头像）、size（字号）、color（颜色） |
-| 3. retrieveSettingDao(userId) | 功能：查询用户名、头像、字号、颜色（用于登录加载配置）<br/>参数：userId（用户唯一标识符） |
-| 4. updateUsernameDao(userId, username) | 功能：更新用户名<br/>参数：userId（用户唯一标识符）、username（新用户名） |
-| 5. updateAvatarDao(userId, avatar) | 功能：更新头像<br/>参数：userId（用户唯一标识符）、avatar（新头像） |
-| 6. updateSizeDao(userId, size) | 功能：更新字号<br/>参数：userId（用户唯一标识符）、size（新字号） |
-| 7. updateColorDao(userId, color) | 功能：更新颜色<br/>参数：userId（用户唯一标识符）、color（新颜色） |
-| 8. deleteSettingDao(userId) | 功能：删除用户设置信息<br/>参数：userId（用户唯一标识符） |
-
-#### 5.1.3 ModelDao
-![ModelDao类图](img/pic10.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • userId：用户唯一标识符<br/>• zh_en：翻译方向<br/>• models：模型配置 |
-| 2. createModelDao(userId, zh_en, models) | 功能：创建用户翻译配置信息<br/>参数：userId（用户唯一标识符）、zh_en（翻译方向）、models（模型配置） |
-| 3. retrieveModelDao(userId) | 功能：查询用户翻译配置信息<br/>参数：userId（用户唯一标识符） |
-| 4. updateZH_ENDao(userId, zh_en) | 功能：更新翻译方向配置信息<br/>参数：userId（用户唯一标识符）、zh_en（新翻译方向） |
-| 5. updateModelsDao(userId, models) | 功能：更新模型选用配置信息<br/>参数：userId（用户唯一标识符）、models（新模型配置） |
-| 6. deleteModelDao(userId) | 功能：删除用户翻译配置信息<br/>参数：userId（用户唯一标识符） |
-
-#### 5.1.4 HistoryDao
-![HistoryDao类图](img/pic11.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • userId：用户唯一标识符<br/>• hisId：翻译记录对应唯一标识符<br/>• date：日期<br/>• model：选用模型种类<br/>• type：翻译文件格式<br/>• input：输入文本<br/>• output：输出文本 |
-| 2. createHistoryDao(userId, date, model, type, input, output) | 功能：创建翻译记录并返回翻译记录对应唯一标识符<br/>参数：userId（用户唯一标识符）、date（日期）、model（选用模型种类）、type（翻译文件格式）、input（输入文本）、output（输出文本） |
-| 3. retrieveHistoryDao(userId, hisId) | 功能：查询单条翻译历史信息<br/>参数：userId（用户唯一标识符）、hisId（翻译记录唯一标识符） |
-| 4. deleteHistoryDao(userId) | 功能：删除翻译记录<br/>参数：userId（用户唯一标识符） |
-
-#### 5.1.5 FeedbackDao
-![FeedbackDao类图](img/pic12.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • userId：用户唯一标识符<br/>• hisId：翻译记录对应唯一标识符（已存入HistoryDao）<br/>• model：反馈模型种类<br/>• judge：评价好坏<br/>• text：评价内容 |
-| 2. createFeedbackDao(userId, hisId, model, judge, text) | 功能：创建反馈记录<br/>参数：userId（用户唯一标识符）、hisId（翻译记录唯一标识符）、model（反馈模型种类）、judge（评价好坏）、text（评价内容） |
-| 3. deleteFeedbackDao(userId, hisId) | 功能：删除反馈记录<br/>参数：userId（用户唯一标识符）、hisId（翻译记录唯一标识符） |
-
-
-
-#### 5.1.6 AuthTokenDao
-![AuthTokenDao类图](img/pic14.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • userId：用户唯一标识符<br/>• token：令牌内容<br/>• deadline：截止时间 |
-| 2. createTokenDao(userId, token, deadline) | 功能：创建令牌信息<br/>参数：userId（用户唯一标识符）、token（令牌内容）、deadline（截止时间） |
-| 3. retrieveTokenDao(token) | 功能：查询令牌信息（返回userId 和 deadline）<br/>参数：token（令牌内容） |
-| 4. updateTokenDao(userId, token, deadline) | 功能：更新令牌信息<br/>参数：userId（用户唯一标识符）、token（新令牌内容）、deadline（新截止时间） |
-| 5. deleteTokenDao(userId) | 功能：删除令牌信息（用户注销）<br/>参数：userId（用户唯一标识符） |
-
-
-### 5.2 业务服务
-#### 5.2.1 类图设计
-##### 5.2.1.1 类关系结构图
-![业务服务类关系图](img/pic15.png)
-
-##### 5.2.1.2 时序图
-![业务服务时序图](img/pic16.png)
-
-
-#### 5.2.2 类的详细设计描述
-##### 5.2.2.1 User（用户管理类）
-![User类图](img/pic17.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| bool register(string account, string password, string username) | 用户注册新账户         |
-| AuthorityToken login(string account, string password) | 用户登录并获取令牌     |
-| bool forgotPassword(string account, string newPassword) | 用户重置账户密码       |
-
-
-##### 5.2.2.2 Setting（设置管理类）
-![Setting类图](img/pic18.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| bool setUsername(string account, string username) | 初始化或更改用户名     |
-| string getUsername(string account)         | 查询用户用户名         |
-| bool setAvatar(string account, pic avatar) | 用户更改头像           |
-| pic getAvatar(string account)             | 查询用户头像           |
-| bool setSize(string account, int size)    | 用户更改字体大小       |
-| int getSize(string account)                | 查询用户字体大小       |
-| bool setColor(string account, string color) | 用户更改背景颜色       |
-| string getColor(string account)           | 查询用户背景颜色       |
-| void resetSetting(string account)         | 重置设置信息           |
-
-
-##### 5.2.2.3 Model（模型配置类）
-![Model类图](img/pic19.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| bool setZH_EN(string token, bool zh_en)   | 用户更改翻译方向       |
-| bool getZH_EN(string token)               | 查询用户翻译方向       |
-| bool setModels(string token, array models) | 用户更改模型配置       |
-| array getModels(string token)             | 查询用户模型配置       |
-
-
-##### 5.2.2.4 History（历史记录类）
-![History类图](img/pic20.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| string copyInput(string input)            | 复制原文               |
-| string copyOutput(string output)          | 复制译文               |
-| List<History> filterByDirection(bool zh_en) | 按翻译方向筛选记录     |
-| List<History> filterByType(int type)      | 按翻译方式筛选记录     |
-| void showCompleteRecord(int number)       | 在主界面显示完整记录   |
-| void deleteHistory(List<int> recordNumbers) | 批量删除历史记录       |
-| bool selectAllRecords()                   | 全选/取消全选记录      |
-
-##### 5.2.2.5 Feedback（反馈类）
-![Feedback类图](img/pic21.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| bool submitFeedback(Model model, bool judge, string text) | 提交用户反馈           |
-| void setJudge(bool judge)                 | 设置反馈类型（好评/差评） |
-
-
-##### 5.2.2.6 AuthCode（验证码管理类）
-![AuthCode类图](img/pic22.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| bool request(string account)              | 请求验证码并返回状态（成功/失败） |
-| bool verify(string account, string code)  | 检查验证码是否与账户匹配，返回匹配结果（正确/错误） |
-
-
-##### 5.2.2.7 AuthorityToken（本地令牌管理类）
-![AuthorityToken类图](img/pic23.png)
-
-| 方法签名                                  | 功能描述               |
-|-------------------------------------------|------------------------|
-| void saveToken(string account)            | 为指定账户生成并保存令牌 |
-| bool loadToken(string account)            | 加载指定账户的本地令牌，返回加载结果（成功/失败） |
-| bool verifyToken(string account)          | 验证指定账户的令牌有效性，返回验证结果（有效/无效） |
-
-
-### 5.3 模型服务
-
-#### 5.3.1 类图设计
-##### 5.3.1.1 类关系结构图
-![图片无法显示](img/24.png)
-
-##### 5.3.1.2 时序图
-![图片无法显示](img/25.png)
-
-
-#### 5.3.2 类的详细设计描述
-##### 5.3.2.1 DataSet（数据集类）
-![图片无法显示](img/26.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • src_file：str（源语言文本文件路径）<br/>• tgt_file：str（目标语言文本文件路径）<br/>• src_vocab：dict（源语言词汇表，词到索引的映射）<br/>• tgt_vocab：dict（目标语言词汇表，词到索引的映射）<br/>• max_len：int（序列最大长度）<br/>• data：list（存储处理后的数据样本） |
-| 2. __init__(self, src_file, tgt_file, src_vocab, tgt_vocab, max_len) | 功能：初始化数据集<br/>参数：src_file（源语言文件路径）、tgt_file（目标语言文件路径）、src_vocab（源语言词汇表）、tgt_vocab（目标语言词汇表）、max_len（序列最大长度） |
-| 3. __getitem__(self, index) | 功能：获取指定索引的样本<br/>返回值：(src_tensor, tgt_tensor)（源语言张量、目标语言张量） |
-| 4. __len__(self)     | 功能：返回数据集大小（样本总数）<br/>返回值：int |
-| 5. preprocess(self, src_sent, tgt_sent) | 功能：预处理单个句子对（如分词、索引转换、截断/填充）<br/>参数：src_sent（源语言句子）、tgt_sent（目标语言句子） |
-
-
-##### 5.3.2.2 DataLoader（数据加载类）
-![图片无法显示](img/27.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • dataset：DataSet（数据集实例）<br/>• batch_size：int（批量大小）<br/>• shuffle：bool（是否打乱数据）<br/>• batchify_fn：function（批处理函数，处理填充和打包） |
-| 2. __init__(self, dataset, batch_size=32, shuffle=True) | 功能：初始化数据加载器<br/>参数：dataset（数据集实例）、batch_size（批量大小，默认32）、shuffle（是否打乱数据，默认True） |
-| 3. __iter__(self)   | 功能：返回迭代器（用于遍历批次数据）<br/>返回值：迭代器对象 |
-| 4. __next__(self)   | 功能：获取下一批数据<br/>返回值：处理后的批量数据 |
-| 5. _collate_fn(self, batch) | 功能：整理批量数据（如填充统一长度、转换为张量）<br/>参数：batch（单批原始数据）<br/>返回值：整理后的批量张量数据 |
-
-
-##### 5.3.2.3 Model（Transformer模型类）
-![图片无法显示](img/28.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • encoder：Encoder（Transformer编码器）<br/>• decoder：Decoder（Transformer译码器）<br/>• generator：nn.Linear（线性层，将解码器输出映射到词汇表空间）<br/>• src_embed：Embedding（源语言词嵌入层）<br/>• tgt_embed：Embedding（目标语言嵌入层）<br/>• positional_encoding：PositionalEncoding（位置编码层） |
-| 2. __init__(self, src_vocab_size, tgt_vocab_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, dropout=0.1) | 功能：初始化Transformer模型<br/>参数：src_vocab_size（源语言词汇表大小）、tgt_vocab_size（目标语言词汇表大小）、d_model（模型维度）、nhead（多头注意力头数）、num_encoder_layers（编码器层数）、num_decoder_layers（解码器层数）、dim_feedforward（前馈网络维度）、dropout（ dropout概率，默认0.1） |
-| 3. forward(self, src, tgt, src_mask=None, tgt_mask=None, memory_mask=None, memory_key_padding_mask=None) | 功能：模型前向传播<br/>参数：src（源语言输入张量）、tgt（目标语言输入张量）、src_mask（源语言掩码，可选）、tgt_mask（目标语言掩码，可选）、memory_mask（记忆掩码，可选）、memory_key_padding_mask（记忆键填充掩码，可选）<br/>返回值：模型输出张量 |
-| 4. encode(self, tgt, memory, tgt_mask) | 功能：解码目标序列（基于编码器输出的记忆向量）<br/>参数：tgt（目标语言输入张量）、memory（编码器输出记忆向量）、tgt_mask（目标语言掩码）<br/>返回值：解码器输出张量 |
-| 5. generate(self, memory, max_len, start_symbol) | 功能：生成目标语言序列（推理阶段）<br/>参数：memory（编码器输出记忆向量）、max_len（生成序列最大长度）、start_symbol（序列起始符号索引）<br/>返回值：生成的目标序列张量 |
-
-
-##### 5.3.2.4 LossFunction（损失函数类）
-![图片无法显示](img/29.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • criterion：nn.CrossEntropyLoss（交叉熵损失函数）<br/>• ignore_index：int（需要忽略的索引，如填充符索引） |
-| 2. __init__(self, ignore_index=0) | 功能：初始化损失函数<br/>参数：ignore_index（忽略索引，默认0） |
-| 3. compute(self, predictions, targets) | 功能：计算模型预测与目标标签的损失值<br/>参数：predictions（模型预测输出）、targets（目标标签张量）<br/>返回值：损失值（标量） |
-
-
-##### 5.3.2.5 Optimizer（优化器类）
-![图片无法显示](img/30.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • optimizer：torch.optim.Adam（Adam优化器实例）<br/>• scheduler：torch.optim.lr_scheduler（学习率调度器） |
-| 2. __init__(self, model, lr=0.001, betas=(0.9, 0.98), eps=1e-9, weight_decay=0) | 功能：初始化优化器与学习率调度器<br/>参数：model（待优化的模型）、lr（初始学习率，默认0.001）、betas（Adam动量参数，默认(0.9, 0.98)）、eps（数值稳定性参数，默认1e-9）、weight_decay（权重衰减，默认0） |
-| 3. step(self)       | 功能：更新模型参数（执行优化步骤） |
-| 4. zero_grad(self)   | 功能：清零模型参数梯度（避免梯度累积） |
-| 5. update_lr(self)  | 功能：通过调度器更新学习率 |
-
-
-##### 5.3.2.6 Trainer（模型训练类）
-![图片无法显示](img/31.png)
-
-| 说明                | 详情                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| 1. 成员变量         | • model：Model（待训练的Transformer模型）<br/>• loss_fn：LossFunction（损失函数实例）<br/>• optimizer：Optimizer（优化器实例）<br/>• train_loader：DataLoader（训练数据加载器）<br/>• val_loader：DataLoader（验证数据加载器，可选）<br/>• device：torch.device（训练设备，CPU/GPU） |
-| 2. __init__(self, model, loss_fn, optimizer, train_loader, val_loader=None, device='cuda') | 功能：初始化模型训练器<br/>参数：model（模型实例）、loss_fn（损失函数实例）、optimizer（优化器实例）、train_loader（训练数据加载器）、val_loader（验证数据加载器，默认None）、device（训练设备，默认'cuda'，即GPU） |
-| 3. train(self, epochs) | 功能：训练模型指定轮数<br/>参数：epochs（训练总轮数） |
-| 4. train_epoch(self) | 功能：训练单个epoch（遍历一次训练集）<br/>返回值：当前epoch的平均训练损失 |
-| 5. evaluate(self)   | 功能：在验证集上评估模型性能（计算损失、BLEU Score等）<br/>返回值：验证集平均损失、验证集BLEU Score |
-| 6. save_model(self, path) | 功能：保存模型检查点（含模型参数、优化器状态等）<br/>参数：path（保存路径） |
-| 7. load_model(self, path) | 功能：加载模型检查点（恢复模型训练或用于推理）<br/>参数：path（模型文件路径） |
-
-
-## 6. 数据库设计
-
-### 6.1 数据库整体结构
-
-![图片无法显示](img/pic33.png)
-
-### 6.2 系统管理
-
-系统管理表格清单
-
-| 序号 | 表名          | 注释     |
-| :--: | ------------- | -------- |
-|  1   | TRS_USER      | 系统用户 |
-|  2   | TRS_SETTING   | 用户设置 |
-|  3   | TRS_AUTHTOKEN | 本地令牌 |
-
-#### 6.2.1 TRS_USER表结构
-
-| 序号 |   列名   |  数据类型   |      注释      |
-| :--: | :------: | :---------: | :------------: |
-|  1   |  userId  |     INT     | 用户唯一标识符 |
-|  2   |  email   | VARCHAR(64) |    邮箱账号    |
-|  3   | password | VARCHAR(32) |      密码      |
-
-#### 6.2.2 TRS_SETTING表结构
-
-| 序号 |   列名   |   数据类型   |      注释      |
-| :--: | :------: | :----------: | :------------: |
-|  1   |  userId  |     INT      | 用户唯一标识符 |
-|  2   | username | VARCHAR(128) |     用户名     |
-|  3   |  avatar  |     BLOB     |      头像      |
-|  4   |   size   |     INT      |      字号      |
-|  5   |  color   | VARCHAR(10)  |      颜色      |
-
-#### 6.2.3 TRS_AUTHTOKEN 表结构 
-
-| 序号 |   列名   |  数据类型   |   注释   |
-| :--: | :------: | :---------: | :------: |
-|  1   | account  | VARCHAR(64) |   账户   |
-|  2   |  token   | VARCHAR(32) | 令牌内容 |
-|  3   | deadline |    DATE     | 截止时间 |
-
-### 6.3 业务服务管理  
-
-业务服务管理表格清单
-
-| 序号 |      表名      |   注释   |
-| :--: | :------------: | :------: |
-|  1   |  TRS_T_MODEL   | 模型信息 |
-|  2   | TRS_T_HISTORY  | 历史记录 |
-|  3   | TRS_T_FEEDBACK | 反馈记录 |
-
-#### 6.3.1 TRS_T_MODEL 表结构
-
-| 序号 |  列名  |  数据类型  |      注释      |
-| :--: | :----: | :--------: | :------------: |
-|  1   | userId |    INT     | 用户唯一标识符 |
-|  2   | zh_en  |  BOOLEAN   |    翻译方向    |
-|  3   | models | VARCHAR(n) |    模型配置    |
-
-#### 6.3.2 TRS_T_HISTORY 表结构
-
-| 序号 |  列名  |  数据类型  |          注释          |
-| :--: | :----: | :--------: | :--------------------: |
-|  1   | userId |    INT     |     用户唯一标识符     |
-|  2   | hisId  |    INT     | 翻译记录对应唯一标识符 |
-|  3   |  date  |  DATETIME  |          日期          |
-|  4   | model  | VARCHAR(n) |      选用模型种类      |
-|  5   |  type  |    INT     |      翻译文件格式      |
-|  6   | input  | VARCHAR(n) |        输入文本        |
-|  7   | output | VARCHAR(n) |        输出文本        |
-
-#### 6.3.3 TRS_T_FEEDBACK 表结构
-
-| 序号 |  列名  |  数据类型  |          注释          |
-| :--: | :----: | :--------: | :--------------------: |
-|  1   | userId |    INT     |     用户唯一标识符     |
-|  2   | hisId  |    INT     | 翻译记录对应唯一标识符 |
-|  3   | model  | VARCHAR(n) |      反馈模型种类      |
-|  4   | judge  |  BOOLEAN   |        评价好坏        |
-|  5   |  text  | VARCHAR(n) |        平均内容        |
-
-## 7.补充设计和说明（TODO）
+# 文枢翻译系统 (Wen Shu Translator)
+一个基于现代深度学习技术的多模态翻译系统，支持文本、图片和文档的精准翻译，提供专业级的中英互译服务。
+
+
+## 项目概述
+文枢翻译系统是一个集成了前沿AI翻译技术的全栈应用，由前端交互界面、高性能后端API和多种翻译模型组成。系统支持文本翻译、图片OCR识别翻译和文档翻译，为用户提供流畅的多语言翻译体验。
+
+
+## 技术架构
+### 系统架构图
+```text
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│    front end    │    │    back end     │    │      models     │
+│  (HTML/JS/CSS)  │<-->│    (FastAPI)    │<-->│   (TRS + OCR)   │
+└─────────────────┘    └────────┬────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │      MySQL      │
+                       │                 │
+                       └─────────────────┘
+```
+
+### 前端 (Frontend)
+- **技术栈**: HTML5 + CSS3 + JavaScript (原生)
+- **UI框架**: Tailwind CSS + 自定义样式
+- **功能模块**:
+  - 用户认证（登录/注册/密码找回）
+  - 翻译主界面（文本/图片/文档输入）
+  - 历史记录管理
+  - 用户设置与个性化
+  - 响应式设计（支持桌面和移动端）
+
+### 后端 (Backend)
+- **框架**: FastAPI (Python)
+- **数据库**: MySQL (通过PyMySQL连接)
+- **核心功能**:
+  - 用户认证与权限管理
+  - 翻译任务调度
+  - 文件处理（PDF/DOCX解析）
+  - 图片OCR处理
+  - 历史记录存储
+  - 邮件服务（验证码发送）
+
+### 翻译模型 (Models)
+系统集成四种翻译模型，满足不同场景需求：
+
+| 模型类型         | 特点                                  | 技术原理                                  |
+|------------------|---------------------------------------|-------------------------------------------|
+| 高速翻译模型     | 极速响应，适合实时对话翻译            | 基于规则和轻量级神经网络优化              |
+| 高精度翻译模型   | 专业级翻译质量，适合学术和商务场景    | 深度Transformer架构与注意力机制          |
+| DeepSeek-R1模型  | 强大的上下文理解能力，AI大模型        | 基于Transformer的生成式模型（来源：DeepSeek-R1-Distill-Qwen-1.5B） |
+| 通义千问模型     | 批量翻译优化，文化适配性好            | 大规模预训练语言模型（来源：Qwen/Qwen3-0.6B） |
+
+#### OCR处理模型
+- **功能**: 图片文字提取与布局分析
+- **技术**: 基于Transformer的视觉-语言模型
+- **输出格式**: 支持文本、表格、公式等多种元素识别
+
+
+## 功能特点
+- 🔄 **多格式支持**: 文本、图片(PNG/JPG)、文档(PDF/DOCX)
+- 🌐 **多语言互译**: 专业级中英互译
+- ⚡ **智能模型选择**: 四种专业模型适应不同场景
+- 📊 **历史管理**: 完整的翻译历史记录和检索功能
+- 👤 **个性化设置**: 用户头像、字体大小、主题偏好
+- 📧 **安全认证**: 邮箱验证、令牌机制、密码加密
+- 📱 **响应式设计**: 适配桌面和移动设备
+- 🔍 **高级搜索**: 按内容、类型和时间筛选历史记录
+- 📤 **数据导出**: 支持翻译记录导出功能
+
+
+## 安装与部署
+### 环境要求
+- Python 3.8+
+- MySQL 5.7+
+- PyTorch 1.12+ (CPU/GPU版本)
+- CUDA 11.7+ (GPU部署推荐)
+- 至少16GB RAM (推荐32GB用于大模型运行)
+- 至少50GB可用存储空间 (用于模型文件)
+
+### 数据库设置
+1. **创建数据库**
+```sql
+CREATE DATABASE Translator CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+2. **创建用户并授权**
+```sql
+CREATE USER 'server'@'localhost' IDENTIFIED BY 'server';
+GRANT ALL PRIVILEGES ON Translator.* TO 'server'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+3. **导入表结构**
+```sql
+-- 用户表
+CREATE TABLE TRS_USER (
+    userId INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 令牌表
+CREATE TABLE TRS_AUTHTOKEN (
+    tokenId INT AUTO_INCREMENT PRIMARY KEY,
+    account VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    deadline DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 用户设置表
+CREATE TABLE TRS_SETTING (
+    userId INT PRIMARY KEY,
+    username VARCHAR(255),
+    avatar TEXT,
+    size INT DEFAULT 16,
+    color VARCHAR(50) DEFAULT 'light',
+    FOREIGN KEY (userId) REFERENCES TRS_USER(userId)
+);
+
+-- 翻译历史表
+CREATE TABLE TRS_T_HISTORY (
+    hisId INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    date DATETIME NOT NULL,
+    type INT NOT NULL, -- 0:文本, 1:图片, 2:文件
+    input TEXT NOT NULL,
+    output TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES TRS_USER(userId)
+);
+
+-- 反馈表
+CREATE TABLE TRS_T_FEEDBACK (
+    feedbackId INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    hisId INT NOT NULL,
+    model VARCHAR(50) NOT NULL,
+    judge BOOLEAN NOT NULL, -- 好评/差评
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES TRS_USER(userId),
+    FOREIGN KEY (hisId) REFERENCES TRS_T_HISTORY(hisId)
+);
+```
+
+### 后端部署
+1. **安装Python依赖**
+```bash
+pip install fastapi uvicorn pymysql python-multipart python-jose[cryptography] passlib[bcrypt] emails fastapi-mail pillow pymupdf python-docx requests transformers torch torchvision
+```
+
+2. **配置环境变量**
+创建 `.env` 文件：
+```ini
+DB_HOST=localhost
+DB_USER=server
+DB_PASSWORD=server
+DB_NAME=Translator
+MAIL_USERNAME=your_email@example.com
+MAIL_PASSWORD=your_email_password
+MAIL_FROM=your_email@example.com
+MAIL_PORT=465
+MAIL_SERVER=smtp.example.com
+MODEL_URI=http://localhost:8000
+```
+
+3. **下载模型权重**
+- 下载DeepSeek-R1模型至 `model/DeepSeek-R1/`
+- 下载Qwen3模型至 `model/Qwen3/`
+- 下载OCR模型至 `model/DotsOCR/`
+
+4. **启动后端服务**
+```bash
+uvicorn BackEnd:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 前端部署
+1. **配置Web服务器**
+```nginx
+# Nginx配置示例
+server {
+    listen 80;
+    server_name your_domain.com;
+    
+    root /path/to/translator/frontend;
+    index page-translate.html;
+    
+    # 静态资源服务
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    
+    # API代理
+    location /api/ {
+        proxy_pass http://localhost:8000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    #  Websocket支持 (如果需要)
+    location /ws/ {
+        proxy_pass http://localhost:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+2. **配置API端点**
+在 `js/config.js` 中设置API基础URL：
+```javascript
+const API_BASE_URL = 'http://your_domain.com/api';
+```
+
+### 模型服务集成
+模型服务已直接集成到主后端中，无需单独部署：
+- 高速翻译模型 - 直接内置在后端逻辑中
+- 高精度翻译模型 - 直接内置在后端逻辑中
+- DeepSeek-R1模型 - 通过HTTP API调用(需先启动模型服务)
+- 通义千问模型 - 通过HTTP API调用(需先启动模型服务)
+
+**启动开源模型服务**：
+```bash
+# 启动DeepSeek-R1模型服务
+python Translator_API.py DeepSeek-R1
+
+# 启动通义千问模型服务  
+python Translator_API.py Qwen3
+```
+
+### 系统配置调整
+1. **数据库连接配置 (db.py)**
+```python
+def getConnection():
+    connection = pymysql.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER", "server"),
+        password=os.getenv("DB_PASSWORD", "server"),
+        database=os.getenv("DB_NAME", "Translator"),
+        charset="utf8mb4"
+    )
+    return connection
+```
+
+2. **邮件服务配置 (BackEnd.py)**
+```python
+conf = ConnectionConfig(
+    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
+    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
+    MAIL_FROM=os.getenv("MAIL_FROM"),
+    MAIL_PORT=int(os.getenv("MAIL_PORT", 465)),
+    MAIL_SERVER=os.getenv("MAIL_SERVER"),
+    MAIL_STARTTLS=False,
+    MAIL_SSL_TLS=True,
+    VALIDATE_CERTS=True
+)
+```
+
+
+## 使用指南
+### 用户注册与登录
+1. 访问系统首页
+2. 点击"注册/登录"按钮
+3. 填写邮箱并获取验证码
+4. 设置密码完成注册
+5. 使用邮箱和密码登录系统
+
+### 文本翻译
+1. 在翻译界面选择源语言和目标语言
+2. 在文本框中输入要翻译的内容
+3. 选择适合的翻译模型
+4. 点击"开始翻译"按钮
+5. 查看翻译结果并可以进行复制或收藏
+
+### 文件翻译
+1. 点击"选择文件"按钮
+2. 上传PDF或DOCX格式文档
+3. 系统自动提取文本内容
+4. 选择翻译模型并开始翻译
+5. 查看并下载翻译结果
+
+### 图片翻译
+1. 点击"选择文件"按钮上传图片
+2. 系统自动识别图片中的文字
+3. 选择翻译模型并开始翻译
+4. 查看图文对照的翻译结果
+
+### 历史记录管理
+1. 点击"历史记录"查看所有翻译历史
+2. 使用搜索框按内容筛选记录
+3. 按类型或时间排序历史记录
+4. 选择记录进行查看、复制或删除
+5. 支持批量导出历史记录
+
+
+## API接口文档
+启动服务后访问 `http://localhost:8000/docs` 查看完整的API文档。
+
+### 主要接口端点
+- POST `/api/token` - 获取访问令牌
+- POST `/api/login` - 用户登录验证
+- POST `/api/register` - 用户注册
+- POST `/api/send-verification-code` - 发送邮箱验证码
+- POST `/api/translate` - 文本翻译
+- POST `/api/translate/file` - 文件翻译
+- POST `/api/translate/pic` - 图片翻译
+- GET `/api/history/{userId}` - 获取用户历史记录
+- PUT `/api/settings` - 更新用户设置
+- POST `/api/feedback` - 提交翻译反馈
+
+
+## 故障排除
+### 常见问题
+1. **数据库连接失败**
+   - 检查MySQL服务是否启动
+   - 验证数据库用户名和密码是否正确
+   - 确认数据库是否存在且可访问
+
+2. **模型加载失败**
+   - 检查模型文件路径是否正确
+   - 确认有足够的存储空间和内存
+   - 验证PyTorch/TensorFlow版本兼容性
+
+3. **邮件发送失败**
+   - 检查邮箱SMTP设置是否正确
+   - 验证邮箱密码或授权码是否正确
+   - 确认网络连接允许SMTP通信
+
+4. **文件上传失败**
+   - 检查服务器存储空间是否充足
+   - 确认文件大小未超过限制
+   - 验证文件格式是否受支持
+
+### 日志查看
+后端服务日志默认输出到控制台，可通过以下方式查看详细错误信息：
+```bash
+# 查看实时日志
+tail -f uvicorn.log
+
+# 查看错误日志
+grep "ERROR" uvicorn.log
+```
+
+### 性能优化建议
+1. **数据库优化**
+   - 为常用查询字段添加索引
+   - 定期清理历史记录和过期令牌
+   - 使用连接池管理数据库连接
+
+2. **模型优化**
+   - 启用模型量化减少内存占用
+   - 使用模型缓存避免重复加载
+   - 实现请求批处理提高吞吐量
+
+3. **前端优化**
+   - 启用资源压缩和缓存
+   - 使用CDN加速静态资源加载
+   - 实现懒加载减少初始负载
+
+4. **系统监控**
+   - 设置资源使用警报
+   - 监控API响应时间和错误率
+   - 定期备份数据库和重要文件
+
+
+## 开发框架
+- 后端开发: FastAPI, PyMySQL, 模型集成
+- 前端开发: HTML/CSS/JavaScript, Tailwind CSS
+- 模型开发: DeepSeek, Qwen, 自定义Transformer
+- 系统架构: 微服务设计, 负载均衡, 高可用方案
+
+
+## 支持与反馈
+如有问题或建议，请通过GitHub Issues提交反馈或联系开发团队。
+
+文枢翻译系统 - 让语言不再成为沟通的障碍
