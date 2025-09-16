@@ -627,6 +627,12 @@ window.applyResultsTheme = function () {
   if (settingModal) {
     if (mode === 'light') {
       settingModal.classList.remove('dark');
+      A=document.getElementById("appreciate-btn");
+      D=document.getElementById("disatisfy-btn");
+      A.classList.remove("text-dark");
+      A.classList.add("text-white");
+      D.classList.remove("text-dark");
+      D.classList.add("text-white");
     } else {
       settingModal.classList.add('dark');
     }
