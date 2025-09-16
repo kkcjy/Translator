@@ -138,6 +138,8 @@ function enterSentenceSelectMode() {
   sourceText.style.display = 'none';
   charCountContainer.style.display = 'none';
   sourceSentenceContainer = document.createElement('div');
+  // 设置容器id
+  sourceSentenceContainer.id = 'source-sentence-container';
   // 创建句子容器
   if (mode === 'light') {
     sourceSentenceContainer.className = 'p-3 bg-gray-50 rounded-lg min-h-[100px] border border-gray-200';
