@@ -3,6 +3,28 @@
  ************************************************************/
 
 /* Tailwind自定义工具类 */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+footer {
+  flex-shrink: 0;
+}
+
+
 @layer utilities {
   .content-auto {
     content-visibility: auto;
