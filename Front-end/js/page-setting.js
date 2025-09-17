@@ -419,14 +419,12 @@ function applyResultsTheme() {
 // 重置按钮：恢复默认设置
 resetBtn && resetBtn.addEventListener('click', () => {
   // 恢复默认设置
-  tempSettings.fontSize = originalFontSize || '16px';
+  tempSettings.fontSize = '16px';
   tempSettings.bgMode = 'light';
-
   // 更新弹窗内显示
   fontSizeRange.value = parseInt(tempSettings.fontSize);
   fontSizeValue.textContent = tempSettings.fontSize;
   updateBgModeRadioUI(tempSettings.bgMode);
-
   // 预览字体大小
   document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
     area.style.fontSize = tempSettings.fontSize;
