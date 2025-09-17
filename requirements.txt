@@ -1,7 +1,7 @@
 fastapi==0.116.2
 fastapi_mail==1.5.0
 matplotlib==3.10.6
-mindspore==2.7.0
+mindspore==2.6.0
 numpy==1.21.5
 openai==1.107.3
 pdfplumber==0.11.0
