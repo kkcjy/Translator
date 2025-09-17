@@ -6,6 +6,8 @@ import mindspore as ms
 import mindspore.nn as nn
 import mindspore.ops as ops
 from mindspore import Tensor
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 # ==== 特殊 token ====
 PAD_TOKEN = "<pad>"
@@ -14,6 +16,7 @@ EOS_TOKEN = "</s>"
 UNK_TOKEN = "<unk>"
 SPECIAL_TOKENS = [BOS_TOKEN, EOS_TOKEN, PAD_TOKEN, UNK_TOKEN]
 
+app = FastAPI()
 
 # ==== 位置编码 ====
 class PositionalEncoding(nn.Cell):
@@ -159,13 +162,28 @@ def load_vocab(vocab_path):
     else:
         raise ValueError(f"Unsupported vocab format in {vocab_path}")
 
+def model_translate():
+    return 1
 
-# ==== 主函数 ====
-def main():
+class TranslationRequest(BaseModel):
+    text: str
+    direction: str
+    model: str
+
+@app.post("/")
+def translate(req: TranslationRequest):
+    if req.direction == "zh-en":
+        result = model_translate(req.model, req.text, req.direction)
+        return {req.model: result}
+    else:
+        assert("only the translation direction from Chinese to English is allowed.")
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Chinese → English Translation (Single Sentence)")
-    parser.add_argument('--model_path', type=str,default=r"E:\暑期项目实训25\github\Translator\model\zh_en_model\translation_model_final.ckpt")
-    parser.add_argument('--zh_vocab_path', type=str, default=r"E:\暑期项目实训25\github\Translator\model\zh_en_model\vocab\zh_vocab.json")
-    parser.add_argument('--en_vocab_path', type=str, default=r"E:\暑期项目实训25\github\Translator\model\zh_en_model\vocab\en_vocab.json")
+    parser.add_argument('--model_path', type=str,default=r"TRS/zh_en/TRS_zh_en.ckpt")
+    parser.add_argument('--zh_vocab_path', type=str, default=r"TRS/zh_en/zh_vocab.json")
+    parser.add_argument('--en_vocab_path', type=str, default=r"TRS/zh_en/en_vocab.json")
     parser.add_argument('--d_model', type=int, default=256)
     parser.add_argument('--max_length', type=int, default=64)
     parser.add_argument('--sentence', type=str, default="今天天气真好", help="中文输入句子")
@@ -185,9 +203,3 @@ def main():
     translated = model.infer(args.sentence, max_length=args.max_length)
     print(f"输入: {args.sentence}")
     print(f"翻译: {translated}")
-
-
-if __name__ == "__main__":
-    main()
-
-

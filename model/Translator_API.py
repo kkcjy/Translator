@@ -52,13 +52,14 @@ def model_translate(model: str, text: str, direction: str, single_line: bool = F
     target_lang = "English" if direction == "zh-en" else "Chinese"
 
     prompt = (
-        f"You are a professional bilingual translator. "
+        f"You are a precise bilingual translator. "
         f"Task: Translate the following text into {target_lang}. "
-        "Requirements:\n"
-        "1. Translate accurately, preserving the original meaning and context.\n"
-        "2. Do not add explanations, comments, or extra words.\n"
-        "3. Keep punctuation, line breaks, and formatting unchanged.\n"
-        "4. Output only the translated text.\n\n"
+        "Guidelines:\n"
+        "1. Translate faithfully, ensuring semantic accuracy.\n"
+        "2. Do not interpret or add implicit context.\n"
+        "3. Avoid excessive polishing or rephrasing.\n"
+        "4. Keep punctuation, line breaks, and formatting unchanged.\n"
+        "5. Output only the translated text.\n\n"
         f"Text:\n{text}"
     )
 
