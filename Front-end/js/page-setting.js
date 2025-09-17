@@ -119,7 +119,6 @@ cancelBtn && cancelBtn.addEventListener('click', () => {
 
   closeSettingModal();
 });
-confirmBtn && confirmBtn.addEventListener('click', closeSettingModal);
 // 头像上传（只更新临时设置，不立即应用）
 avatarUpload && avatarUpload.addEventListener('change', function () {
   const file = this.files[0];
@@ -197,7 +196,7 @@ function applySettings(settings) {
     }
     resultsTextareas.forEach(function (textarea) {
       textarea.classList.remove('bg-white', 'text-dark', 'border-gray-200');
-      textarea.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
+      textaapplySettingsrea.classList.add('bg-gray-900', 'text-white', 'border-gray-700');
       textarea.style.backgroundColor = '#1e293b';
       textarea.style.color = '#e5e7eb';
       textarea.style.borderColor = '#334155';
@@ -419,14 +418,12 @@ function applyResultsTheme() {
 // 重置按钮：恢复默认设置
 resetBtn && resetBtn.addEventListener('click', () => {
   // 恢复默认设置
-  tempSettings.fontSize = originalFontSize || '16px';
+  tempSettings.fontSize = '16px';
   tempSettings.bgMode = 'light';
-
   // 更新弹窗内显示
   fontSizeRange.value = parseInt(tempSettings.fontSize);
   fontSizeValue.textContent = tempSettings.fontSize;
   updateBgModeRadioUI(tempSettings.bgMode);
-
   // 预览字体大小
   document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
     area.style.fontSize = tempSettings.fontSize;
@@ -456,14 +453,15 @@ confirmBtn && confirmBtn.addEventListener('click', async () => {
       document.getElementById('MobileAvatar').src = currentSettings.avatar;
     sessionStorage.setItem("currentUserAvatar", currentSettings.avatar);
     applySettings(currentSettings);
-    applyResultsTheme();
     // 新增：应用结果和特色卡片主题
     if (typeof window.applyResultsTheme === 'function') {
       window.applyResultsTheme();
     }
-    closeSettingModal();
+    settingModal.classList.add('opacity-0', 'pointer-events-none');
+    settingModal.classList.remove('opacity-100');
   }
   else {
+    closeSettingModal();
     showNotification(`登陆账号后方可设置！`, 'warning');
   }
 });
