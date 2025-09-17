@@ -3,7 +3,7 @@ const settingModal = document.getElementById('setting-modal');
 const openSettingBtn = document.getElementById('open-setting-btn');
 const openSettingBtnMobile = document.getElementById('open-setting-btn-mobile');
 const closeSettingBtn = document.getElementById('close-setting-btn');
-const resetBtn=document.getElementById('reset');
+const resetBtn = document.getElementById('reset');
 const confirmBtn = document.getElementById('setting-confirm-btn');
 const cancelBtn = document.getElementById('setting-cancel-btn');
 const avatarUpload = document.getElementById('avatar-upload');
@@ -16,7 +16,8 @@ const saveUsernameBtn = document.getElementById('save-username-btn');
 const usernameError = document.getElementById('username-error');
 // FastAPI base URL
 const API_URL = "https://www.r4286138.nyat.app:10434";
-
+// 添加一个变量来存储原始字体大小
+let originalFontSize = '';
 // 通用请求函数
 async function makeRequest(url, options = {}) {
   try {
@@ -64,6 +65,9 @@ function updateBgModeRadioUI(selectedMode) {
 }
 // 打开弹窗时同步临时设置
 function openSettingModal() {
+  // 保存原始字体大小
+  originalFontSize = currentSettings.fontSize;
+
   // 头像
   avatarPreview.src = currentSettings.avatar ? currentSettings.avatar : 'img/default_ava.jpg';
   // 字体滑动条
@@ -85,11 +89,36 @@ openSettingBtnMobile && openSettingBtnMobile.addEventListener('click', (e) => {
 });
 // 关闭弹窗（取消/关闭按钮）
 function closeSettingModal() {
+  // 恢复原始字体大小设置
+  if (originalFontSize) {
+    currentSettings.fontSize = originalFontSize;
+    // 恢复页面字体大小
+    document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
+      area.style.fontSize = originalFontSize;
+    });
+    document.getElementById("results-content").querySelectorAll("div").forEach(text => {
+      text.style.fontSize = originalFontSize;
+    });
+  }
   settingModal.classList.add('opacity-0', 'pointer-events-none');
   settingModal.classList.remove('opacity-100');
 }
 closeSettingBtn && closeSettingBtn.addEventListener('click', closeSettingModal);
-cancelBtn && cancelBtn.addEventListener('click', closeSettingModal);
+cancelBtn && cancelBtn.addEventListener('click', () => {
+  // 恢复原始设置
+  if (originalFontSize) {
+    currentSettings.fontSize = originalFontSize;
+    // 恢复页面字体大小
+    document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
+      area.style.fontSize = originalFontSize;
+    });
+    document.getElementById("results-content").querySelectorAll("div").forEach(text => {
+      text.style.fontSize = originalFontSize;
+    });
+  }
+
+  closeSettingModal();
+});
 confirmBtn && confirmBtn.addEventListener('click', closeSettingModal);
 // 头像上传（只更新临时设置，不立即应用）
 avatarUpload && avatarUpload.addEventListener('change', function () {
@@ -113,8 +142,8 @@ fontSizeRange && fontSizeRange.addEventListener('input', function () {
   document.querySelectorAll('.input-container textarea').forEach(area => {
     area.style.fontSize = val + 'px';
   });
-  document.getElementById("results-content").querySelectorAll("div").forEach(text=>{
-    text.style.fontSize=val+"px";
+  document.getElementById("results-content").querySelectorAll("div").forEach(text => {
+    text.style.fontSize = val + "px";
   });
 });
 
@@ -134,8 +163,8 @@ function applySettings(settings) {
   document.querySelectorAll('.input-container textarea').forEach(area => {
     area.style.fontSize = settings.fontSize;
   });
-  document.getElementById("results-content").querySelectorAll("div").forEach(text=>{
-    text.style.fontSize=settings.fontSize;
+  document.getElementById("results-content").querySelectorAll("div").forEach(text => {
+    text.style.fontSize = settings.fontSize;
   });
 
   // 不再设置 document.body.style.fontSize，避免影响页面其他字体
@@ -192,9 +221,9 @@ function applySettings(settings) {
   // 功能特点卡片
   // 修改选择器，确保所有卡片都能切换
   const featureCards = document.querySelectorAll('.max-w-5xl .rounded-xl.shadow-sm');
-  if(document.getElementById('Avatar'))
+  if (document.getElementById('Avatar'))
     document.getElementById('Avatar').src = sessionStorage.getItem("currentUserAvatar");
-  if(document.getElementById('MobileAvatar'))
+  if (document.getElementById('MobileAvatar'))
     document.getElementById('MobileAvatar').src = sessionStorage.getItem("currentUserAvatar");
   if (settings.bgMode === 'light') {
     document.body.classList.remove('dark');
@@ -329,7 +358,6 @@ function showWarning(message) {
     notification.classList.add('translate-y-20', 'opacity-0');
   }, 3000);
 }
-
 // 结果区域样式应用函数
 function applyResultsTheme() {
   const resultsContent = document.getElementById('results-content');
@@ -391,12 +419,14 @@ function applyResultsTheme() {
 // 重置按钮：恢复默认设置
 resetBtn && resetBtn.addEventListener('click', () => {
   // 恢复默认设置
-  tempSettings.fontSize = '16px';
-  tempSettings.bgMode='light';
+  tempSettings.fontSize = originalFontSize || '16px';
+  tempSettings.bgMode = 'light';
+
   // 更新弹窗内显示
   fontSizeRange.value = parseInt(tempSettings.fontSize);
   fontSizeValue.textContent = tempSettings.fontSize;
   updateBgModeRadioUI(tempSettings.bgMode);
+
   // 预览字体大小
   document.querySelectorAll('.input-container textarea, #results-content textarea').forEach(area => {
     area.style.fontSize = tempSettings.fontSize;
@@ -420,10 +450,10 @@ confirmBtn && confirmBtn.addEventListener('click', async () => {
     } catch (error) {
       console.error("保存设置到服务器失败:", error);
     }
-    if(document.getElementById('Avatar'))
-      document.getElementById('Avatar').src=currentSettings.avatar;
-    if(document.getElementById('MobileAvatar'))
-      document.getElementById('MobileAvatar').src=currentSettings.avatar;
+    if (document.getElementById('Avatar'))
+      document.getElementById('Avatar').src = currentSettings.avatar;
+    if (document.getElementById('MobileAvatar'))
+      document.getElementById('MobileAvatar').src = currentSettings.avatar;
     sessionStorage.setItem("currentUserAvatar", currentSettings.avatar);
     applySettings(currentSettings);
     applyResultsTheme();
@@ -442,7 +472,7 @@ async function saveUsername() {
   const usernameInput = document.getElementById('username-input');
   const usernameError = document.getElementById('username-error');
   const newUsername = usernameInput.value.trim();
-  if(!sessionStorage.getItem("currentUserId")){
+  if (!sessionStorage.getItem("currentUserId")) {
     showNotification('请先登录!', 'error');
     return;
   }
@@ -451,11 +481,11 @@ async function saveUsername() {
     return;
   }
   usernameError.classList.add('hidden');
-  try{
-    const O_Fortuna_luna_velut_statu_variabilis=await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"),10)}?newname=${newUsername}`,{
+  try {
+    const O_Fortuna_luna_velut_statu_variabilis = await makeRequest(`${API_URL}/user/${parseInt(sessionStorage.getItem("currentUserId"), 10)}?newname=${newUsername}`, {
       method: "PUT",
     });
-  }catch(error){
+  } catch (error) {
     console.error("Failed to update username.", error);
     showNotification('用户名修改失败，请稍后重试', 'error');
     return;
