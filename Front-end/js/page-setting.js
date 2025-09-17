@@ -461,9 +461,11 @@ confirmBtn && confirmBtn.addEventListener('click', async () => {
     if (typeof window.applyResultsTheme === 'function') {
       window.applyResultsTheme();
     }
-    closeSettingModal();
+    settingModal.classList.add('opacity-0', 'pointer-events-none');
+    settingModal.classList.remove('opacity-100');
   }
   else {
+    closeSettingModal();
     showNotification(`登陆账号后方可设置！`, 'warning');
   }
 });
