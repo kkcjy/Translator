@@ -18,10 +18,8 @@ import logging
 import requests
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from transformers import AutoModelForCausalLM, AutoProcessor
-
 from db import getdb
 from file import read_document_file
-#from model.Model_API.DeepSeek_R1_API import DeepSeek_R1_translate
 Model_URI = "https://www.u2985420.nyat.app:62835/"
 MODEL_PATH = "../model/DotsOCR"  # 替换为你的OCR模型实际路径
 ocr_model = None
@@ -138,7 +136,7 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
         if source_lang == "zh" and target_lang == "en":
             return f"[Precision Model] Accurate English translation: {text}"
         else:
-            return f"[Precision Model] 精准中文翻译: {text}"
+            return "Todo -up"
 
     else:
         json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
