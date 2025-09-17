@@ -1,0 +1,190 @@
+import argparse, json, math, numpy as np, mindspore as ms
+import mindspore.nn as nn
+import mindspore.ops as ops
+from mindspore import Tensor
+from fastapi import FastAPI
+from pydantic import BaseModel
+import uvicorn
+
+# ==== 特殊 token ====
+PAD_TOKEN = "<pad>"
+BOS_TOKEN = "<s>"
+EOS_TOKEN = "</s>"
+UNK_TOKEN = "<unk>"
+SPECIAL_TOKENS = [BOS_TOKEN, EOS_TOKEN, PAD_TOKEN, UNK_TOKEN]
+
+app = FastAPI()
+
+# ==== 位置编码 ====
+class PositionalEncoding(nn.Cell):
+    def __init__(self, d_model, dropout=0.1, max_len=500):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = np.zeros((max_len, d_model))
+        position = np.arange(0, max_len).reshape(-1, 1)
+        div_term = np.exp(np.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+
+        pe[:, 0::2] = np.sin(position * div_term)
+        pe[:, 1::2] = np.cos(position * div_term)
+        self.pe = Tensor(pe.astype(np.float32)).unsqueeze(0)
+
+    def construct(self, x):
+        x = x + self.pe[:, :x.shape[1]]
+        return self.dropout(x)
+
+
+# ==== 翻译模型 ====
+class TranslationModel(nn.Cell):
+    def __init__(self, en_vocab, zh_vocab, d_model, max_len, dropout=0.1):  
+        super(TranslationModel, self).__init__()
+
+        self.d_model = d_model
+        self.max_len = max_len
+        self.en_vocab = en_vocab  
+        self.zh_vocab = zh_vocab  
+        self.en_token_to_id = {tok: idx for idx, tok in enumerate(en_vocab)} 
+        self.zh_token_to_id = {tok: idx for idx, tok in enumerate(zh_vocab)} 
+
+        self.src_embedding = nn.Embedding(len(en_vocab), d_model,  
+                                         padding_idx=en_vocab.index(PAD_TOKEN))
+        self.tgt_embedding = nn.Embedding(len(zh_vocab), d_model,  
+                                         padding_idx=zh_vocab.index(PAD_TOKEN))
+
+        # Positional Encoding
+        self.positional_encoding = PositionalEncoding(d_model, dropout, max_len)
+
+        # Transformer
+        self.transformer = nn.Transformer(
+            d_model=d_model,
+            nhead=8,
+            num_encoder_layers=6,
+            num_decoder_layers=6,
+            dim_feedforward=1024,
+            dropout=dropout,
+            batch_first=True
+        )
+
+        self.predictor = nn.Dense(d_model, len(zh_vocab))
+
+        self.tgt_mask_full = self.generate_square_subsequent_mask(max_len)
+
+    def generate_square_subsequent_mask(self, size):
+        mask = np.triu(np.ones((size, size)), k=1).astype(np.bool_)
+        return Tensor(mask, dtype=ms.bool_)
+
+    def construct(self, src, tgt):
+        src_emb = self.src_embedding(src) * math.sqrt(self.d_model)
+        tgt_emb = self.tgt_embedding(tgt) * math.sqrt(self.d_model)
+        src_emb = self.positional_encoding(src_emb)
+        tgt_emb = self.positional_encoding(tgt_emb)
+
+        tgt_len = tgt.shape[1]
+        tgt_mask = self.tgt_mask_full[:tgt_len, :tgt_len]
+
+        out = self.transformer(
+            src=src_emb,
+            tgt=tgt_emb,
+            tgt_mask=tgt_mask
+        )
+        logits = self.predictor(out)
+        return logits
+
+    def infer(self, src_sentence, max_length=64, beam_width=5):
+        """英文 → 中文翻译 (beam search)"""
+        en_tokens = [BOS_TOKEN] + list(src_sentence) + [EOS_TOKEN]
+        en_ids = [self.en_token_to_id.get(t, self.en_token_to_id[UNK_TOKEN]) for t in en_tokens]
+
+        if len(en_ids) > max_length:
+            en_ids = en_ids[:max_length]
+        else:
+            en_ids += [self.en_token_to_id[PAD_TOKEN]] * (max_length - len(en_ids))
+
+        src = Tensor([en_ids], dtype=ms.int32)
+
+        pad_id_zh = self.zh_token_to_id[PAD_TOKEN]
+        eos_id = self.zh_token_to_id[EOS_TOKEN]
+        bos_id = self.zh_token_to_id[BOS_TOKEN]
+
+        hypotheses = [([bos_id], 0.0)]
+
+        for i in range(max_length - 1):
+            new_hypotheses = []
+            for hyp, score in hypotheses:
+                tgt_seq = hyp + [pad_id_zh] * (max_length - len(hyp))
+                tgt = Tensor([tgt_seq], dtype=ms.int32)
+
+                output = ops.stop_gradient(self(src, tgt))
+                logits = output[0, i, :]
+                probs = ops.softmax(logits, axis=-1)
+
+                top_k_probs, top_k_tokens = ops.top_k(probs, k=beam_width)
+                top_k_tokens = top_k_tokens.asnumpy().astype(np.int32)
+                top_k_probs = top_k_probs.asnumpy()
+
+                for j in range(beam_width):
+                    token_id = top_k_tokens[j]
+                    prob = top_k_probs[j]
+                    new_score = score - np.log(prob + 1e-9)
+                    new_hypotheses.append((hyp + [token_id], new_score))
+
+            hypotheses = sorted(new_hypotheses, key=lambda x: x[1])[:beam_width]
+
+            if all(hyp[-1] == eos_id for hyp, _ in hypotheses):
+                break
+
+        best_hyp = hypotheses[0][0]
+
+        translated_tokens = []
+        for _id in best_hyp[1:]:
+            if _id == eos_id:
+                break
+            translated_tokens.append(self.zh_vocab[_id])
+
+        translated_sentence = ' '.join([t for t in translated_tokens if t not in SPECIAL_TOKENS])
+        return translated_sentence
+
+
+# ==== 工具函数 ====
+def load_vocab(vocab_path):
+    with open(vocab_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    if isinstance(data, dict) and 'vocab' in data:
+        return data['vocab']
+    elif isinstance(data, list):
+        return data
+    else:
+        raise ValueError(f"Unsupported vocab format: {vocab_path}")
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_path', type=str, default="MH/en_zh/MH_en_zh.ckpt")
+parser.add_argument('--zh_vocab_path', type=str, default="MH/en_zh/zh_vocab.json")
+parser.add_argument('--en_vocab_path', type=str, default="MH/en_zh/en_vocab.json")
+parser.add_argument('--d_model', type=int, default=256)
+parser.add_argument('--max_length', type=int, default=64)
+args = parser.parse_args()
+
+en_vocab = load_vocab(args.en_vocab_path)
+zh_vocab = load_vocab(args.zh_vocab_path)
+model = TranslationModel(en_vocab, zh_vocab, args.d_model, args.max_length)
+param_dict = ms.load_checkpoint(args.model_path)
+ms.load_param_into_net(model, param_dict)
+model.set_train(False)
+
+# ==== FastAPI 接口 ====
+class TranslationRequest(BaseModel):
+    text: str
+    direction: str
+    model: str
+
+@app.post("/en_zh")
+def translate(req: TranslationRequest):
+    print(f"接收到请求: {req.text}")
+    if req.direction != "en_zh":
+        return {"error": "只支持 en_zh 翻译"}
+    result = model.infer(req.text, max_length=args.max_length)
+    print(f"翻译完成: {result}")
+    return {req.model: result}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8867)

@@ -46,7 +46,6 @@ class TranslationModel(nn.Cell):
         self.zh_token_to_id = {tok: idx for idx, tok in enumerate(zh_vocab)}
         self.en_token_to_id = {tok: idx for idx, tok in enumerate(en_vocab)}
 
-        # Embedding
         self.src_embedding = nn.Embedding(len(zh_vocab), d_model,
                                           padding_idx=zh_vocab.index(PAD_TOKEN))
         self.tgt_embedding = nn.Embedding(len(en_vocab), d_model,
@@ -160,7 +159,7 @@ def load_vocab(vocab_path):
         raise ValueError(f"Unsupported vocab format: {vocab_path}")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_path', type=str, default="MH/zh_en/TRS_zh_en.ckpt")
+parser.add_argument('--model_path', type=str, default="MH/zh_en/MH_zh_en.ckpt")
 parser.add_argument('--zh_vocab_path', type=str, default="MH/zh_en/zh_vocab.json")
 parser.add_argument('--en_vocab_path', type=str, default="MH/zh_en/en_vocab.json")
 parser.add_argument('--d_model', type=int, default=256)

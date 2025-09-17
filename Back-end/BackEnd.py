@@ -127,8 +127,8 @@ class FeedbackItem(BaseModel):
 
 def translate(text: str, source_lang: str, target_lang: str, model_name: str) -> str:
     direction = source_lang + "-" + target_lang
-    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高速翻译模型":"MH","高精度翻译模型":"FLH"}
-    if model_name == "高速翻译模型":
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
+    if model_name == "高精度翻译模型":
         json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
         try:
             if json_data["direction"]=="zh-en":
@@ -141,7 +141,7 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             print(e)
             raise HTTPException(status_code=503,detail=e)
 
-    elif model_name == "高精度翻译模型":
+    elif model_name == "高速翻译模型":
         json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
         try:
             if json_data["direction"]=="zh-en":
@@ -367,7 +367,7 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
 # 执行翻译任务
 @app.post("/translate")
 async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
-    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高速翻译模型":"MH","高精度翻译模型":"FLH"}
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     try:
         translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
         translated_text=translated[name2request[request.model_name]]
@@ -388,7 +388,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 #图片翻译
 @app.post("/translate/pic")
 async def read_pic(file:UploadFile=File(...)):
-    name2request = {"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高速翻译模型":"MH","高精度翻译模型":"FLH"}
+    name2request = {"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     try:
         # 验证文件类型（仅允许图片）
         if not file.content_type.startswith("image/"):
