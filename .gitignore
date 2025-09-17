@@ -1,5 +1,6 @@
 frpc.ini
 model/DeepSeek-R1
 model/Qwen3
-model/TRS
+model/MH
+model/FLH
 model/__pycache__

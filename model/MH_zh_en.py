@@ -1,13 +1,10 @@
-import argparse
-import json
-import math
-import numpy as np
-import mindspore as ms
+import argparse, json, math, numpy as np, mindspore as ms
 import mindspore.nn as nn
 import mindspore.ops as ops
 from mindspore import Tensor
 from fastapi import FastAPI
 from pydantic import BaseModel
+import uvicorn
 
 # ==== 特殊 token ====
 PAD_TOKEN = "<pad>"
@@ -154,52 +151,43 @@ class TranslationModel(nn.Cell):
 # ==== 工具函数 ====
 def load_vocab(vocab_path):
     with open(vocab_path, 'r', encoding='utf-8') as f:
-        vocab_data = json.load(f)
-    if isinstance(vocab_data, dict) and 'vocab' in vocab_data:
-        return vocab_data['vocab']
-    elif isinstance(vocab_data, list):
-        return vocab_data
+        data = json.load(f)
+    if isinstance(data, dict) and 'vocab' in data:
+        return data['vocab']
+    elif isinstance(data, list):
+        return data
     else:
-        raise ValueError(f"Unsupported vocab format in {vocab_path}")
+        raise ValueError(f"Unsupported vocab format: {vocab_path}")
 
-def model_translate():
-    return 1
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_path', type=str, default="MH/zh_en/TRS_zh_en.ckpt")
+parser.add_argument('--zh_vocab_path', type=str, default="MH/zh_en/zh_vocab.json")
+parser.add_argument('--en_vocab_path', type=str, default="MH/zh_en/en_vocab.json")
+parser.add_argument('--d_model', type=int, default=256)
+parser.add_argument('--max_length', type=int, default=64)
+args = parser.parse_args()
 
+zh_vocab = load_vocab(args.zh_vocab_path)
+en_vocab = load_vocab(args.en_vocab_path)
+model = TranslationModel(zh_vocab, en_vocab, args.d_model, args.max_length)
+param_dict = ms.load_checkpoint(args.model_path)
+ms.load_param_into_net(model, param_dict)
+model.set_train(False)
+
+# ==== FastAPI 接口 ====
 class TranslationRequest(BaseModel):
     text: str
     direction: str
     model: str
 
-@app.post("/")
+@app.post("/zh-en")
 def translate(req: TranslationRequest):
-    if req.direction == "zh-en":
-        result = model_translate(req.model, req.text, req.direction)
-        return {req.model: result}
-    else:
-        assert("only the translation direction from Chinese to English is allowed.")
-
+    print(f"接收到请求: {req.text}")
+    if req.direction != "zh-en":
+        return {"error": "只支持 zh-en 翻译"}
+    result = model.infer(req.text, max_length=args.max_length)
+    print(f"翻译完成: {result}")
+    return {req.model: result}
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Chinese → English Translation (Single Sentence)")
-    parser.add_argument('--model_path', type=str,default=r"TRS/zh_en/TRS_zh_en.ckpt")
-    parser.add_argument('--zh_vocab_path', type=str, default=r"TRS/zh_en/zh_vocab.json")
-    parser.add_argument('--en_vocab_path', type=str, default=r"TRS/zh_en/en_vocab.json")
-    parser.add_argument('--d_model', type=int, default=256)
-    parser.add_argument('--max_length', type=int, default=64)
-    parser.add_argument('--sentence', type=str, default="今天天气真好", help="中文输入句子")
-    args = parser.parse_args()
-
-    # 加载词表
-    zh_vocab = load_vocab(args.zh_vocab_path)
-    en_vocab = load_vocab(args.en_vocab_path)
-
-    # 初始化模型
-    model = TranslationModel(zh_vocab, en_vocab, args.d_model, args.max_length)
-    param_dict = ms.load_checkpoint(args.model_path)
-    ms.load_param_into_net(model, param_dict)
-    model.set_train(False)
-
-    # 翻译
-    translated = model.infer(args.sentence, max_length=args.max_length)
-    print(f"输入: {args.sentence}")
-    print(f"翻译: {translated}")
+    uvicorn.run(app, host="0.0.0.0", port=8865)
