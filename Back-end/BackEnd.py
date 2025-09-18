@@ -3,7 +3,6 @@ import io
 import json
 import random
 from contextlib import asynccontextmanager
-
 import torch
 from PIL import Image
 from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form
@@ -29,11 +28,11 @@ ocr_processor = None
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
-    MAIL_USERNAME="2790598460@qq.com",      # 替换为您的邮箱
-    MAIL_PASSWORD="stcgixwiimlxdejc",       # 替换为您的邮箱密码或应用专用密码
-    MAIL_FROM="2790598460@qq.com",          # 替换为您的邮箱
+    MAIL_USERNAME="2790598460@qq.com",      # 替换为邮箱
+    MAIL_PASSWORD="stcgixwiimlxdejc",       # 替换为邮箱密码或应用专用密码
+    MAIL_FROM="2790598460@qq.com",          # 替换为邮箱
     MAIL_PORT=465,
-    MAIL_SERVER="smtp.qq.com",              # 替换为您的邮件服务器
+    MAIL_SERVER="smtp.qq.com",              # 替换为邮件服务器
     MAIL_STARTTLS=False,
     MAIL_SSL_TLS=True,
     VALIDATE_CERTS=True
