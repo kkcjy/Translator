@@ -109,7 +109,7 @@ class TranslationRequest(BaseModel):
     source_text: str
     source_lang: str = "zh"
     target_lang: str = "en"
-    category:str
+    category:int
     model_name: str
     userId:str | None
 
@@ -376,7 +376,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
         hisId=None
         if request.userId:
             cmd="INSERT INTO TRS_T_HISTORY (userId,date,type,input,output) VALUES (%s,%s,%s,%s,%s)"
-            db.execute(cmd,(request.userId,datetime.now(),0,request.source_text,translated_text))
+            db.execute(cmd,(request.userId,datetime.now(),request.category,request.source_text,translated_text))
             hisId=db.lastrowid
             db.connection.commit()
         print(translated_text)
