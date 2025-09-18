@@ -174,7 +174,6 @@ function applySettings(settings) {
   if (resultsContent) {
     resultsContent.style.fontSize = settings.fontSize;
   }
-
   // 新增：设置单句选中区域的字体大小
   const sourceSentenceContainer = document.getElementById('source-sentence-container');
   if (sourceSentenceContainer) {
@@ -342,6 +341,9 @@ function applySettings(settings) {
       modalBox.classList.remove('bg-white', 'text-dark');
       modalBox.classList.add('bg-gray-900', 'text-white');
     }
+  }
+  if (typeof window.updateSentenceContainerTheme === 'function') {
+    window.updateSentenceContainerTheme();
   }
 }
 
