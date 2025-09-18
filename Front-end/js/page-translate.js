@@ -200,7 +200,7 @@ async function translateSelectedSentence() {
         source_text: sourceTextContent,
         source_lang: isChineseToEnglish ? "zh" : "en",
         target_lang: isChineseToEnglish ? "en" : "zh",
-        category:0,
+        category: 0,
         model_name: selectedModel,
         userId: sessionStorage.getItem("currentUserId")
       })
@@ -245,7 +245,7 @@ async function translateSelectedSentence() {
 function speakSelectedSentence() {
   if (!currentSelectedSentence) return;
   const sentence = currentSelectedSentence.textContent;
-  speakText(sentence, isChineseToEnglish ? 'zh-CN' : 'en-US');
+  speakText(sentence);
   showNotification(`正在朗读选中的句子`);
 }
 
@@ -350,12 +350,12 @@ async function performTranslation() {
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
   let sourceTextContent = sourceText.value.trim();
   try {
-    let category=0;
+    let category = 0;
     // 如果有文件，优先使用文件
     if (selectedFiles.length > 0) {
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
       if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
-        category=1;
+        category = 1;
         const formData = new FormData();
         formData.append("file", selectedFiles[0]);
         res = await fetch(`${API_URL}/translate/pic`, {
@@ -371,7 +371,7 @@ async function performTranslation() {
           }
         });
       } else if (selectedFiles[0].name.endsWith('.docx') || selectedFiles[0].name.endsWith('.pdf')) {
-        category=2;
+        category = 2;
         const formData = new FormData();
         formData.append("file", selectedFiles[0]);
         res = await fetch(`${API_URL}/translate/file`, {
@@ -388,7 +388,7 @@ async function performTranslation() {
         source_text: sourceTextContent,
         source_lang: isChineseToEnglish ? "zh" : "en",
         target_lang: isChineseToEnglish ? "en" : "zh",
-        category:category,
+        category: category,
         model_name: selectedModel,
         userId: sessionStorage.getItem("currentUserId")
       })
