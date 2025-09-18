@@ -3,7 +3,9 @@ model/DeepSeek-R1
 model/Qwen3
 model/DotsOCR
 .idea
-dataset
+model/MH
+model/FLH
+model/__pycache__
 model/model_best.pt
 model/vocab_en.pt
 model/vocab_zh.pt

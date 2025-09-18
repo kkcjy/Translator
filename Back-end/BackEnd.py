@@ -20,18 +20,20 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from transformers import AutoModelForCausalLM, AutoProcessor
 from db import getdb
 from file import read_document_file
-Model_URI = "https://www.u2985420.nyat.app:62835/"
-MODEL_PATH = "../model/DotsOCR"  # 替换为你的OCR模型实际路径
+Open_Model_URI = "https://www.u2985420.nyat.app:62835/"
+FLH_Model_URI = ""
+MH_Model_URI = ""
+MODEL_PATH = "../model/DotsOCR"             # 替换为你的OCR模型实际路径
 ocr_model = None
 ocr_processor = None
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
-    MAIL_USERNAME="2790598460@qq.com",  # 替换为您的邮箱
-    MAIL_PASSWORD="stcgixwiimlxdejc",     # 替换为您的邮箱密码或应用专用密码
-    MAIL_FROM="2790598460@qq.com",      # 替换为您的邮箱
+    MAIL_USERNAME="2790598460@qq.com",      # 替换为您的邮箱
+    MAIL_PASSWORD="stcgixwiimlxdejc",       # 替换为您的邮箱密码或应用专用密码
+    MAIL_FROM="2790598460@qq.com",          # 替换为您的邮箱
     MAIL_PORT=465,
-    MAIL_SERVER="smtp.qq.com",            # 替换为您的邮件服务器
+    MAIL_SERVER="smtp.qq.com",              # 替换为您的邮件服务器
     MAIL_STARTTLS=False,
     MAIL_SSL_TLS=True,
     VALIDATE_CERTS=True
@@ -125,23 +127,37 @@ class FeedbackItem(BaseModel):
 
 def translate(text: str, source_lang: str, target_lang: str, model_name: str) -> str:
     direction = source_lang + "-" + target_lang
-    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
-    if model_name == "高速翻译模型":
-        if source_lang == "zh" and target_lang == "en":
-            return f"[Fast Model] English translation of: {text}"
-        else:
-            return f"[Fast Model] 中文翻译: {text}"
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
+    if model_name == "高精度翻译模型":
+        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
+        try:
+            if json_data["direction"]=="zh-en":
+                response=requests.post(MH_Model_URI+"/zh-en",json=json_data)
+            elif json_data["direction"]=="en-zh":
+                response=requests.post(MH_Model_URI+"/en-zh",json=json_data)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print("Failed to translate.")
+            print(e)
+            raise HTTPException(status_code=503,detail=e)
 
-    elif model_name == "高精度翻译模型":
-        if source_lang == "zh" and target_lang == "en":
-            return f"[Precision Model] Accurate English translation: {text}"
-        else:
-            return "Todo -up"
+    elif model_name == "高速翻译模型":
+        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
+        try:
+            if json_data["direction"]=="zh-en":
+                response=requests.post(FLH_Model_URI+"/zh-en",json=json_data)
+            elif json_data["direction"]=="en-zh":
+                response=requests.post(FLH_Model_URI+"/en-zh",json=json_data)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print("Failed to translate.")
+            print(e)
+            raise HTTPException(status_code=503,detail=e)
 
     else:
         json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
         try:
-            response=requests.post(Model_URI,json=json_data)
+            response=requests.post(Open_Model_URI,json=json_data)
             return response.json()
         except requests.exceptions.RequestException as e:
             print("Failed to translate.")
@@ -351,7 +367,7 @@ def reset(item:ResetItem,db:cursors.Cursor=Depends(getdb)):
 # 执行翻译任务
 @app.post("/translate")
 async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depends(getdb)):
-    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3"}
+    name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     try:
         translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
         translated_text=translated[name2request[request.model_name]]
@@ -372,7 +388,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 #图片翻译
 @app.post("/translate/pic")
 async def read_pic(file:UploadFile=File(...)):
-    name2request = {"DeepSeek-R1": "DeepSeek-R1", "通义千问": "Qwen3"}
+    name2request = {"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     try:
         # 验证文件类型（仅允许图片）
         if not file.content_type.startswith("image/"):
