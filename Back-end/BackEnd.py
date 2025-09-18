@@ -21,8 +21,8 @@ from transformers import AutoModelForCausalLM, AutoProcessor
 from db import getdb
 from file import read_document_file
 Open_Model_URI = "https://www.u2985420.nyat.app:62835/"
-FLH_Model_URI = ""
-MH_Model_URI = ""
+FLH_Model_URI = "https://c24c7ed31d3f.ngrok-free.app/"
+MH_Model_URI = "https://c24c7ed31d3f.ngrok-free.app/"
 MODEL_PATH = "../model/DotsOCR"             # 替换为你的OCR模型实际路径
 ocr_model = None
 ocr_processor = None
@@ -130,12 +130,12 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
     direction = source_lang + "-" + target_lang
     name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     if model_name == "高精度翻译模型":
-        json_data={"text":text,"direction":direction,"model":name2request[model_name]}
+        json_data={"source_text":text}
         try:
             if json_data["direction"]=="zh-en":
-                response=requests.post(MH_Model_URI+"/zh-en",json=json_data)
+                response=requests.post(MH_Model_URI+"/M/zh-en",json=json_data)
             elif json_data["direction"]=="en-zh":
-                response=requests.post(MH_Model_URI+"/en-zh",json=json_data)
+                response=requests.post(MH_Model_URI+"/M/en-zh",json=json_data)
             return response.json()
         except requests.exceptions.RequestException as e:
             print("Failed to translate.")
@@ -143,7 +143,7 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             raise HTTPException(status_code=503,detail=e)
 
     elif model_name == "高速翻译模型":
-        json_data={"text":text}
+        json_data={"source_text":text}
         try:
             response=None
             if direction=="zh-en":
@@ -372,6 +372,7 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
     name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     try:
         translated = translate(request.source_text, request.source_lang, request.target_lang, request.model_name)
+        print(translated)
         translated_text=translated[name2request[request.model_name]]
         hisId=None
         if request.userId:
@@ -390,7 +391,6 @@ async def translate_text(request: TranslationRequest, db: cursors.Cursor = Depen
 #图片翻译
 @app.post("/translate/pic")
 async def read_pic(file:UploadFile=File(...)):
-    name2request = {"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     try:
         # 验证文件类型（仅允许图片）
         if not file.content_type.startswith("image/"):
