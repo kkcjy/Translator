@@ -109,6 +109,7 @@ class TranslationRequest(BaseModel):
     source_text: str
     source_lang: str = "zh"
     target_lang: str = "en"
+    category:str
     model_name: str
     userId:str | None
 
@@ -129,7 +130,7 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
     direction = source_lang + "-" + target_lang
     name2request={"DeepSeek-R1":"DeepSeek-R1","通义千问":"Qwen3","高精度翻译模型":"MH","高速翻译模型":"FLH"}
     if model_name == "高精度翻译模型":
-        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
+        json_data={"text":text,"direction":direction,"model":name2request[model_name]}
         try:
             if json_data["direction"]=="zh-en":
                 response=requests.post(MH_Model_URI+"/zh-en",json=json_data)
@@ -142,11 +143,12 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
             raise HTTPException(status_code=503,detail=e)
 
     elif model_name == "高速翻译模型":
-        json_data={"text":text,"direction":source_lang+'-'+target_lang,"model":name2request[model_name]}
+        json_data={"text":text}
         try:
-            if json_data["direction"]=="zh-en":
+            response=None
+            if direction=="zh-en":
                 response=requests.post(FLH_Model_URI+"/zh-en",json=json_data)
-            elif json_data["direction"]=="en-zh":
+            elif direction=="en-zh":
                 response=requests.post(FLH_Model_URI+"/en-zh",json=json_data)
             return response.json()
         except requests.exceptions.RequestException as e:
