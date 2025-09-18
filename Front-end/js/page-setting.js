@@ -170,6 +170,16 @@ function applySettings(settings) {
 
   // 翻译结果区域深色/浅色切换
   const resultsContent = document.getElementById('results-content');
+  // 新增：设置翻译结果区域的字体大小
+  if (resultsContent) {
+    resultsContent.style.fontSize = settings.fontSize;
+  }
+
+  // 新增：设置单句选中区域的字体大小
+  const sourceSentenceContainer = document.getElementById('source-sentence-container');
+  if (sourceSentenceContainer) {
+    sourceSentenceContainer.style.fontSize = settings.fontSize;
+  }
   const resultsTextareas = resultsContent ? resultsContent.querySelectorAll('textarea') : [];
   if (settings.bgMode === 'light') {
     if (resultsContent) {
