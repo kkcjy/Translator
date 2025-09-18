@@ -134,28 +134,55 @@ function toggleSentenceSelectMode() {
 
 function enterSentenceSelectMode() {
   const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
+
   // 隐藏原文本框
   sourceText.style.display = 'none';
   charCountContainer.style.display = 'none';
+
+  // 获取原始textarea的样式
+  const textareaStyle = window.getComputedStyle(sourceText);
+
   sourceSentenceContainer = document.createElement('div');
-  // 设置容器id
   sourceSentenceContainer.id = 'source-sentence-container';
-  // 创建句子容器
+  // 获取当前字体大小设置
+  const savedSettings = sessionStorage.getItem('appSettings');
+  const currentSettings = savedSettings ? JSON.parse(savedSettings) : { fontSize: '16px' };
+
+  // 设置句子容器的字体大小
+  sourceSentenceContainer.style.fontSize = currentSettings.fontSize;
+  // 复制原始textarea的样式
+  sourceSentenceContainer.style.width = textareaStyle.width;
+  sourceSentenceContainer.style.minHeight = textareaStyle.height;
+  sourceSentenceContainer.style.padding = textareaStyle.padding;
+  sourceSentenceContainer.style.fontSize = textareaStyle.fontSize;
+  sourceSentenceContainer.style.lineHeight = textareaStyle.lineHeight;
+  sourceSentenceContainer.style.fontFamily = textareaStyle.fontFamily;
+  sourceSentenceContainer.style.border = textareaStyle.border;
+  sourceSentenceContainer.style.borderRadius = textareaStyle.borderRadius;
+  sourceSentenceContainer.style.boxSizing = textareaStyle.boxSizing;
+
   if (mode === 'light') {
-    sourceSentenceContainer.className = 'p-3 bg-gray-50 rounded-lg min-h-[100px] border border-gray-200';
+    sourceSentenceContainer.style.backgroundColor = '#fff';
+    sourceSentenceContainer.style.color = textareaStyle.color;
   } else {
-    sourceSentenceContainer.className = 'p-3 rounded-lg min-h-[100px] bg-gray-900 text-white border-gray-700';
-    sourceSentenceContainer.style = "background-color: rgb(30, 41, 59); color: rgb(229, 231, 235); border-color: rgb(51, 65, 85);"
+    sourceSentenceContainer.style.backgroundColor = '#1e293b';
+    sourceSentenceContainer.style.color = '#e5e7eb';
+    sourceSentenceContainer.style.borderColor = '#334155';
   }
+
   const sourceTextContent = sourceText.value.trim();
   const splited = splitText(sourceTextContent);
   let fontedResult = "";
+
   for (let i = 0; i < splited.length; i++) {
     fontedResult += `<span class="hover">${splited[i]}</span>`;
   }
+
   sourceSentenceContainer.innerHTML = fontedResult;
+
   // 插入到原文本框位置
   sourceText.parentNode.insertBefore(sourceSentenceContainer, sourceText.nextSibling);
+
   // 添加句子点击事件
   setTimeout(() => {
     document.querySelectorAll('#source-sentence-container .hover').forEach(sentence => {
@@ -200,7 +227,7 @@ async function translateSelectedSentence() {
         source_text: sourceTextContent,
         source_lang: isChineseToEnglish ? "zh" : "en",
         target_lang: isChineseToEnglish ? "en" : "zh",
-        category:0,
+        category: 0,
         model_name: selectedModel,
         userId: sessionStorage.getItem("currentUserId")
       })
@@ -213,7 +240,9 @@ async function translateSelectedSentence() {
       // 为每个句子创建单独的span元素
       fontedResult += `<span class="hover">${splited[i]}</span>`;
     }
-
+    const savedSettings = sessionStorage.getItem('appSettings');
+    const currentSettings = savedSettings ? JSON.parse(savedSettings) : { fontSize: '16px' };
+    resultsContent.style.fontSize = currentSettings.fontSize;
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
         ${fontedResult}
@@ -245,7 +274,7 @@ async function translateSelectedSentence() {
 function speakSelectedSentence() {
   if (!currentSelectedSentence) return;
   const sentence = currentSelectedSentence.textContent;
-  speakText(sentence, isChineseToEnglish ? 'zh-CN' : 'en-US');
+  speakText(sentence);
   showNotification(`正在朗读选中的句子`);
 }
 
@@ -350,12 +379,12 @@ async function performTranslation() {
   translateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 翻译中...';
   let sourceTextContent = sourceText.value.trim();
   try {
-    let category=0;
+    let category = 0;
     // 如果有文件，优先使用文件
     if (selectedFiles.length > 0) {
       sourceTextContent = `[文件: ${selectedFiles[0].name}]`;
       if (selectedFiles[0].name.endsWith('.jpg') || selectedFiles[0].name.endsWith('.png') || selectedFiles[0].name.endsWith('.jpeg')) {
-        category=1;
+        category = 1;
         const formData = new FormData();
         formData.append("file", selectedFiles[0]);
         res = await fetch(`${API_URL}/translate/pic`, {
@@ -371,7 +400,7 @@ async function performTranslation() {
           }
         });
       } else if (selectedFiles[0].name.endsWith('.docx') || selectedFiles[0].name.endsWith('.pdf')) {
-        category=2;
+        category = 2;
         const formData = new FormData();
         formData.append("file", selectedFiles[0]);
         res = await fetch(`${API_URL}/translate/file`, {
@@ -388,7 +417,7 @@ async function performTranslation() {
         source_text: sourceTextContent,
         source_lang: isChineseToEnglish ? "zh" : "en",
         target_lang: isChineseToEnglish ? "en" : "zh",
-        category:category,
+        category: category,
         model_name: selectedModel,
         userId: sessionStorage.getItem("currentUserId")
       })
@@ -401,7 +430,9 @@ async function performTranslation() {
       // 为每个句子创建单独的span元素
       fontedResult += `<span class="hover">${splited[i]}</span>`;
     }
-
+    const savedSettings = sessionStorage.getItem('appSettings');
+    const currentSettings = savedSettings ? JSON.parse(savedSettings) : { fontSize: '16px' };
+    resultsContent.style.fontSize = currentSettings.fontSize;
     resultsContent.innerHTML = `
       <div class="p-3 bg-gray-50 rounded-lg min-h-[100px]">
         ${fontedResult}
