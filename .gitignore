@@ -1,6 +1,14 @@
 frpc.ini
 model/DeepSeek-R1
 model/Qwen3
+model/DotsOCR
+.idea
 model/MH
 model/FLH
 model/__pycache__
+model/model_best.pt
+model/vocab_en.pt
+model/vocab_zh.pt
+model/en_vocab.json
+model/translation_model_final.ckpt
+model/zh_vocab.json
