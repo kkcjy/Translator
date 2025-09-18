@@ -136,6 +136,8 @@ avatarUpload && avatarUpload.addEventListener('change', function () {
 fontSizeRange && fontSizeRange.addEventListener('input', function () {
   let val = this.value;
   fontSizeValue.textContent = val + 'px';
+  if (document.getElementById("source-sentence-container"))
+    document.getElementById("source-sentence-container").style.fontSize = val + 'px';
   tempSettings.fontSize = val + 'px';
   // 只预览所有输入和结果区域内的 textarea 字体大小
   document.querySelectorAll('.input-container textarea').forEach(area => {
@@ -174,7 +176,6 @@ function applySettings(settings) {
   if (resultsContent) {
     resultsContent.style.fontSize = settings.fontSize;
   }
-
   // 新增：设置单句选中区域的字体大小
   const sourceSentenceContainer = document.getElementById('source-sentence-container');
   if (sourceSentenceContainer) {
@@ -342,6 +343,9 @@ function applySettings(settings) {
       modalBox.classList.remove('bg-white', 'text-dark');
       modalBox.classList.add('bg-gray-900', 'text-white');
     }
+  }
+  if (typeof window.updateSentenceContainerTheme === 'function') {
+    window.updateSentenceContainerTheme();
   }
 }
 

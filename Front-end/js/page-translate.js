@@ -102,6 +102,34 @@ async function init() {
   updateTranslateButtonState();
   updateFeedbackState();
 }
+function updateSentenceContainerTheme() {
+  if (!sourceSentenceContainer) return;
+
+  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
+
+  if (mode === 'light') {
+    sourceSentenceContainer.style.backgroundColor = '#fff';
+    sourceSentenceContainer.style.color = '';
+    sourceSentenceContainer.style.borderColor = '';
+  } else {
+    sourceSentenceContainer.style.backgroundColor = '#1e293b';
+    sourceSentenceContainer.style.color = '#e5e7eb';
+    sourceSentenceContainer.style.borderColor = '#334155';
+  }
+}
+function applySentenceContainerTheme(container) {
+  const mode = (window.currentSettings && window.currentSettings.bgMode) || 'light';
+
+  if (mode === 'light') {
+    container.style.backgroundColor = '#fff';
+    container.style.color = '';
+    container.style.borderColor = '';
+  } else {
+    container.style.backgroundColor = '#1e293b';
+    container.style.color = '#e5e7eb';
+    container.style.borderColor = '#334155';
+  }
+}
 function handleDocumentClick(e) {
   // 点击非句子区域时隐藏工具栏
   if (!e.target.closest('.hover') && !e.target.closest('#sentence-toolbar')) {
@@ -160,7 +188,6 @@ function enterSentenceSelectMode() {
   sourceSentenceContainer.style.border = textareaStyle.border;
   sourceSentenceContainer.style.borderRadius = textareaStyle.borderRadius;
   sourceSentenceContainer.style.boxSizing = textareaStyle.boxSizing;
-
   if (mode === 'light') {
     sourceSentenceContainer.style.backgroundColor = '#fff';
     sourceSentenceContainer.style.color = textareaStyle.color;
@@ -169,7 +196,7 @@ function enterSentenceSelectMode() {
     sourceSentenceContainer.style.color = '#e5e7eb';
     sourceSentenceContainer.style.borderColor = '#334155';
   }
-
+  applySentenceContainerTheme(sourceSentenceContainer);
   const sourceTextContent = sourceText.value.trim();
   const splited = splitText(sourceTextContent);
   let fontedResult = "";
@@ -772,3 +799,4 @@ historyLink.addEventListener('click', function (event) {
 });
 
 document.addEventListener('DOMContentLoaded', init);
+window.updateSentenceContainerTheme = updateSentenceContainerTheme;
