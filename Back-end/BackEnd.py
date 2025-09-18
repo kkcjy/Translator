@@ -131,9 +131,10 @@ def translate(text: str, source_lang: str, target_lang: str, model_name: str) ->
     if model_name == "高精度翻译模型":
         json_data={"source_text":text}
         try:
-            if json_data["direction"]=="zh-en":
+            response=None
+            if direction=="zh-en":
                 response=requests.post(MH_Model_URI+"/M/zh-en",json=json_data)
-            elif json_data["direction"]=="en-zh":
+            elif direction=="en-zh":
                 response=requests.post(MH_Model_URI+"/M/en-zh",json=json_data)
             return response.json()
         except requests.exceptions.RequestException as e:
