@@ -1,7 +1,10 @@
 # 文枢翻译系统 (Wen Shu Translator)
 一个基于现代深度学习技术的多模态翻译系统，支持文本、图片和文档的精准翻译，提供专业级的中英互译服务。
 
-仓库连接：https://github.com/kkcjy/Translator
+## 链接地址
+仓库链接：https://github.com/kkcjy/Translator
+
+数据集链接：https://www.modelscope.cn/datasets/iic/WMT-Chinese-to-English-Machine-Translation-Training-Corpus
 
 ## 项目概述
 文枢翻译系统是一个集成了前沿AI翻译技术的全栈应用，由前端交互界面、高性能后端API和多种翻译模型组成。系统支持文本翻译、图片OCR识别翻译和文档翻译，为用户提供流畅的多语言翻译体验。
