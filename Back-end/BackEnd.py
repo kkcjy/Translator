@@ -28,9 +28,9 @@ ocr_processor = None
 
 # 配置FastAPI-Mail
 conf = ConnectionConfig(
-    MAIL_USERNAME="2790598460@qq.com",      # 替换为邮箱
-    MAIL_PASSWORD="stcgixwiimlxdejc",       # 替换为邮箱密码或应用专用密码
-    MAIL_FROM="2790598460@qq.com",          # 替换为邮箱
+    MAIL_USERNAME="**********@qq.com",      # 替换为邮箱
+    MAIL_PASSWORD="****************",       # 替换为邮箱密码或应用专用密码
+    MAIL_FROM="**********@qq.com",          # 替换为邮箱
     MAIL_PORT=465,
     MAIL_SERVER="smtp.qq.com",              # 替换为邮件服务器
     MAIL_STARTTLS=False,
